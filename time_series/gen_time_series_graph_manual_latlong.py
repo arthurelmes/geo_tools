@@ -20,7 +20,7 @@ smpl3:  65.979228, -154.049494
 smpl4:  65.920039, -154.040912 
 
 """
-import os, glob, sys, pyproj, csv, statistics
+import os, glob, sys, pyproj, csv, statistics, getopt
 from osgeo import gdal, osr
 import numpy as np
 import pandas as pd
@@ -28,22 +28,31 @@ import matplotlib.pyplot as plt
 from pyhdf.SD import SD, SDC
 from h5py import File
 
+# CLI args
+# argv = sys.argv[1:]
+# opts, args = getopt.getopt(argv, 's:d:')
+# for name, value in options:
+#     if name in ('-s', '--samples'):
+#         sites_file = value
+#     if name in ('-d', '--directoryin'):
+#         base_dir = value
+
 #years = [ "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019" ]
 
 #TODO all these global variables gotta go
 years = ["2018"]
 tile = "12v04"
 prdct = "MCD43A3"
-base_dir = "/muddy/data05/arthur.elmes/MCD43/hdf/"
-copy_srs_dir = os.path.join(base_dir, "copy_srs")
+base_dir = "/home/arthur/data/h12v04/time_series_test"
+#copy_srs_dir = os.path.join(base_dir, "copy_srs")
 sds_name_wsa_sw = "Albedo_WSA_shortwave"
 sds_name_bsa_sw = "Albedo_BSA_shortwave"
 sds_name_qa_sw = "BRDF_Albedo_Band_Mandatory_Quality_shortwave"
 
 sites_dict = {
-   "1" : [(42.9609762442872, -81.3596629348376), "h12v04"],
-   "2" : [(44.5689795941181, -73.7731623736408), "h12v04"],
-   "3" : [(41.428803003867, -67.7006269649778), "h12v04"],
+   "1": [(42.9609762442872, -81.3596629348376), "h12v04"],
+   "2": [(44.5689795941181, -73.7731623736408), "h12v04"],
+   "3": [(41.428803003867, -67.7006269649778), "h12v04"],
    "4" : [(43.9628686972571, -72.4183557028722), "h12v04"],
    "5" : [(41.5699273613238, -75.0789318654518), "h12v04"],
    "6" : [(47.4933272906822, -83.0820816479422), "h12v04"],
@@ -243,29 +252,6 @@ def convert_ll_vnp(lat, lon, tile, in_dir):
    col_m = int((smpl_x - x_origin_meta_m) / pixel_width_meta_m)
    row_m = int( -1 * (smpl_y - y_origin_meta_m) / pixel_height_meta_m)
    smp_rc = row_m, col_m
-   # print("Geotransform-based extents: ")
-   # print("pix height/width")
-   # print(pixel_height_meta_m)
-   # print(pixel_width_meta_m)
-   # print("x max")
-   # print(x_max_meta)
-   # print("x origin")
-   # print(x_origin_meta)
-   # print("y min")
-   # print(y_min_meta)
-   # print("y origin")
-   # print(y_origin_meta)
-   # print()
-   # print()
-   # print("Sample location in LL:")
-   # print(str(lon) + ", " + str(lat))
-   # print("Sample location in map units (meters from origin): ")
-   # print(str(smpl_x) + ", " + str(smpl_y))
-   # print()
-   # print()
-   # print("Metadata-based row/col:")
-   # print(smp_rc_meta)
-   # print("Geotransform-based row/col:")
    return smp_rc
 
 def convert_ll(lat, lon, tile, in_dir):
@@ -286,7 +272,7 @@ def convert_ll(lat, lon, tile, in_dir):
    # lat/long (0, 0), and has 2400 rows/cols per tile.
    # gdal does NOT read the corner coords correctly,
    # but they ARE stored correctly in the hdf metadata. Although slightly
-   # difft than reported by gdal...
+   # difft than reported by gdal, which is odd.
 
    # # Using pyproj to transform coords of interes to meters
    in_proj = pyproj.Proj(init='epsg:4326')
@@ -309,43 +295,16 @@ def convert_ll(lat, lon, tile, in_dir):
    # n_cols_meta = int(meta['DATACOLUMNS'])
    # pixel_height_meta_m = float(meta['CHARACTERISTICBINSIZE'])
    # pixel_width_meta_m = float(meta['CHARACTERISTICBINSIZE'])
-
-   # print("metadata bounding info: ")
-   # print(y_origin_meta)
-   # print(y_min_meta)
-   # print(x_max_meta)
-   # print(x_origin_meta)
-   # print(n_rows_meta)
-   # print(n_cols_meta)
-   # print(pixel_height_meta_m)
-   # print(pixel_width_meta_m)
    
    #TESTING these are conversions of the metadata extents to meters
    # x_origin_meta_m, y_origin_meta_m = pyproj.transform(in_proj, out_proj, x_origin_meta, y_origin_meta)
    # x_max_meta_m, y_min_meta_m= pyproj.transform(in_proj, out_proj, x_max_meta, y_min_meta)
-   # print("calculating pixel height/width with metadata info: ")
-   # print(str(x_max_meta_m) + " - " + str(x_origin_meta_m) + " / " + str(n_cols_meta))
-   # print(str(y_origin_meta_m) + " - " + str(y_min_meta_m) + " / " + str(n_rows_meta))
    # pixel_width_meta_m = (x_max_meta_m - x_origin_meta_m) / n_cols_meta
    # pixel_height_meta_m = (y_origin_meta_m - y_min_meta_m) / n_rows_meta
    # col_meta_m = int((smpl_x - x_origin_meta_m) / pixel_width_meta_m)
    # row_meta_m = int(-1 * (smpl_y - y_origin_meta_m) / pixel_height_meta_m)
    # smp_rc_meta = row_meta_m, col_meta_m
-   # print("Metadata-based extents in ll: ")
-   # print(x_max_meta)
-   # print(x_origin_meta)
-   # print(y_min_meta)
-   # print(y_origin_meta)
-   # print("Metadata-based extents in meters: ")
-   # print(pixel_height_meta_m)
-   # print(pixel_width_meta_m)
-   # print(x_max_meta_m)
-   # print(x_origin_meta_m)
-   # print(y_min_meta_m)
-   # print(y_origin_meta_m)
-   # print()
 
-   #UNCOMMENT BELOW FOR MCD
    # Getting bounding coords etc from gdal geotransform
    n_cols = template_h_band.RasterXSize
    n_rows = template_h_band.RasterYSize
@@ -364,24 +323,6 @@ def convert_ll(lat, lon, tile, in_dir):
    col_m = int((smpl_x - x_origin) / pixel_width_m)
    row_m = int( -1 * (smpl_y - y_origin) / pixel_height_m)
    smp_rc = row_m, col_m
-   # print("Geotransform-based extents: ")
-   # print(pixel_height_m)
-   # print(pixel_width_m)
-   # print(x_max)
-   # print(x_origin)
-   # print(y_min)
-   # print(y_origin)
-   # print()
-   # print()
-   # print("Sample location in LL:")
-   # print(str(lon) + ", " + str(lat))
-   # print("Sample location in map units (meters from origin): ")
-   # print(str(smpl_x) + ", " + str(smpl_y))
-   # print()
-   # print()
-   # print("Metadata-based row/col:")
-   # print(smp_rc)                
-   # print("Geotransform-based row/col:")
    return smp_rc
 
 def draw_plot():
@@ -402,8 +343,8 @@ def draw_plot():
 
 def main():
     for year in years:
-       # Make a blank pandas dataframe that results will be appended to?
-       
+        # Make a blank pandas dataframe that results will be appended to?
+        year_smpl_cmb_df = pd.DataFrame()
         for site in sites_dict.items():
             #print("Processing " + str(year) + " at site: " + site[0])
             in_dir = os.path.join(base_dir, prdct, year, site[1][1])
@@ -521,23 +462,24 @@ def main():
                        wsa_swir_mean.append(0.0)
                        bsa_swir_mean.append(0.0)
                     
-           wsa_smpl_results_df = pd.DataFrame(wsa_swir_mean)
-           bsa_smpl_results_df = pd.DataFrame(bsa_swir_mean)
-           doy_df = pd.DataFrame(doy_list)
-           cmb_smpl_results_df = pd.concat([doy_df, wsa_smpl_results_df, bsa_smpl_results_df], axis=1, ignore_index=True)
-           cmb_smpl_results_df.set_axis(['doy', 'wsa', 'bsa'], axis=1, inplace=True)
-           
+            wsa_smpl_results_df = pd.DataFrame(wsa_swir_mean)
+            bsa_smpl_results_df = pd.DataFrame(bsa_swir_mean)
+            doy_df = pd.DataFrame(doy_list)
+            cmb_smpl_results_df = pd.concat([doy_df, wsa_smpl_results_df, bsa_smpl_results_df], axis=1, ignore_index=True)
+            cmb_smpl_results_df.set_axis(['doy', str(site[0]) +'_wsa', str(site[0]) + '_bsa'], axis=1, inplace=True)
 
-           
-        # Do plotting and save output
+            # Append the site's results to the existing yearly dataframe, initiated above
+            year_smpl_cmb_df = pd.concat([year_smpl_cmb_df, cmb_smpl_results_df], axis=1)
+
+        # Do plotting and save output PER YEAR (individual csv per year)
         #print(*doys)
         #print(*wsa_swir_mean)
-        series_name = location + "_" + str(year)
+        series_name = str(year) #location + "_" + str(year)
         os.chdir(fig_dir)
         csv_name = str(series_name + "_" + prdct + ".csv")
         print("writing csv: " + csv_name)
         # export data to csv
-        cmb_smpl_results_df.to_csv(csv_name, index=False)
+        year_smpl_cmb_df.to_csv(csv_name, index=False)
         # with open(csv_name, "w") as export_file:
         #     wr = csv.writer(export_file, dialect='excel', lineterminator='\n')
         #     for index, row in cmb_smpl_results_df.iterrows():
