@@ -402,6 +402,8 @@ def draw_plot():
 
 def main():
     for year in years:
+       # Make a blank pandas dataframe that results will be appended to?
+       
         for site in sites_dict.items():
             #print("Processing " + str(year) + " at site: " + site[0])
             in_dir = os.path.join(base_dir, prdct, year, site[1][1])
@@ -504,9 +506,6 @@ def main():
                     wsa_swir_subset_flt = np.multiply(wsa_swir_subset, 0.001)
                     bsa_swir_subset = bsa_swir_masked_qa[smp_rc]
                     bsa_swir_subset_flt = np.multiply(bsa_swir_subset, 0.001)
-                    #print("Queried pixel value is: " + str(wsa_swir_subset))
-                    # print("For date: ")
-                    # print(str(year) + str(day))
                     # Add each point to the temporary list
                     wsa_smpl_results.append(wsa_swir_subset_flt)
                     bsa_smpl_results.append(bsa_swir_subset_flt)
@@ -522,15 +521,14 @@ def main():
                        wsa_swir_mean.append(0.0)
                        bsa_swir_mean.append(0.0)
                     
-        wsa_smpl_results_df = pd.DataFrame(wsa_swir_mean)
-        bsa_smpl_results_df = pd.DataFrame(bsa_swir_mean)
-        doy_df = pd.DataFrame(doy_list)
-        cmb_smpl_results_df = pd.concat([doy_df, wsa_smpl_results_df, bsa_smpl_results_df], axis=1, ignore_index=True)
-        print("wsa results below:")
-        print(wsa_swir_mean)
-        print("Combined DF below")
-        cmb_smpl_results_df.set_axis(['doy', 'wsa', 'bsa'], axis=1, inplace=True)
-        print(cmb_smpl_results_df.to_string())
+           wsa_smpl_results_df = pd.DataFrame(wsa_swir_mean)
+           bsa_smpl_results_df = pd.DataFrame(bsa_swir_mean)
+           doy_df = pd.DataFrame(doy_list)
+           cmb_smpl_results_df = pd.concat([doy_df, wsa_smpl_results_df, bsa_smpl_results_df], axis=1, ignore_index=True)
+           cmb_smpl_results_df.set_axis(['doy', 'wsa', 'bsa'], axis=1, inplace=True)
+           
+
+           
         # Do plotting and save output
         #print(*doys)
         #print(*wsa_swir_mean)
