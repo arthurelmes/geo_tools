@@ -45,7 +45,7 @@ def set_global_atts(nc):
     with Dataset(nc, "r+") as rootgrp:
 
         # Create/set global attributes
-        rootgrp.description = "Partitioning of MODIS MCD12Q1 V006 L3 IGBP and PFT land cover" \
+        rootgrp.description = "Partitioning of MODIS MCD12Q1 V006 L3 IGBP and PFT land cover " \
                               "for the Ent Global Vegetation Structure Dataset, in geographic" \
                               "coordinates for a Climate Modeling Grid (CMG)."
         rootgrp.creator="Qingsong Sun, Arthur Elmes, Crystal Schaaf, Nancy Y. Kiang"

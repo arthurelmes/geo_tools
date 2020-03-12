@@ -13,8 +13,8 @@ out_dir=$2
 #TODO fix this so the single (or double?) quotes are actually stored in the string variable
 srs_str='PROJCS["unnamed", GEOGCS["Unknown datum based upon the custom spheroid", DATUM["Not specified (based on custom spheroid)", SPHEROID["Custom spheroid",6371007.181,0]], PRIMEM["Greenwich",0], UNIT["degree",0.0174532925199433]], PROJECTION["Sinusoidal"], PARAMETER["longitude_of_center",0], PARAMETER["false_easting",0], PARAMETER["false_northing",0],UNIT["Meter",1]]'
 
-ul_coord='-2223901.0393329998478293 7783653.6376670002937317'
-lr_coord='-1111950.5196670000441372 6671703.1179999997839332'
+ul_coord='-6671703.1179999997839332 5559752.5983330002054572'
+lr_coord='-5559752.5983330002054572 4447802.0786669999361038'
 
 if [ ! -d ${out_dir} ]; then
     mkdir ${out_dir}
