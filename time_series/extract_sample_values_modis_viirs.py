@@ -2,22 +2,6 @@
 Created on Wed Sep 19 10:04:10 2018
 @author: aelmes
 
-Taiga,AK,Delta Junction - DEJU,63.88112,-145.75136,Relocatable Terrestrial,Bureau of Land Management,Complete,Partially Available,h11v02
-Taiga,AK,Caribou-Poker Creeks Research Watershed - BONA,65.15401,-147.50258,Core Terrestrial,University of Alaska,Complete,Partially Available,h11v02
-Tundra,AK,Barrow Environmental Observatory - BARR,71.28241,-156.61936,Relocatable Terrestrial,Barrow Environmental Observatory,Complete,Partially Available,h12v01
-Tundra,AK,Toolik - TOOL,68.66109,-149.37047,Core Terrestrial,Bureau of Land Management,Complete,Partially Available,h12v02
-Taiga,AK,Healy - HEAL,63.87569,-149.21334,Relocatable Terrestrial,Alaska Department of Natural Resources,h11v02
-
-Anaktuvuk River Fire: year 2007, 
-smple1: 69.120186, -150.60678
-
-Rock Fire: year 2015, 
-orig_smpl: 66.012754 -154.162100
-
-smpl1:  66.020665, -154.133065 
-smpl2:  66.187050, -153.932029
-smpl3:  65.979228, -154.049494  
-smpl4:  65.920039, -154.040912 
 
 """
 import os, glob, sys, pyproj, csv, statistics, getopt
