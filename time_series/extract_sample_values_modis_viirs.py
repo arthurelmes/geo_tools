@@ -25,7 +25,7 @@ from h5py import File
 #TODO all these global variables gotta go
 years = ["2018"]
 tile = "12v04"
-prdct = "MCD43A3"
+prdct = "VNP43MA3"
 base_dir = "/home/arthur/data/h12v04/time_series_test"
 #copy_srs_dir = os.path.join(base_dir, "copy_srs")
 sds_name_wsa_sw = "Albedo_WSA_shortwave"
