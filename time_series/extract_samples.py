@@ -25,23 +25,23 @@ from datetime import datetime
 
 #TODO all these global variables gotta go
 years = ["2018"]
-tile = "041036"
+tile = "h12v04"
 
 #Note: I have chosen to call the landsat product LC08, rather than LC8, due to the file naming convention
 #of the inputs specific to the albedo code. LC8 is also used in different Landsat data products, annoyingly.
-prdct = "LC08"
+prdct = "VNP43MA3"
 base_dir = "/media/arthur/Media3/temp_data"
 
 #TODO this 'copy_srs_dir' location is here because currently VNP43 has broken spatial reference
 #TODO information. Check V002 and remove this if it has been fixed, as this is ludicrously clunky.
-#copy_srs_dir = os.path.join(base_dir, "copy_srs")
+copy_srs_dir = os.path.join(base_dir, "copy_srs")
 sds_name_wsa_sw = "Albedo_WSA_shortwave"
 sds_name_bsa_sw = "Albedo_BSA_shortwave"
 
-# Note: the LC08
-#sds_name_qa_sw = "BRDF_Albedo_Band_Mandatory_Quality_shortwave"
-sds_name_qa_sw = "Albedo_Band_Quality_shortwave"
-sites_csv_input = os.path.join(base_dir, "painted_roads_pixel_centroids.csv")
+# Note: the LC08 hdfs have a differently named qa sds. yaay.
+sds_name_qa_sw = "BRDF_Albedo_Band_Mandatory_Quality_shortwave"
+#sds_name_qa_sw = "Albedo_Band_Quality_shortwave"
+sites_csv_input = os.path.join(base_dir, "h12v04_100_random.csv")
 sites_dict = {}
 
 with open(sites_csv_input, mode='r') as sites_csv:
@@ -255,23 +255,8 @@ def extract_pixel_value(in_dir, site, prdct, h_file_day):
     bsa_swir_subset = bsa_swir_masked_qa[smp_rc]
     bsa_swir_subset_flt = np.multiply(bsa_swir_subset, 0.001)
 
-    return wsa_swir_subset_flt
-
-    # # Add each point to a temporary list
-    # wsa_smpl_results = []
-    # bsa_smpl_results = []
-    # wsa_smpl_results.append(wsa_swir_subset_flt)
-    # bsa_smpl_results.append(bsa_swir_subset_flt)
-    # # TODO this try is not really needed, but it doesn't hurt to leave it in case
-    # # I want to incorporate the multiple-points-per-sample idea
-    # try:
-    #     wsa_tmp_mean = statistics.mean(wsa_smpl_results)
-    #     wsa_swir_mean.append(wsa_tmp_mean)
-    #     bsa_tmp_mean = statistics.mean(bsa_smpl_results)
-    #     bsa_swir_mean.append(bsa_tmp_mean)
-    # except:
-    #     wsa_swir_mean.append(np.nan)
-    #     bsa_swir_mean.append(np.nan)
+    # Return a tuple of numpy arrays for wsa and bsa (and probably also qa?)
+    return wsa_swir_subset_flt, bsa_swir_subset_flt
 
 def draw_plot(year, year_smpl_cmb_df, fig_dir):
     plt.ion()
@@ -286,7 +271,7 @@ def draw_plot(year, year_smpl_cmb_df, fig_dir):
     plt.ylim(0.0, 1.0)
     ax = plt.gca()
     #year_smpl_cmb_df.columns = ['doy', 'wsa', 'bsa']
-    print(year_smpl_cmb_df)
+    #print(year_smpl_cmb_df)
     year_smpl_cmb_df.plot(kind='line', x='doy', y='1_wsa', ax=ax)
     #ax.plot(doys, wsa_swir_mean)
     plt_name = str(year + '_test')
@@ -345,10 +330,10 @@ def main():
                 # Add each point to a temporary list
                 wsa_smpl_results = []
                 bsa_smpl_results = []
-                wsa_smpl_results.append(wsa_swir_subset_flt)
-                bsa_smpl_results.append(bsa_swir_subset_flt)
-                #TODO this try is not really needed, but it doesn't hurt to leave it in case
-                # I want to incorporate the multiple-points-per-sample idea
+                wsa_smpl_results.append(pixel_values[0])
+                bsa_smpl_results.append(pixel_values[1])
+                #TODO this is currently silly, but ultimately will be replaced by an averaging
+                #TODO function for points of the same sample area
                 try:
                     wsa_tmp_mean = statistics.mean(wsa_smpl_results)
                     wsa_swir_mean.append(wsa_tmp_mean)
