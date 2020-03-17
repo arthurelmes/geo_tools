@@ -4,7 +4,8 @@ Created on Wed Sep 19 10:04:10 2018
 
 
 """
-import os, glob, sys, pyproj, csv, statistics, getopt
+import os, glob, sys, pyproj, csv, statistics
+from argparse import ArgumentParser
 from osgeo import gdal, osr
 import numpy as np
 import pandas as pd
@@ -12,43 +13,6 @@ import matplotlib.pyplot as plt
 from pyhdf.SD import SD, SDC
 from h5py import File
 from datetime import datetime
-
-# CLI args
-# argv = sys.argv[1:]
-# opts, args = getopt.getopt(argv, 's:d:')
-# for name, value in options:
-#     if name in ('-s', '--samples'):
-#         sites_file = value
-#     if name in ('-d', '--directoryin'):
-#         base_dir = value
-
-
-#TODO all these global variables gotta go
-years = ["2018"]
-tile = "h12v04"
-
-#Note: I have chosen to call the landsat product LC08, rather than LC8, due to the file naming convention
-#of the inputs specific to the albedo code. LC8 is also used in different Landsat data products, annoyingly.
-prdct = "VNP43MA3"
-base_dir = "/media/arthur/Media3/temp_data"
-
-#TODO this 'copy_srs_dir' location is here because currently VNP43 has broken spatial reference
-#TODO information. Check V002 and remove this if it has been fixed, as this is ludicrously clunky.
-copy_srs_dir = os.path.join(base_dir, "copy_srs")
-sds_name_wsa_sw = "Albedo_WSA_shortwave"
-sds_name_bsa_sw = "Albedo_BSA_shortwave"
-
-# Note: the LC08 hdfs have a differently named qa sds. yaay.
-sds_name_qa_sw = "BRDF_Albedo_Band_Mandatory_Quality_shortwave"
-#sds_name_qa_sw = "Albedo_Band_Quality_shortwave"
-sites_csv_input = os.path.join(base_dir, "h12v04_100_random.csv")
-sites_dict = {}
-
-with open(sites_csv_input, mode='r') as sites_csv:
-    reader = csv.reader(sites_csv)
-    for row in reader:
-        key = row[0]
-        sites_dict[key] = row[1:]
 
 
 def hdf_to_np(hdf_fname, sds):
@@ -287,6 +251,44 @@ def draw_plot(year, year_smpl_cmb_df, fig_dir):
 
 
 def main():
+    # CLI args
+    parser = ArgumentParser()
+    parser.add_argument("-y", "--years", dest="years", help="Years to extract data for.", metavar="YEARS")
+    parser.add_argument("-t", "--tile", dest="tile", help="Tile the sample points are in.", metavar="TILE")
+    parser.add_argument("-d", "--input-dir", dest="base_dir",
+                        help="Base directory containing sample and imagery data",
+                        metavar="IN_DIR")
+    parser.add_argument("-s", "--sites", dest="sites_csv_fname", help="CSV with no headings containing smpls",
+                        metavar="SITES")
+    parser.add_argument("-p", "--product", dest="prdct", help="Imagery product to be input, e.g. LC08, MCD43A3.",
+                        metavar="PRODUCT")
+    args = parser.parse_args()
+
+    # Note: I have chosen to call the landsat product LC08, rather than LC8, due to the file naming convention
+    # of the inputs specific to the albedo code. LC8 is also used in different Landsat data products, annoyingly.
+    prdct = args.prdct
+    base_dir = args.base_dir
+    tile = args.tile
+    years = []
+    years.append(args.years)
+    sites_csv_input = os.path.join(base_dir, args.sites_csv_fname)
+    sites_dict = {}
+    with open(sites_csv_input, mode='r') as sites_csv:
+        reader = csv.reader(sites_csv)
+        for row in reader:
+            key = row[0]
+            sites_dict[key] = row[1:]
+
+    # TODO this 'copy_srs_dir' location is here because currently VNP43 has broken spatial reference
+    # TODO information. Check V002 and remove this if it has been fixed, as this is ludicrously clunky.
+    copy_srs_dir = os.path.join(base_dir, "copy_srs")
+    sds_name_wsa_sw = "Albedo_WSA_shortwave"
+    sds_name_bsa_sw = "Albedo_BSA_shortwave"
+    # Note: the LC08 hdfs have a differently named qa sds. yaay.
+    sds_name_qa_sw = "BRDF_Albedo_Band_Mandatory_Quality_shortwave"
+    # sds_name_qa_sw = "Albedo_Band_Quality_shortwave"
+
+    # Loop through the years provided, and extract the pixel values at the provided coordinates. Outputs CSV and figs.
     for year in years:
         # Make a blank pandas dataframe that results will be appended to,
         # and start it off with all possible doys (366)
