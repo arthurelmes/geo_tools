@@ -194,6 +194,27 @@ def convert_ll(lat, lon, tile, in_dir):
     smp_rc = row_m, col_m
     return smp_rc
 
+def make_prod_list(in_dir, prdct, year, day):
+    if "MCD" in prdct or "VNP" in prdct:
+        h_file_list = glob.glob(os.path.join(in_dir,
+                                             '{prdct}.A{year}{day:03d}*.h*'.format(prdct=prdct,
+                                                                                   day=day, year=year)))
+    elif "LC08" in prdct:
+        dt_string = str(year) + "-" + str(day)
+        date_complete = datetime.strptime(dt_string, "%Y-%j")
+        mm = date_complete.strftime("%m")
+        dd = date_complete.strftime("%d")
+        h_file_list = glob.glob(os.path.join(in_dir, '{prdct}*{tile}_{year}{month}{day}_*.h*'.format(prdct=prdct,
+                                                                                                     tile=tile,
+                                                                                                     month=mm,
+                                                                                                     day=dd,
+                                                                                                     year=year)))
+    else:
+        print("Product type unknown! Please check that input is MCD, VNP, or LC08.")
+        sys.exit()
+
+    return h_file_list
+
 def draw_plot():
     plt.ion()
     # fig = plt.figure()
@@ -220,7 +241,6 @@ def main():
         year_smpl_cmb_df = pd.DataFrame(doy_list, columns=['doy'])
         # Loop through each site and extract the pixel values
         for site in sites_dict.items():
-            print(site)
             in_dir = os.path.join(base_dir, prdct, year, site[1][2])
             fig_dir = os.path.join(base_dir, 'figs')
             if not os.path.isdir(fig_dir):
@@ -234,43 +254,29 @@ def main():
             location = str(site[0])
             print("Processing site: " + str(site))
             lat_long = (site[1][0][0], site[1][0][1])
-            #print(lat_long)
-            
+
             # Create empty arrays for mean, sd
             wsa_swir_mean = []
             wsa_swir_sd = []
             bsa_swir_mean = []
             bsa_swir_sd = []
-
             for day in doy_list:
                 # Open the shortwave white sky albedo band.
                 # The list approach is because of the processing date part of the file
                 # name, which necessitates the wildcard -- this was just the easiest way.
-                if "MCD" in prdct or "VNP" in prdct:
-                    h_file_list = glob.glob(os.path.join(in_dir,
-                                                         '{prdct}.A{year}{day:03d}*.h*'.format(prdct=prdct,
-                                                                                               day=day, year=year)))
-                elif "LC08" in prdct:
-                    dt_string = str(year) + "-" + str(day)
-                    date_complete = datetime.strptime(dt_string, "%Y-%j")
-                    mm = date_complete.strftime("%m")
-                    dd = date_complete.strftime("%d")
-                    h_file_list = glob.glob(os.path.join(in_dir, '{prdct}*_{year}{month}{day}_*.h*'.format(prdct=prdct,
-                                                                                month=mm,
-                                                                                day=dd, year=year)))
-                    print(h_file_list)
-
+                h_file_list = make_prod_list(in_dir, prdct, year, day)
+                file_name = "{prdct}.A{year}{day:03d}*.h*".format(prdct=prdct, day=day, year=year)
                 # See if there is a raster for the date, if not use a fill value for the graph
                 if len(h_file_list) == 0: # or len(bsa_tif_list) == 0 or len(qa_tif_list) == 0:
-                    print('File not found: {prdct}.A{year}{day:03d}*.h*'.format(prdct=prdct,
-                                                                                day=day, year=year))
+                    #print('File not found: ' + file_name)
                     wsa_swir_subset_flt = float('nan')
                     bsa_swir_subset_flt = float('nan')
                 elif len(h_file_list) > 1:
                     print('Multiple matching files found for same date!')
                     sys.exit()
                 else:
-                    print('Found file: ' + ' {prdct}.A{year}{day:03d}*.h*'.format(prdct=prdct, day=day, year=year))
+                    #print('Found file: ' + file_name)
+                    #
                     h_file_day = h_file_list[0]
                     # bsa_tif = bsa_tif_list[0]
                     # qa_tif = qa_tif_list[0]
@@ -282,13 +288,8 @@ def main():
                        wsa_band = h5_to_np(h_file_day, sds_name_wsa_sw)
                        bsa_band = h5_to_np(h_file_day, sds_name_bsa_sw)
                        qa_band = h5_to_np(h_file_day, sds_name_qa_sw)
-                    elif "MCD" in prdct:
+                    elif "MCD" in prdct or "LC08" in prdct:
                        #print("Found MODIS product.")
-                       wsa_band = hdf_to_np(h_file_day, sds_name_wsa_sw)
-                       bsa_band = hdf_to_np(h_file_day, sds_name_bsa_sw)
-                       qa_band = hdf_to_np(h_file_day, sds_name_qa_sw)
-                    elif "LC08" in prdct:
-                       #print("Found Landsat-8 product.")
                        wsa_band = hdf_to_np(h_file_day, sds_name_wsa_sw)
                        bsa_band = hdf_to_np(h_file_day, sds_name_bsa_sw)
                        qa_band = hdf_to_np(h_file_day, sds_name_qa_sw)
@@ -302,14 +303,7 @@ def main():
                     bsa_swir_masked = np.ma.masked_array(bsa_band, bsa_band == 32767)
                     bsa_swir_masked_qa = np.ma.masked_array(bsa_swir_masked, qa_band > 1)
 
-                    # Spatial subset based on coordinates of interest.
-                    wsa_smpl_results = []
-                    bsa_smpl_results = []
-                       
-                    #TODO this used to be an additional loop that would average the values over
-                    #several locations to get one mean value, rather than get the value of a given
-                    #tower's pixel. Maybe modifiy to average within a bounding box or something?
-                    #for smpl in sites_dict.values():
+                    # Extract pixel value from product by converting lat/lon to row/col
                     if "VNP" in prdct:
                         smp_rc = convert_ll_vnp(site[1][0], site[1][1], site[1][2], in_dir)
                     elif "MCD" in prdct:
@@ -320,25 +314,28 @@ def main():
                        print("Unknown product! This only works for MCD, VNP, or LC8/LC08 hdf or h5 files!")
                        sys.exit()
 
+                    # Take just the sampled location's value, and scale to float
                     wsa_swir_subset = wsa_swir_masked_qa[smp_rc]
                     wsa_swir_subset_flt = np.multiply(wsa_swir_subset, 0.001)
                     bsa_swir_subset = bsa_swir_masked_qa[smp_rc]
                     bsa_swir_subset_flt = np.multiply(bsa_swir_subset, 0.001)
 
-                    # Add each point to the temporary list
-                    wsa_smpl_results.append(wsa_swir_subset_flt)
-                    bsa_smpl_results.append(bsa_swir_subset_flt)
-                    #TODO this try is not really needed, but it doesn't hurt to leave it in case
-                    # I want to incorporate the multiple-points-per-sample idea
-                    try:
-                       wsa_tmp_mean = statistics.mean(wsa_smpl_results)
-                       bsa_tmp_mean = statistics.mean(bsa_smpl_results)
-                       wsa_swir_mean.append(wsa_tmp_mean)
-                       bsa_swir_mean.append(bsa_tmp_mean)
-                    except:
-                       wsa_swir_mean.append(np.nan)
-                       bsa_swir_mean.append(np.nan)
-                    
+                # Add each point to a temporary list
+                wsa_smpl_results = []
+                bsa_smpl_results = []
+                wsa_smpl_results.append(wsa_swir_subset_flt)
+                bsa_smpl_results.append(bsa_swir_subset_flt)
+                #TODO this try is not really needed, but it doesn't hurt to leave it in case
+                # I want to incorporate the multiple-points-per-sample idea
+                try:
+                    wsa_tmp_mean = statistics.mean(wsa_smpl_results)
+                    wsa_swir_mean.append(wsa_tmp_mean)
+                    bsa_tmp_mean = statistics.mean(bsa_smpl_results)
+                    bsa_swir_mean.append(bsa_tmp_mean)
+                except:
+                    wsa_swir_mean.append(np.nan)
+                    bsa_swir_mean.append(np.nan)
+
             wsa_smpl_results_df = pd.DataFrame(wsa_swir_mean)
             bsa_smpl_results_df = pd.DataFrame(bsa_swir_mean)
             cmb_smpl_results_df = pd.concat([wsa_smpl_results_df, bsa_smpl_results_df], axis=1, ignore_index=True)
