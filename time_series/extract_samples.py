@@ -273,7 +273,7 @@ def extract_pixel_value(in_dir, site, prdct, h_file_day):
     #     wsa_swir_mean.append(np.nan)
     #     bsa_swir_mean.append(np.nan)
 
-def draw_plot(year, year_smpl_cmb_df):
+def draw_plot(year, year_smpl_cmb_df, fig_dir):
     plt.ion()
     fig = plt.figure()
     fig.suptitle('Test Plot')
@@ -288,12 +288,10 @@ def draw_plot(year, year_smpl_cmb_df):
     #year_smpl_cmb_df.columns = ['doy', 'wsa', 'bsa']
     print(year_smpl_cmb_df)
     year_smpl_cmb_df.plot(kind='line', x='doy', y='1_wsa', ax=ax)
-    plt.show()
-    sys.exit()
-    ax.plot(doys, wsa_swir_mean)
-    plt_name = str(year + '_' + series_name.replace(" ", ""))
-    print('Saving plot to: ' + '{plt_name}.png'.format(plt_name=plt_name))
-    plt.savefig('{plt_name}.png'.format(plt_name=plt_name))
+    #ax.plot(doys, wsa_swir_mean)
+    plt_name = str(year + '_test')
+    print('Saving plot to: ' + '{fig_dir}{plt_name}.png'.format(fig_dir=fig_dir, plt_name=plt_name))
+    plt.savefig('{fig_dir}{plt_name}.png'.format(fig_dir=fig_dir, plt_name=plt_name))
 
 def main():
     for year in years:
@@ -369,7 +367,7 @@ def main():
             year_smpl_cmb_df = pd.concat([year_smpl_cmb_df, cmb_smpl_results_df], axis=1)
 
             # Do plotting and save output PER YEAR (individual csv per year)
-            draw_plot(year, year_smpl_cmb_df)
+            draw_plot(year, year_smpl_cmb_df, fig_dir)
 
 
         # Export data to csv
