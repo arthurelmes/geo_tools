@@ -215,21 +215,85 @@ def make_prod_list(in_dir, prdct, year, day):
 
     return h_file_list
 
-def draw_plot():
+def extract_pixel_value(in_dir, site, prdct, h_file_day):
+    # Open tifs as gdal ds
+    # print("Opening: " + h_file_day + " " + sds_name_wsa_sw)
+    if "VNP" in prdct:
+        # print("Found VIIRS product.")
+        wsa_band = h5_to_np(h_file_day, sds_name_wsa_sw)
+        bsa_band = h5_to_np(h_file_day, sds_name_bsa_sw)
+        qa_band = h5_to_np(h_file_day, sds_name_qa_sw)
+    elif "MCD" in prdct or "LC08" in prdct:
+        # print("Found MODIS product.")
+        wsa_band = hdf_to_np(h_file_day, sds_name_wsa_sw)
+        bsa_band = hdf_to_np(h_file_day, sds_name_bsa_sw)
+        qa_band = hdf_to_np(h_file_day, sds_name_qa_sw)
+    else:
+        print("Unknown product! This only works for MCD, VNP, or LC8/LC08 hdf or h5 files!")
+        sys.exit()
+
+    # Mask out nodata values
+    wsa_swir_masked = np.ma.masked_array(wsa_band, wsa_band == 32767)
+    wsa_swir_masked_qa = np.ma.masked_array(wsa_swir_masked, qa_band > 1)
+    bsa_swir_masked = np.ma.masked_array(bsa_band, bsa_band == 32767)
+    bsa_swir_masked_qa = np.ma.masked_array(bsa_swir_masked, qa_band > 1)
+
+    # Extract pixel value from product by converting lat/lon to row/col
+    if "VNP" in prdct:
+        smp_rc = convert_ll_vnp(site[1][0], site[1][1], site[1][2], in_dir)
+    elif "MCD" in prdct:
+        smp_rc = convert_ll(site[1][0], site[1][1], site[1][2], in_dir)
+    elif "LC08" in prdct:
+        smp_rc = convert_ll(site[1][0], site[1][1], site[1][2], in_dir)
+    else:
+        print("Unknown product! This only works for MCD, VNP, or LC8/LC08 hdf or h5 files!")
+        sys.exit()
+
+    # Take just the sampled location's value, and scale to float
+    wsa_swir_subset = wsa_swir_masked_qa[smp_rc]
+    wsa_swir_subset_flt = np.multiply(wsa_swir_subset, 0.001)
+    bsa_swir_subset = bsa_swir_masked_qa[smp_rc]
+    bsa_swir_subset_flt = np.multiply(bsa_swir_subset, 0.001)
+
+    return wsa_swir_subset_flt
+
+    # # Add each point to a temporary list
+    # wsa_smpl_results = []
+    # bsa_smpl_results = []
+    # wsa_smpl_results.append(wsa_swir_subset_flt)
+    # bsa_smpl_results.append(bsa_swir_subset_flt)
+    # # TODO this try is not really needed, but it doesn't hurt to leave it in case
+    # # I want to incorporate the multiple-points-per-sample idea
+    # try:
+    #     wsa_tmp_mean = statistics.mean(wsa_smpl_results)
+    #     wsa_swir_mean.append(wsa_tmp_mean)
+    #     bsa_tmp_mean = statistics.mean(bsa_smpl_results)
+    #     bsa_swir_mean.append(bsa_tmp_mean)
+    # except:
+    #     wsa_swir_mean.append(np.nan)
+    #     bsa_swir_mean.append(np.nan)
+
+def draw_plot(year, year_smpl_cmb_df):
     plt.ion()
-    # fig = plt.figure()
-    # fig.suptitle('ABoVE Domain Albedo Time Series')
-    # ax = fig.add_subplot(111)
-    # fig.subplots_adjust(top=0.85)
-    # ax.set_title(series_name)
-    # ax.set_xlabel('DOY')
-    # ax.set_ylabel('White Sky Albedo')
-    # plt.xlim(0, 365)
-    # plt.ylim(0.0, 1.0)
-    # ax.plot(doys, wsa_swir_mean)
-    # plt_name = str(year + '_' + series_name.replace(" ", ""))
-    # print('Saving plot to: ' + '{plt_name}.png'.format(plt_name=plt_name))
-    # plt.savefig('{plt_name}.png'.format(plt_name=plt_name))
+    fig = plt.figure()
+    fig.suptitle('Test Plot')
+    ax = fig.add_subplot(111)
+    fig.subplots_adjust(top=0.85)
+    ax.set_title(str(year))
+    ax.set_xlabel('DOY')
+    ax.set_ylabel('White Sky Albedo')
+    plt.xlim(0, 365)
+    plt.ylim(0.0, 1.0)
+    ax = plt.gca()
+    #year_smpl_cmb_df.columns = ['doy', 'wsa', 'bsa']
+    print(year_smpl_cmb_df)
+    year_smpl_cmb_df.plot(kind='line', x='doy', y='1_wsa', ax=ax)
+    plt.show()
+    sys.exit()
+    ax.plot(doys, wsa_swir_mean)
+    plt_name = str(year + '_' + series_name.replace(" ", ""))
+    print('Saving plot to: ' + '{plt_name}.png'.format(plt_name=plt_name))
+    plt.savefig('{plt_name}.png'.format(plt_name=plt_name))
 
 def main():
     for year in years:
@@ -272,53 +336,13 @@ def main():
                     wsa_swir_subset_flt = float('nan')
                     bsa_swir_subset_flt = float('nan')
                 elif len(h_file_list) > 1:
-                    print('Multiple matching files found for same date!')
+                    print('Multiple matching files found for same date! Please remove one.')
                     sys.exit()
                 else:
                     #print('Found file: ' + file_name)
-                    #
                     h_file_day = h_file_list[0]
-                    # bsa_tif = bsa_tif_list[0]
-                    # qa_tif = qa_tif_list[0]
-
-                    # Open tifs as gdal ds
-                    #print("Opening: " + h_file_day + " " + sds_name_wsa_sw)
-                    if "VNP" in prdct:
-                       #print("Found VIIRS product.")
-                       wsa_band = h5_to_np(h_file_day, sds_name_wsa_sw)
-                       bsa_band = h5_to_np(h_file_day, sds_name_bsa_sw)
-                       qa_band = h5_to_np(h_file_day, sds_name_qa_sw)
-                    elif "MCD" in prdct or "LC08" in prdct:
-                       #print("Found MODIS product.")
-                       wsa_band = hdf_to_np(h_file_day, sds_name_wsa_sw)
-                       bsa_band = hdf_to_np(h_file_day, sds_name_bsa_sw)
-                       qa_band = hdf_to_np(h_file_day, sds_name_qa_sw)
-                    else:
-                       print("Unknown product! This only works for MCD, VNP, or LC8/LC08 hdf or h5 files!")
-                       sys.exit()
-                       
-                    # Mask out nodata values
-                    wsa_swir_masked = np.ma.masked_array(wsa_band, wsa_band == 32767)
-                    wsa_swir_masked_qa = np.ma.masked_array(wsa_swir_masked, qa_band > 1)
-                    bsa_swir_masked = np.ma.masked_array(bsa_band, bsa_band == 32767)
-                    bsa_swir_masked_qa = np.ma.masked_array(bsa_swir_masked, qa_band > 1)
-
-                    # Extract pixel value from product by converting lat/lon to row/col
-                    if "VNP" in prdct:
-                        smp_rc = convert_ll_vnp(site[1][0], site[1][1], site[1][2], in_dir)
-                    elif "MCD" in prdct:
-                        smp_rc = convert_ll(site[1][0], site[1][1], site[1][2], in_dir)
-                    elif "LC08" in prdct:
-                        smp_rc = convert_ll(site[1][0], site[1][1], site[1][2], in_dir)
-                    else:
-                       print("Unknown product! This only works for MCD, VNP, or LC8/LC08 hdf or h5 files!")
-                       sys.exit()
-
-                    # Take just the sampled location's value, and scale to float
-                    wsa_swir_subset = wsa_swir_masked_qa[smp_rc]
-                    wsa_swir_subset_flt = np.multiply(wsa_swir_subset, 0.001)
-                    bsa_swir_subset = bsa_swir_masked_qa[smp_rc]
-                    bsa_swir_subset_flt = np.multiply(bsa_swir_subset, 0.001)
+                    # Extract pixel values and append to dataframe
+                    pixel_values = extract_pixel_value(in_dir, site, prdct, h_file_day)
 
                 # Add each point to a temporary list
                 wsa_smpl_results = []
@@ -344,18 +368,15 @@ def main():
             # Append the site's results to the existing yearly dataframe, initiated above
             year_smpl_cmb_df = pd.concat([year_smpl_cmb_df, cmb_smpl_results_df], axis=1)
 
-        # Do plotting and save output PER YEAR (individual csv per year)
-        series_name = str(year) #location + "_" + str(year)
+            # Do plotting and save output PER YEAR (individual csv per year)
+            draw_plot(year, year_smpl_cmb_df)
+
+
+        # Export data to csv
         os.chdir(fig_dir)
         csv_name = str(series_name + "_" + prdct + ".csv")
         print("writing csv: " + csv_name)
-        # export data to csv
         year_smpl_cmb_df.to_csv(csv_name, index=False)
-        # with open(csv_name, "w") as export_file:
-        #     wr = csv.writer(export_file, dialect='excel', lineterminator='\n')
-        #     for index, row in cmb_smpl_results_df.iterrows():
-        #         row_data = str(row['wsa'] + "," + row['bsa'])
-        #         wr.writerow(row_data)
 
 
 if __name__ == "__main__":
