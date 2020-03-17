@@ -50,6 +50,7 @@ with open(sites_csv_input, mode='r') as sites_csv:
         key = row[0]
         sites_dict[key] = row[1:]
 
+
 def hdf_to_np(hdf_fname, sds):
    #TODO close the dataset, probably using 'with'
    hdf_ds = SD(hdf_fname, SDC.READ)
@@ -57,10 +58,12 @@ def hdf_to_np(hdf_fname, sds):
    data_np = dataset_3d[:,:]
    return data_np
 
+
 def h5_to_np(h5_fname, sds):
    with File(h5_fname, 'r') as h5_ds:
       data_np = h5_ds['HDFEOS']['GRIDS']['VIIRS_Grid_BRDF']['Data Fields'][sds][()]
    return data_np
+
 
 def convert_ll_vnp(lat, lon, tile, in_dir):
    # Convert the lat/long point of interest to a row/col location
@@ -119,6 +122,7 @@ def convert_ll_vnp(lat, lon, tile, in_dir):
    row_m = int( -1 * (smpl_y - y_origin_meta_m) / pixel_height_meta_m)
    smp_rc = row_m, col_m
    return smp_rc
+
 
 def convert_ll(lat, lon, tile, in_dir):
    # Convert the lat/long point of interest to a row/col location
@@ -194,6 +198,7 @@ def convert_ll(lat, lon, tile, in_dir):
     smp_rc = row_m, col_m
     return smp_rc
 
+
 def make_prod_list(in_dir, prdct, year, day):
     if "MCD" in prdct or "VNP" in prdct:
         h_file_list = glob.glob(os.path.join(in_dir,
@@ -214,6 +219,7 @@ def make_prod_list(in_dir, prdct, year, day):
         sys.exit()
 
     return h_file_list
+
 
 def extract_pixel_value(in_dir, site, prdct, h_file_day):
     # Open tifs as gdal ds
@@ -258,8 +264,9 @@ def extract_pixel_value(in_dir, site, prdct, h_file_day):
     # Return a tuple of numpy arrays for wsa and bsa (and probably also qa?)
     return wsa_swir_subset_flt, bsa_swir_subset_flt
 
+
 def draw_plot(year, year_smpl_cmb_df, fig_dir):
-    plt.ion()
+    #plt.ion()
     fig = plt.figure()
     fig.suptitle('Test Plot')
     ax = fig.add_subplot(111)
@@ -275,8 +282,9 @@ def draw_plot(year, year_smpl_cmb_df, fig_dir):
     year_smpl_cmb_df.plot(kind='line', x='doy', y='1_wsa', ax=ax)
     #ax.plot(doys, wsa_swir_mean)
     plt_name = str(year + '_test')
-    print('Saving plot to: ' + '{fig_dir}{plt_name}.png'.format(fig_dir=fig_dir, plt_name=plt_name))
+    #print('Saving plot to: ' + '{fig_dir}{plt_name}.png'.format(fig_dir=fig_dir, plt_name=plt_name))
     plt.savefig('{fig_dir}{plt_name}.png'.format(fig_dir=fig_dir, plt_name=plt_name))
+
 
 def main():
     for year in years:
@@ -354,10 +362,10 @@ def main():
             # Do plotting and save output PER YEAR (individual csv per year)
             draw_plot(year, year_smpl_cmb_df, fig_dir)
 
-
         # Export data to csv
         os.chdir(fig_dir)
-        csv_name = str(series_name + "_" + prdct + ".csv")
+        output_name = str(sites_csv_input[:-4] + "_extracted_values_")
+        csv_name = str(output_name + "_" + prdct + ".csv")
         print("writing csv: " + csv_name)
         year_smpl_cmb_df.to_csv(csv_name, index=False)
 
