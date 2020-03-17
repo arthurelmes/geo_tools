@@ -11,6 +11,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pyhdf.SD import SD, SDC
 from h5py import File
+from datetime import datetime
 
 # CLI args
 # argv = sys.argv[1:]
@@ -24,14 +25,23 @@ from h5py import File
 
 #TODO all these global variables gotta go
 years = ["2018"]
-tile = "12v04"
-prdct = "VNP43MA3"
-base_dir = "/home/arthur/data/h12v04/time_series_test"
+tile = "041036"
+
+#Note: I have chosen to call the landsat product LC08, rather than LC8, due to the file naming convention
+#of the inputs specific to the albedo code. LC8 is also used in different Landsat data products, annoyingly.
+prdct = "LC08"
+base_dir = "/media/arthur/Media3/temp_data"
+
+#TODO this 'copy_srs_dir' location is here because currently VNP43 has broken spatial reference
+#TODO information. Check V002 and remove this if it has been fixed, as this is ludicrously clunky.
 #copy_srs_dir = os.path.join(base_dir, "copy_srs")
 sds_name_wsa_sw = "Albedo_WSA_shortwave"
 sds_name_bsa_sw = "Albedo_BSA_shortwave"
-sds_name_qa_sw = "BRDF_Albedo_Band_Mandatory_Quality_shortwave"
-sites_csv_input = os.path.join(base_dir, "h12v04_100_random.csv")
+
+# Note: the LC08
+#sds_name_qa_sw = "BRDF_Albedo_Band_Mandatory_Quality_shortwave"
+sds_name_qa_sw = "Albedo_Band_Quality_shortwave"
+sites_csv_input = os.path.join(base_dir, "painted_roads_pixel_centroids.csv")
 sites_dict = {}
 
 with open(sites_csv_input, mode='r') as sites_csv:
@@ -39,7 +49,6 @@ with open(sites_csv_input, mode='r') as sites_csv:
     for row in reader:
         key = row[0]
         sites_dict[key] = row[1:]
-
 
 def hdf_to_np(hdf_fname, sds):
    #TODO close the dataset, probably using 'with'
@@ -56,11 +65,11 @@ def h5_to_np(h5_fname, sds):
 def convert_ll_vnp(lat, lon, tile, in_dir):
    # Convert the lat/long point of interest to a row/col location
    template_h_list = \
-                     glob.glob(os.path.join(copy_srs_dir,\
+                     glob.glob(os.path.join(copy_srs_dir,
                      '*.A*{tile}*.h*'.format(tile=tile)))
    template_h_file = template_h_list[0]
    template_h_ds = gdal.Open(template_h_file, gdal.GA_ReadOnly)
-   template_h_band = gdal.Open(template_h_ds.GetSubDatasets()[0][0], \
+   template_h_band = gdal.Open(template_h_ds.GetSubDatasets()[0][0],
                                gdal.GA_ReadOnly)
    # Use pyproj to create a geotransform between
    # WGS84 geographic (lat/long; epsg 4326) and
@@ -113,74 +122,77 @@ def convert_ll_vnp(lat, lon, tile, in_dir):
 
 def convert_ll(lat, lon, tile, in_dir):
    # Convert the lat/long point of interest to a row/col location
-   template_h_list = \
-                     glob.glob(os.path.join(in_dir,\
-                     '{prdct}.A*{tile}*.h*'.format(prdct=prdct,\
-                                                   tile=tile)))
-   template_h_file = template_h_list[0]
-   template_h_ds = gdal.Open(template_h_file, gdal.GA_ReadOnly)
-   template_h_band = gdal.Open(template_h_ds.GetSubDatasets()[0][0], \
+    if "h" in tile:
+        template_h_list = glob.glob(os.path.join(in_dir,
+                                                 '{prdct}.A*{tile}*.h*'.format(prdct=prdct,
+                                                                               tile=tile)))
+    else:
+        template_h_list = glob.glob(os.path.join(in_dir, '{prdct}*{tile}*.h*'.format(prdct=prdct,
+                                                                                     tile=tile)))
+    template_h_file = template_h_list[0]
+    template_h_ds = gdal.Open(template_h_file, gdal.GA_ReadOnly)
+    template_h_band = gdal.Open(template_h_ds.GetSubDatasets()[0][0],
                                gdal.GA_ReadOnly)
-   # Use pyproj to create a geotransform between
-   # WGS84 geographic (lat/long; epsg 4326) and
-   # the funky crs that modis/viirs use.
-   # Note that this modis crs seems to have units
-   # in meters from the geographic origin, i.e.
-   # lat/long (0, 0), and has 2400 rows/cols per tile.
-   # gdal does NOT read the corner coords correctly,
-   # but they ARE stored correctly in the hdf metadata. Although slightly
-   # difft than reported by gdal, which is odd.
+    # Use pyproj to create a geotransform betweensds
+    # WGS84 geographic (lat/long; epsg 4326) and
+    # the funky crs that modis/viirs use.
+    # Note that this modis crs seems to have units
+    # in meters from the geographic origin, i.e.
+    # lat/long (0, 0), and has 2400 rows/cols per tile.
+    # gdal does NOT read the corner coords correctly,
+    # but they ARE stored correctly in the hdf metadata. Although slightly
+    # difft than reported by gdal, which is odd.
 
-   # # Using pyproj to transform coords of interes to meters
-   in_proj = pyproj.Proj(init='epsg:4326')
-   out_proj = pyproj.Proj(template_h_band.GetProjection())
-   
-   # # Current sample location convert from ll to m
-   smpl_x, smpl_y = pyproj.transform(in_proj, out_proj, lon, lat)
- 
-   # Getting bounding coords from meta
-   # Perhaps no longer neededm but they're slilghtly difft than gdal geotransofrm
-   # NOTE gdal works fine if you call the geotransform
-   # on the BAND!!! (sds), not the DS
-   # meta = template_h_ds.GetMetadata_Dict()
-   # FOR MODIS, us ALL CAPS
-   # y_origin_meta = float(meta['NORTHBOUNDINGCOORDINATE'])
-   # y_min_meta = float(meta['SOUTHBOUNDINGCOORDINATE'])
-   # x_max_meta = float(meta['EASTBOUNDINGCOORDINATE'])
-   # x_origin_meta = float(meta['WESTBOUNDINGCOORDINATE'])
-   # n_rows_meta = int(meta['DATAROWS'])
-   # n_cols_meta = int(meta['DATACOLUMNS'])
-   # pixel_height_meta_m = float(meta['CHARACTERISTICBINSIZE'])
-   # pixel_width_meta_m = float(meta['CHARACTERISTICBINSIZE'])
-   
-   #TESTING these are conversions of the metadata extents to meters
-   # x_origin_meta_m, y_origin_meta_m = pyproj.transform(in_proj, out_proj, x_origin_meta, y_origin_meta)
-   # x_max_meta_m, y_min_meta_m= pyproj.transform(in_proj, out_proj, x_max_meta, y_min_meta)
-   # pixel_width_meta_m = (x_max_meta_m - x_origin_meta_m) / n_cols_meta
-   # pixel_height_meta_m = (y_origin_meta_m - y_min_meta_m) / n_rows_meta
-   # col_meta_m = int((smpl_x - x_origin_meta_m) / pixel_width_meta_m)
-   # row_meta_m = int(-1 * (smpl_y - y_origin_meta_m) / pixel_height_meta_m)
-   # smp_rc_meta = row_meta_m, col_meta_m
+    # # Using pyproj to transform coords of interes to meters
+    in_proj = pyproj.Proj(init='epsg:4326')
+    out_proj = pyproj.Proj(template_h_band.GetProjection())
 
-   # Getting bounding coords etc from gdal geotransform
-   n_cols = template_h_band.RasterXSize
-   n_rows = template_h_band.RasterYSize
-   x_origin, x_res, x_skew, y_origin, y_skew, y_res = template_h_band.GetGeoTransform()
-   # Using the skew is in case there is any affine transformation
-   # in place in the input raster. Not so for modis tiles, so not really necessary, but complete.
-   x_max = x_origin + n_cols * x_res + n_cols * x_skew
-   y_min = y_origin + n_rows * y_res + n_rows * y_skew
-     
-   # # Make calculations to get row/col value
-   # # NOTE that for geotifs, it would also be possible
-   # # to simply open with rasterio, then use .index()
-   # # to return the row/col. This does not work for hdf
-   pixel_width_m = (x_max - x_origin) / n_cols
-   pixel_height_m = (y_origin - y_min) / n_rows
-   col_m = int((smpl_x - x_origin) / pixel_width_m)
-   row_m = int( -1 * (smpl_y - y_origin) / pixel_height_m)
-   smp_rc = row_m, col_m
-   return smp_rc
+    # # Current sample location convert from ll to m
+    smpl_x, smpl_y = pyproj.transform(in_proj, out_proj, lon, lat)
+
+    # Getting bounding coords from meta
+    # Perhaps no longer neededm but they're slilghtly difft than gdal geotransofrm
+    # NOTE gdal works fine if you call the geotransform
+    # on the BAND!!! (sds), not the DS
+    # meta = template_h_ds.GetMetadata_Dict()
+    # FOR MODIS, us ALL CAPS
+    # y_origin_meta = float(meta['NORTHBOUNDINGCOORDINATE'])
+    # y_min_meta = float(meta['SOUTHBOUNDINGCOORDINATE'])
+    # x_max_meta = float(meta['EASTBOUNDINGCOORDINATE'])
+    # x_origin_meta = float(meta['WESTBOUNDINGCOORDINATE'])
+    # n_rows_meta = int(meta['DATAROWS'])
+    # n_cols_meta = int(meta['DATACOLUMNS'])
+    # pixel_height_meta_m = float(meta['CHARACTERISTICBINSIZE'])
+    # pixel_width_meta_m = float(meta['CHARACTERISTICBINSIZE'])
+
+    #TESTING these are conversions of the metadata extents to meters
+    # x_origin_meta_m, y_origin_meta_m = pyproj.transform(in_proj, out_proj, x_origin_meta, y_origin_meta)
+    # x_max_meta_m, y_min_meta_m= pyproj.transform(in_proj, out_proj, x_max_meta, y_min_meta)
+    # pixel_width_meta_m = (x_max_meta_m - x_origin_meta_m) / n_cols_meta
+    # pixel_height_meta_m = (y_origin_meta_m - y_min_meta_m) / n_rows_meta
+    # col_meta_m = int((smpl_x - x_origin_meta_m) / pixel_width_meta_m)
+    # row_meta_m = int(-1 * (smpl_y - y_origin_meta_m) / pixel_height_meta_m)
+    # smp_rc_meta = row_meta_m, col_meta_m
+
+    # Getting bounding coords etc from gdal geotransform
+    n_cols = template_h_band.RasterXSize
+    n_rows = template_h_band.RasterYSize
+    x_origin, x_res, x_skew, y_origin, y_skew, y_res = template_h_band.GetGeoTransform()
+    # Using the skew is in case there is any affine transformation
+    # in place in the input raster. Not so for modis tiles, so not really necessary, but complete.
+    x_max = x_origin + n_cols * x_res + n_cols * x_skew
+    y_min = y_origin + n_rows * y_res + n_rows * y_skew
+
+    # # Make calculations to get row/col value
+    # # NOTE that for geotifs, it would also be possible
+    # # to simply open with rasterio, then use .index()
+    # # to return the row/col. This does not work for hdf
+    pixel_width_m = (x_max - x_origin) / n_cols
+    pixel_height_m = (y_origin - y_min) / n_rows
+    col_m = int((smpl_x - x_origin) / pixel_width_m)
+    row_m = int( -1 * (smpl_y - y_origin) / pixel_height_m)
+    smp_rc = row_m, col_m
+    return smp_rc
 
 def draw_plot():
     plt.ion()
@@ -208,6 +220,7 @@ def main():
         year_smpl_cmb_df = pd.DataFrame(doy_list, columns=['doy'])
         # Loop through each site and extract the pixel values
         for site in sites_dict.items():
+            print(site)
             in_dir = os.path.join(base_dir, prdct, year, site[1][2])
             fig_dir = os.path.join(base_dir, 'figs')
             if not os.path.isdir(fig_dir):
@@ -233,9 +246,20 @@ def main():
                 # Open the shortwave white sky albedo band.
                 # The list approach is because of the processing date part of the file
                 # name, which necessitates the wildcard -- this was just the easiest way.
-                h_file_list = glob.glob(os.path.join(in_dir,
-                                                      '{prdct}.A{year}{day:03d}*.h*'.format(prdct=prdct,
-                                                                                            day=day, year=year)))
+                if "MCD" in prdct or "VNP" in prdct:
+                    h_file_list = glob.glob(os.path.join(in_dir,
+                                                         '{prdct}.A{year}{day:03d}*.h*'.format(prdct=prdct,
+                                                                                               day=day, year=year)))
+                elif "LC08" in prdct:
+                    dt_string = str(year) + "-" + str(day)
+                    date_complete = datetime.strptime(dt_string, "%Y-%j")
+                    mm = date_complete.strftime("%m")
+                    dd = date_complete.strftime("%d")
+                    h_file_list = glob.glob(os.path.join(in_dir, '{prdct}*_{year}{month}{day}_*.h*'.format(prdct=prdct,
+                                                                                month=mm,
+                                                                                day=dd, year=year)))
+                    print(h_file_list)
+
                 # See if there is a raster for the date, if not use a fill value for the graph
                 if len(h_file_list) == 0: # or len(bsa_tif_list) == 0 or len(qa_tif_list) == 0:
                     print('File not found: {prdct}.A{year}{day:03d}*.h*'.format(prdct=prdct,
@@ -246,7 +270,7 @@ def main():
                     print('Multiple matching files found for same date!')
                     sys.exit()
                 else:
-                    #print('Found file: ' + ' {prdct}.A{year}{day:03d}*.h*'.format(prdct=prdct, day=day, year=year))
+                    print('Found file: ' + ' {prdct}.A{year}{day:03d}*.h*'.format(prdct=prdct, day=day, year=year))
                     h_file_day = h_file_list[0]
                     # bsa_tif = bsa_tif_list[0]
                     # qa_tif = qa_tif_list[0]
@@ -287,11 +311,11 @@ def main():
                     #tower's pixel. Maybe modifiy to average within a bounding box or something?
                     #for smpl in sites_dict.values():
                     if "VNP" in prdct:
-                       smp_rc = convert_ll_vnp(site[1][0], site[1][1], site[1][2], in_dir)
+                        smp_rc = convert_ll_vnp(site[1][0], site[1][1], site[1][2], in_dir)
                     elif "MCD" in prdct:
-                       smp_rc = convert_ll(site[1][0], site[1][1], site[1][2], in_dir)
+                        smp_rc = convert_ll(site[1][0], site[1][1], site[1][2], in_dir)
                     elif "LC08" in prdct:
-                       sys.exit()
+                        smp_rc = convert_ll(site[1][0], site[1][1], site[1][2], in_dir)
                     else:
                        print("Unknown product! This only works for MCD, VNP, or LC8/LC08 hdf or h5 files!")
                        sys.exit()
@@ -304,7 +328,6 @@ def main():
                     # Add each point to the temporary list
                     wsa_smpl_results.append(wsa_swir_subset_flt)
                     bsa_smpl_results.append(bsa_swir_subset_flt)
-
                     #TODO this try is not really needed, but it doesn't hurt to leave it in case
                     # I want to incorporate the multiple-points-per-sample idea
                     try:
