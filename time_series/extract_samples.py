@@ -30,62 +30,62 @@ def h5_to_np(h5_fname, sds):
 
 
 def convert_ll_vnp(lat, lon, tile, in_dir):
-   # Convert the lat/long point of interest to a row/col location
-   template_h_list = \
+    # Convert the lat/long point of interest to a row/col location
+    template_h_list = \
                      glob.glob(os.path.join(copy_srs_dir,
                      '*.A*{tile}*.h*'.format(tile=tile)))
-   template_h_file = template_h_list[0]
-   template_h_ds = gdal.Open(template_h_file, gdal.GA_ReadOnly)
-   template_h_band = gdal.Open(template_h_ds.GetSubDatasets()[0][0],
+    template_h_file = template_h_list[0]
+    template_h_ds = gdal.Open(template_h_file, gdal.GA_ReadOnly)
+    template_h_band = gdal.Open(template_h_ds.GetSubDatasets()[0][0],
                                gdal.GA_ReadOnly)
-   # Use pyproj to create a geotransform between
-   # WGS84 geographic (lat/long; epsg 4326) and
-   # the funky crs that modis/viirs use.
-   # Note that this modis crs seems to have units
-   # in meters from the geographic origin, i.e.
-   # lat/long (0, 0), and has 2400 rows/cols per tile.
-   # gdal does NOT read the corner coords correctly,
-   # but they ARE stored correctly in the hdf metadata. Although slightly
-   # difft than reported by gdal...
+    # Use pyproj to create a geotransform between
+    # WGS84 geographic (lat/long; epsg 4326) and
+    # the funky crs that modis/viirs use.
+    # Note that this modis crs seems to have units
+    # in meters from the geographic origin, i.e.
+    # lat/long (0, 0), and has 2400 rows/cols per tile.
+    # gdal does NOT read the corner coords correctly,
+    # but they ARE stored correctly in the hdf metadata. Although slightly
+    # difft than reported by gdal...
 
-   # Using pyproj to transform coords of interes to meters
-   in_proj = pyproj.Proj(init='epsg:4326')
-   #out_proj = pyproj.Proj(template_h_band.GetProjection())
-   out_proj = pyproj.Proj('+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m +no_defs')
-   
-   # Current sample location convert from ll to m
-   smpl_x, smpl_y = pyproj.transform(in_proj, out_proj, lon, lat)
+    # Using pyproj to transform coords of interes to meters
+    in_proj = pyproj.Proj(init='epsg:4326')
+    #out_proj = pyproj.Proj(template_h_band.GetProjection())
+    out_proj = pyproj.Proj('+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m +no_defs')
 
-   # FOR VIIRS, use manual
-   #h12v04 UL: -6671703.1179999997839332 5559752.5983330002054572 LR: -5559752.5983330002054572 4447802.0786669999361038
-   #out_proj = pyproj.Proj('+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m +no_defs')
+    # Current sample location convert from ll to m
+    smpl_x, smpl_y = pyproj.transform(in_proj, out_proj, lon, lat)
 
-   # Getting bounding coords from meta
-   # Perhaps no longer neededm but they're slilghtly difft than gdal geotransofrm
-   # NOTE gdal works fine if you call the geotransform
-   # on the BAND!!! (sds), not the DS
-   meta = template_h_ds.GetMetadata_Dict()
-   # FOR MODIS, us ALL CAPS
-   y_origin_meta = float(meta['NORTHBOUNDINGCOORDINATE'])
-   y_min_meta = float(meta['SOUTHBOUNDINGCOORDINATE'])
-   x_max_meta = float(meta['EASTBOUNDINGCOORDINATE'])
-   x_origin_meta = float(meta['WESTBOUNDINGCOORDINATE'])
-   n_rows_meta = 1200 # int(meta['DATAROWS'])
-   n_cols_meta = 1200 # int(meta['DATACOLUMNS'])
-   pixel_height_meta_m = 926.6254330558330139 #(y_origin_meta - y_min_meta) / n_rows_meta
-   pixel_width_meta_m = 926.6254330558330139 #pixel_height_meta_m
+    # FOR VIIRS, use manual
+    #h12v04 UL: -6671703.1179999997839332 5559752.5983330002054572 LR: -5559752.5983330002054572 4447802.0786669999361038
+    #out_proj = pyproj.Proj('+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m +no_defs')
 
-   # # Make calculations to get row/col value
-   # # NOTE that for geotifs, it would also be possible
-   # # to simply open with rasterio, then use .index()
-   # # to return the row/col. This does not work for hdf
-   x_origin_meta_m, y_origin_meta_m = pyproj.transform(in_proj, out_proj, x_origin_meta, y_origin_meta)
-   x_max_meta_m, y_min_meta_m = pyproj.transform(in_proj, out_proj, x_max_meta, y_min_meta)
+    # Getting bounding coords from meta
+    # Perhaps no longer neededm but they're slilghtly difft than gdal geotransofrm
+    # NOTE gdal works fine if you call the geotransform
+    # on the BAND!!! (sds), not the DS
+    meta = template_h_ds.GetMetadata_Dict()
+    # FOR MODIS, us ALL CAPS
+    y_origin_meta = float(meta['NORTHBOUNDINGCOORDINATE'])
+    y_min_meta = float(meta['SOUTHBOUNDINGCOORDINATE'])
+    x_max_meta = float(meta['EASTBOUNDINGCOORDINATE'])
+    x_origin_meta = float(meta['WESTBOUNDINGCOORDINATE'])
+    n_rows_meta = 1200 # int(meta['DATAROWS'])
+    n_cols_meta = 1200 # int(meta['DATACOLUMNS'])
+    pixel_height_meta_m = 926.6254330558330139 #(y_origin_meta - y_min_meta) / n_rows_meta
+    pixel_width_meta_m = 926.6254330558330139 #pixel_height_meta_m
 
-   col_m = int((smpl_x - x_origin_meta_m) / pixel_width_meta_m)
-   row_m = int( -1 * (smpl_y - y_origin_meta_m) / pixel_height_meta_m)
-   smp_rc = row_m, col_m
-   return smp_rc
+    # # Make calculations to get row/col value
+    # # NOTE that for geotifs, it would also be possible
+    # # to simply open with rasterio, then use .index()
+    # # to return the row/col. This does not work for hdf
+    x_origin_meta_m, y_origin_meta_m = pyproj.transform(in_proj, out_proj, x_origin_meta, y_origin_meta)
+    x_max_meta_m, y_min_meta_m = pyproj.transform(in_proj, out_proj, x_max_meta, y_min_meta)
+
+    col_m = int((smpl_x - x_origin_meta_m) / pixel_width_meta_m)
+    row_m = int( -1 * (smpl_y - y_origin_meta_m) / pixel_height_meta_m)
+    smp_rc = row_m, col_m
+    return smp_rc
 
 
 def convert_ll(lat, lon, tile, in_dir):
