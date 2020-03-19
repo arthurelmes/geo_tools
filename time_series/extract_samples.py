@@ -6,7 +6,7 @@ Significant updates March 17th 2020
 """
 import os, glob, sys, pyproj, csv, statistics
 from argparse import ArgumentParser
-from osgeo import gdal, osr
+from osgeo import gdal
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -16,24 +16,25 @@ from datetime import datetime
 
 
 def hdf_to_np(hdf_fname, sds):
-   #TODO close the dataset, probably using 'with'
-   hdf_ds = SD(hdf_fname, SDC.READ)
-   dataset_3d = hdf_ds.select(sds)
-   data_np = dataset_3d[:,:]
-   return data_np
+    #TODO close the dataset, probably using 'with'
+    hdf_ds = SD(hdf_fname, SDC.READ)
+    dataset_3d = hdf_ds.select(sds)
+    data_np = dataset_3d[:,:]
+    return data_np
 
 
 def h5_to_np(h5_fname, sds):
-   with File(h5_fname, 'r') as h5_ds:
-      data_np = h5_ds['HDFEOS']['GRIDS']['VIIRS_Grid_BRDF']['Data Fields'][sds][()]
-   return data_np
+    with File(h5_fname, 'r') as h5_ds:
+        data_np = h5_ds['HDFEOS']['GRIDS']['VIIRS_Grid_BRDF']['Data Fields'][sds][()]
+    return data_np
 
 
-def convert_ll_vnp(lat, lon, tile, in_dir):
+def convert_ll_vnp(lat, lon, tile, in_dir, prdct):
+    prdct = prdct
     # Convert the lat/long point of interest to a row/col location
     template_h_list = \
-                     glob.glob(os.path.join(copy_srs_dir,
-                     '*.A*{tile}*.h*'.format(tile=tile)))
+                     glob.glob(os.path.join(in_dir,
+                                            "*.A*{tile}*.h*".format(tile=tile)))
     template_h_file = template_h_list[0]
     template_h_ds = gdal.Open(template_h_file, gdal.GA_ReadOnly)
     template_h_band = gdal.Open(template_h_ds.GetSubDatasets()[0][0],
@@ -88,7 +89,8 @@ def convert_ll_vnp(lat, lon, tile, in_dir):
     return smp_rc
 
 
-def convert_ll(lat, lon, tile, in_dir):
+def convert_ll(lat, lon, tile, in_dir, prdct):
+    prdct = prdct
    # Convert the lat/long point of interest to a row/col location
     if "h" in tile:
         template_h_list = glob.glob(os.path.join(in_dir,
@@ -163,7 +165,7 @@ def convert_ll(lat, lon, tile, in_dir):
     return smp_rc
 
 
-def make_prod_list(in_dir, prdct, year, day):
+def make_prod_list(in_dir, prdct, year, day, tile):
     if "MCD" in prdct or "VNP" in prdct:
         h_file_list = glob.glob(os.path.join(in_dir,
                                              '{prdct}.A{year}{day:03d}*.h*'.format(prdct=prdct,
@@ -185,19 +187,19 @@ def make_prod_list(in_dir, prdct, year, day):
     return h_file_list
 
 
-def extract_pixel_value(in_dir, site, prdct, h_file_day):
+def extract_pixel_value(in_dir, site, prdct, h_file_day, sds_names, copy_srs_dir):
     # Open tifs as gdal ds
     # print("Opening: " + h_file_day + " " + sds_name_wsa_sw)
     if "VNP" in prdct:
         # print("Found VIIRS product.")
-        wsa_band = h5_to_np(h_file_day, sds_name_wsa_sw)
-        bsa_band = h5_to_np(h_file_day, sds_name_bsa_sw)
-        qa_band = h5_to_np(h_file_day, sds_name_qa_sw)
+        wsa_band = h5_to_np(h_file_day, sds_names[0])
+        bsa_band = h5_to_np(h_file_day, sds_names[1])
+        qa_band = h5_to_np(h_file_day, sds_names[2])
     elif "MCD" in prdct or "LC08" in prdct:
         # print("Found MODIS product.")
-        wsa_band = hdf_to_np(h_file_day, sds_name_wsa_sw)
-        bsa_band = hdf_to_np(h_file_day, sds_name_bsa_sw)
-        qa_band = hdf_to_np(h_file_day, sds_name_qa_sw)
+        wsa_band = hdf_to_np(h_file_day, sds_names[0])
+        bsa_band = hdf_to_np(h_file_day, sds_names[1])
+        qa_band = hdf_to_np(h_file_day, sds_names[2])
     else:
         print("Unknown product! This only works for MCD, VNP, or LC8/LC08 hdf or h5 files!")
         sys.exit()
@@ -210,11 +212,11 @@ def extract_pixel_value(in_dir, site, prdct, h_file_day):
 
     # Extract pixel value from product by converting lat/lon to row/col
     if "VNP" in prdct:
-        smp_rc = convert_ll_vnp(site[1][0], site[1][1], site[1][2], in_dir)
+        smp_rc = convert_ll_vnp(site[1][0], site[1][1], site[1][2], copy_srs_dir, prdct)
     elif "MCD" in prdct:
-        smp_rc = convert_ll(site[1][0], site[1][1], site[1][2], in_dir)
+        smp_rc = convert_ll(site[1][0], site[1][1], site[1][2], in_dir, prdct)
     elif "LC08" in prdct:
-        smp_rc = convert_ll(site[1][0], site[1][1], site[1][2], in_dir)
+        smp_rc = convert_ll(site[1][0], site[1][1], site[1][2], in_dir, prdct)
     else:
         print("Unknown product! This only works for MCD, VNP, or LC8/LC08 hdf or h5 files!")
         sys.exit()
@@ -252,6 +254,7 @@ def draw_plot(year, year_smpl_cmb_df, fig_dir):
 
 def check_leap(year):
     leap_status = False
+    year = int(year)
     if (year % 4) == 0:
         if (year % 100) == 0:
             if (year % 400) == 0:
@@ -297,11 +300,13 @@ def main():
     # TODO this 'copy_srs_dir' location is here because currently VNP43 has broken spatial reference
     # TODO information. Check V002 and remove this if it has been fixed, as this is ludicrously clunky.
     copy_srs_dir = os.path.join(base_dir, "copy_srs")
+
     sds_name_wsa_sw = "Albedo_WSA_shortwave"
     sds_name_bsa_sw = "Albedo_BSA_shortwave"
     # Note: the LC08 hdfs have a differently named qa sds. yaay.
     sds_name_qa_sw = "BRDF_Albedo_Band_Mandatory_Quality_shortwave"
     # sds_name_qa_sw = "Albedo_Band_Quality_shortwave"
+    sds_names = [sds_name_wsa_sw, sds_name_bsa_sw, sds_name_qa_sw]
 
     # Loop through the years provided, and extract the pixel values at the provided coordinates. Outputs CSV and figs.
     for year in years:
@@ -341,7 +346,7 @@ def main():
                 # Open the shortwave white sky albedo band.
                 # The list approach is because of the processing date part of the file
                 # name, which necessitates the wildcard -- this was just the easiest way.
-                h_file_list = make_prod_list(in_dir, prdct, year, day)
+                h_file_list = make_prod_list(in_dir, prdct, year, day, tile)
                 file_name = "{prdct}.A{year}{day:03d}*.h*".format(prdct=prdct, day=day, year=year)
                 # See if there is a raster for the date, if not use a fill value for the graph
                 if len(h_file_list) == 0: # or len(bsa_tif_list) == 0 or len(qa_tif_list) == 0:
@@ -355,7 +360,7 @@ def main():
                     #print('Found file: ' + file_name)
                     h_file_day = h_file_list[0]
                     # Extract pixel values and append to dataframe
-                    pixel_values = extract_pixel_value(in_dir, site, prdct, h_file_day)
+                    pixel_values = extract_pixel_value(in_dir, site, prdct, h_file_day, sds_names)
 
                 # Add each point to a temporary list
                 wsa_smpl_results = []
