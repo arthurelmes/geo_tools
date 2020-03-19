@@ -1,7 +1,7 @@
 """
-Created on Wed Sep 19 10:04:10 2018
-@author: aelmes
-
+Created Sep 19 10:04:10 2018
+Significant updates March 17th 2020
+@author: arthur elmes arthur.elmes@gmail.com
 
 """
 import os, glob, sys, pyproj, csv, statistics
@@ -250,6 +250,21 @@ def draw_plot(year, year_smpl_cmb_df, fig_dir):
     plt.savefig('{fig_dir}{plt_name}.png'.format(fig_dir=fig_dir, plt_name=plt_name))
 
 
+def check_leap(year):
+    leap_status = False
+    if (year % 4) == 0:
+        if (year % 100) == 0:
+            if (year % 400) == 0:
+                leap_status = True
+            else:
+                leap_status = False
+        else:
+            leap_status = True
+    else:
+        leap_status = False
+
+    return leap_status
+
 def main():
     # CLI args
     parser = ArgumentParser()
@@ -290,11 +305,16 @@ def main():
 
     # Loop through the years provided, and extract the pixel values at the provided coordinates. Outputs CSV and figs.
     for year in years:
+        doy_list = []
+        if check_leap(year):
+            for i in range(1, 367):
+                doy_list.append(i)
+        else:
+            for i in range(1, 366):
+                doy_list.append(i)
+
         # Make a blank pandas dataframe that results will be appended to,
         # and start it off with all possible doys (366)
-        doy_list = []
-        for i in range(1, 367):
-            doy_list.append(i)
         year_smpl_cmb_df = pd.DataFrame(doy_list, columns=['doy'])
         # Loop through each site and extract the pixel values
         for site in sites_dict.items():
