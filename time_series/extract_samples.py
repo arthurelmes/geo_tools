@@ -30,15 +30,12 @@ def h5_to_np(h5_fname, sds):
 
 
 def convert_ll_vnp(lat, lon, tile, in_dir, prdct):
-    prdct = prdct
+    # prdct = prdct
     # Convert the lat/long point of interest to a row/col location
-    template_h_list = \
-                     glob.glob(os.path.join(in_dir,
-                                            "*.A*{tile}*.h*".format(tile=tile)))
+    template_h_list = glob.glob(os.path.join(in_dir, "*.A*{tile}*.h*".format(tile=tile)))
     template_h_file = template_h_list[0]
     template_h_ds = gdal.Open(template_h_file, gdal.GA_ReadOnly)
-    template_h_band = gdal.Open(template_h_ds.GetSubDatasets()[0][0],
-                               gdal.GA_ReadOnly)
+    template_h_band = gdal.Open(template_h_ds.GetSubDatasets()[0][0], gdal.GA_ReadOnly)
     # Use pyproj to create a geotransform between
     # WGS84 geographic (lat/long; epsg 4326) and
     # the funky crs that modis/viirs use.
@@ -51,15 +48,15 @@ def convert_ll_vnp(lat, lon, tile, in_dir, prdct):
 
     # Using pyproj to transform coords of interes to meters
     in_proj = pyproj.Proj(init='epsg:4326')
-    #out_proj = pyproj.Proj(template_h_band.GetProjection())
+    # out_proj = pyproj.Proj(template_h_band.GetProjection())
     out_proj = pyproj.Proj('+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m +no_defs')
 
     # Current sample location convert from ll to m
     smpl_x, smpl_y = pyproj.transform(in_proj, out_proj, lon, lat)
 
     # FOR VIIRS, use manual
-    #h12v04 UL: -6671703.1179999997839332 5559752.5983330002054572 LR: -5559752.5983330002054572 4447802.0786669999361038
-    #out_proj = pyproj.Proj('+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m +no_defs')
+    # h12v04 UL: -6671703.1179999997839332 5559752.5983330002054572 LR: -5559752.5983330002054572 4447802.0786669999361038
+    # out_proj = pyproj.Proj('+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m +no_defs')
 
     # Getting bounding coords from meta
     # Perhaps no longer neededm but they're slilghtly difft than gdal geotransofrm
@@ -71,8 +68,8 @@ def convert_ll_vnp(lat, lon, tile, in_dir, prdct):
     y_min_meta = float(meta['SOUTHBOUNDINGCOORDINATE'])
     x_max_meta = float(meta['EASTBOUNDINGCOORDINATE'])
     x_origin_meta = float(meta['WESTBOUNDINGCOORDINATE'])
-    n_rows_meta = 1200 # int(meta['DATAROWS'])
-    n_cols_meta = 1200 # int(meta['DATACOLUMNS'])
+    # n_rows_meta = 1200 # int(meta['DATAROWS'])
+    # n_cols_meta = 1200 # int(meta['DATACOLUMNS'])
     pixel_height_meta_m = 926.6254330558330139 #(y_origin_meta - y_min_meta) / n_rows_meta
     pixel_width_meta_m = 926.6254330558330139 #pixel_height_meta_m
 
@@ -81,10 +78,10 @@ def convert_ll_vnp(lat, lon, tile, in_dir, prdct):
     # # to simply open with rasterio, then use .index()
     # # to return the row/col. This does not work for hdf
     x_origin_meta_m, y_origin_meta_m = pyproj.transform(in_proj, out_proj, x_origin_meta, y_origin_meta)
-    x_max_meta_m, y_min_meta_m = pyproj.transform(in_proj, out_proj, x_max_meta, y_min_meta)
+    # x_max_meta_m, y_min_meta_m = pyproj.transform(in_proj, out_proj, x_max_meta, y_min_meta)
 
     col_m = int((smpl_x - x_origin_meta_m) / pixel_width_meta_m)
-    row_m = int( -1 * (smpl_y - y_origin_meta_m) / pixel_height_meta_m)
+    row_m = int(-1 * (smpl_y - y_origin_meta_m) / pixel_height_meta_m)
     smp_rc = row_m, col_m
     return smp_rc
 
@@ -104,7 +101,7 @@ def convert_ll(lat, lon, tile, in_dir, prdct):
     template_h_band = gdal.Open(template_h_ds.GetSubDatasets()[0][0],
                                gdal.GA_ReadOnly)
     # Use pyproj to create a geotransform betweensds
-    # WGS84 geographic (lat/long; epsg 4326) and
+    # WGS84 geographic (lat/l1200ong; epsg 4326) and
     # the funky crs that modis/viirs use.
     # Note that this modis crs seems to have units
     # in meters from the geographic origin, i.e.
@@ -187,11 +184,12 @@ def make_prod_list(in_dir, prdct, year, day, tile):
     return h_file_list
 
 
-def extract_pixel_value(in_dir, site, prdct, h_file_day, sds_names, copy_srs_dir):
+def extract_pixel_value(in_dir, site, prdct, h_file_day, sds_names, base_dir):
     # Open tifs as gdal ds
     # print("Opening: " + h_file_day + " " + sds_name_wsa_sw)
     if "VNP" in prdct:
         # print("Found VIIRS product.")
+        copy_srs_dir = os.path.join(base_dir, "copy_srs")
         wsa_band = h5_to_np(h_file_day, sds_names[0])
         bsa_band = h5_to_np(h_file_day, sds_names[1])
         qa_band = h5_to_np(h_file_day, sds_names[2])
@@ -268,6 +266,7 @@ def check_leap(year):
 
     return leap_status
 
+
 def main():
     # CLI args
     parser = ArgumentParser()
@@ -287,8 +286,7 @@ def main():
     prdct = args.prdct
     base_dir = args.base_dir
     tile = args.tile
-    years = []
-    years.append(args.years)
+    years = [args.years]
     sites_csv_input = os.path.join(base_dir, args.sites_csv_fname)
     sites_dict = {}
     with open(sites_csv_input, mode='r') as sites_csv:
@@ -299,7 +297,6 @@ def main():
 
     # TODO this 'copy_srs_dir' location is here because currently VNP43 has broken spatial reference
     # TODO information. Check V002 and remove this if it has been fixed, as this is ludicrously clunky.
-    copy_srs_dir = os.path.join(base_dir, "copy_srs")
 
     sds_name_wsa_sw = "Albedo_WSA_shortwave"
     sds_name_bsa_sw = "Albedo_BSA_shortwave"
@@ -331,11 +328,7 @@ def main():
             else:
                pass
             os.chdir(in_dir)
-
-            # Set up the pixel location
-            location = str(site[0])
             print("Processing site: " + str(site))
-            lat_long = (site[1][0][0], site[1][0][1])
 
             # Create empty arrays for mean, sd
             wsa_swir_mean = []
@@ -350,17 +343,19 @@ def main():
                 file_name = "{prdct}.A{year}{day:03d}*.h*".format(prdct=prdct, day=day, year=year)
                 # See if there is a raster for the date, if not use a fill value for the graph
                 if len(h_file_list) == 0: # or len(bsa_tif_list) == 0 or len(qa_tif_list) == 0:
-                    #print('File not found: ' + file_name)
+                    # print('File not found: ' + file_name)
                     wsa_swir_subset_flt = float('nan')
                     bsa_swir_subset_flt = float('nan')
                 elif len(h_file_list) > 1:
                     print('Multiple matching files found for same date! Please remove one.')
                     sys.exit()
                 else:
-                    #print('Found file: ' + file_name)
+                    # print('Found file: ' + file_name)
                     h_file_day = h_file_list[0]
                     # Extract pixel values and append to dataframe
-                    pixel_values = extract_pixel_value(in_dir, site, prdct, h_file_day, sds_names)
+                    # Note the base_dir argument should go away when the correctly georeferenced VNP43 are available,
+                    # because I can likely eliminate the vnp-specific value extractor function
+                    pixel_values = extract_pixel_value(in_dir, site, prdct, h_file_day, sds_names, base_dir)
 
                 # Add each point to a temporary list
                 wsa_smpl_results = []
@@ -391,7 +386,7 @@ def main():
 
         # Export data to csv
         os.chdir(fig_dir)
-        output_name = str(sites_csv_input[:-4] + "_extracted_values_")
+        output_name = str(sites_csv_input[:-4] + "extracted_values_")
         csv_name = str(output_name + "_" + prdct + ".csv")
         print("writing csv: " + csv_name)
         year_smpl_cmb_df.to_csv(csv_name, index=False)
