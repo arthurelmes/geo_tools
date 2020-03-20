@@ -230,32 +230,30 @@ def extract_pixel_value(in_dir, site, prdct, h_file_day, sds_names, base_dir):
     return wsa_swir_subset_flt, bsa_swir_subset_flt
 
 
-def draw_plot(year, year_smpl_cmb_df, fig_dir, prdct):
-    #plt.ion()
-    #plt.xlim(0, 365)
-    #plt.ylim(0.0, 1.0)
-    #ax = plt.gca()
-
+def draw_plot(year, year_smpl_cmb_df, fig_dir, prdct, sites_dict):
     sns.set_style("darkgrid")
 
-    # Create a seaborn scatterplot (or replot for now, small differences)
-    sct = sns.regplot(x="doy", y="1_wsa", data=year_smpl_cmb_df, marker="o", label="SW WSA",
-                      fit_reg=False, scatter_kws={"color":"darkblue", "alpha":0.3,"s":20})
-    sct.set_ylim(0, 1.0)
-    sct.set_xlim(1, 366)
-    sct.legend(loc="best")
+    for site in sites_dict.keys():
+        for sds in ["wsa", "bsa"]:
+            col_name = str(site) + "_" + str(sds)
 
-    # Access the figure, add title
-    plt_name = str(year + " " + prdct + " SW WSA")
-    #fig = sct.fig
-    #fig.suptitle(plt_name)
+            # Create a seaborn scatterplot (or replot for now, small differences)
+            sct = sns.regplot(x="doy", y=col_name, data=year_smpl_cmb_df, marker="o", label="sw " + str(sds),
+                              fit_reg=False, scatter_kws={"color":"darkblue", "alpha":0.3,"s":20})
+            sct.set_ylim(0, 1.0)
+            sct.set_xlim(1, 366)
+            sct.legend(loc="best")
 
-    plt.title(plt_name)
-    plt.show()
+            # Access the figure, add title
+            plt_name = str(year + " " + prdct + " SW " + str(sds))
+            plt.title(plt_name)
+            #plt.show()
 
-    sys.exit()
-    print('Saving plot to: ' + '{fig_dir}/{plt_name}.png'.format(fig_dir=fig_dir, plt_name=plt_name))
-    plt.savefig('{fig_dir}/{plt_name}.png'.format(fig_dir=fig_dir, plt_name=plt_name))
+            plt_name = plt_name.replace(" ", "_") + "_" + str(site)
+            # Save each plot to figs dir
+            print('Saving plot to: ' + '{fig_dir}/{plt_name}.png'.format(fig_dir=fig_dir, plt_name=plt_name))
+            plt.savefig('{fig_dir}/{plt_name}.png'.format(fig_dir=fig_dir, plt_name=plt_name))
+            plt.clf()
 
 
 def check_leap(year):
@@ -389,8 +387,8 @@ def main():
             # Append the site's results to the existing yearly dataframe, initiated above
             year_smpl_cmb_df = pd.concat([year_smpl_cmb_df, cmb_smpl_results_df], axis=1)
 
-            # Do plotting and save output PER YEAR (individual csv per year)
-            draw_plot(year, year_smpl_cmb_df, fig_dir, prdct)
+        # Do plotting and save output PER YEAR (individual csv per year)
+        draw_plot(year, year_smpl_cmb_df, fig_dir, prdct, sites_dict)
 
         # Export data to csv
         os.chdir(fig_dir)
