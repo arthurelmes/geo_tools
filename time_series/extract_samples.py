@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from pyhdf.SD import SD, SDC
 from h5py import File
 from datetime import datetime
+import seaborn as sns
 
 
 def hdf_to_np(hdf_fname, sds):
@@ -229,25 +230,32 @@ def extract_pixel_value(in_dir, site, prdct, h_file_day, sds_names, base_dir):
     return wsa_swir_subset_flt, bsa_swir_subset_flt
 
 
-def draw_plot(year, year_smpl_cmb_df, fig_dir):
+def draw_plot(year, year_smpl_cmb_df, fig_dir, prdct):
     #plt.ion()
-    fig = plt.figure()
-    fig.suptitle('Test Plot')
-    ax = fig.add_subplot(111)
-    fig.subplots_adjust(top=0.85)
-    ax.set_title(str(year))
-    ax.set_xlabel('DOY')
-    ax.set_ylabel('White Sky Albedo')
-    plt.xlim(0, 365)
-    plt.ylim(0.0, 1.0)
-    ax = plt.gca()
-    #year_smpl_cmb_df.columns = ['doy', 'wsa', 'bsa']
-    #print(year_smpl_cmb_df)
-    year_smpl_cmb_df.plot(kind='line', x='doy', y='1_wsa', ax=ax)
-    #ax.plot(doys, wsa_swir_mean)
-    plt_name = str(year + '_test')
-    #print('Saving plot to: ' + '{fig_dir}{plt_name}.png'.format(fig_dir=fig_dir, plt_name=plt_name))
-    plt.savefig('{fig_dir}{plt_name}.png'.format(fig_dir=fig_dir, plt_name=plt_name))
+    #plt.xlim(0, 365)
+    #plt.ylim(0.0, 1.0)
+    #ax = plt.gca()
+
+    sns.set_style("darkgrid")
+
+    # Create a seaborn scatterplot (or replot for now, small differences)
+    sct = sns.regplot(x="doy", y="1_wsa", data=year_smpl_cmb_df, marker="o", label="SW WSA",
+                      fit_reg=False, scatter_kws={"color":"darkblue", "alpha":0.3,"s":20})
+    sct.set_ylim(0, 1.0)
+    sct.set_xlim(1, 366)
+    sct.legend(loc="best")
+
+    # Access the figure, add title
+    plt_name = str(year + " " + prdct + " SW WSA")
+    #fig = sct.fig
+    #fig.suptitle(plt_name)
+
+    plt.title(plt_name)
+    plt.show()
+
+    sys.exit()
+    print('Saving plot to: ' + '{fig_dir}/{plt_name}.png'.format(fig_dir=fig_dir, plt_name=plt_name))
+    plt.savefig('{fig_dir}/{plt_name}.png'.format(fig_dir=fig_dir, plt_name=plt_name))
 
 
 def check_leap(year):
@@ -382,11 +390,11 @@ def main():
             year_smpl_cmb_df = pd.concat([year_smpl_cmb_df, cmb_smpl_results_df], axis=1)
 
             # Do plotting and save output PER YEAR (individual csv per year)
-            draw_plot(year, year_smpl_cmb_df, fig_dir)
+            draw_plot(year, year_smpl_cmb_df, fig_dir, prdct)
 
         # Export data to csv
         os.chdir(fig_dir)
-        output_name = str(sites_csv_input[:-4] + "extracted_values_")
+        output_name = str(sites_csv_input[:-4] + "_extracted_values")
         csv_name = str(output_name + "_" + prdct + ".csv")
         print("writing csv: " + csv_name)
         year_smpl_cmb_df.to_csv(csv_name, index=False)
