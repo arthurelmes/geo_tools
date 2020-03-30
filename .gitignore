@@ -1,0 +1,9 @@
+#ignore output logs
+*.out
+
+#ignore emacs temp and autosave
+\#*#
+*~
+
+#ignore s2 logs dir
+download/s2/logs/
