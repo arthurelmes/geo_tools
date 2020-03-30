@@ -173,24 +173,18 @@ def main():
     tile2_deets = determine_sensor(tile2_fname.split("/")[-1])
     labels = (tile1_deets[0], tile1_deets[1], tile2_deets[1], sds_name_wsa, tile1_deets[2], tile2_deets[2])
 
-    #TODO maybe make the tile variables into a list for clarity
     # Convert both tiles' data and qa to numpy arrays for plotting
     tile1_data_wsa = get_data(os.path.join(workspace, tile1_fname), sds_name_wsa)
     tile1_data_qa = get_data(os.path.join(workspace, tile1_fname), sds_name_qa)
     tile2_data_wsa = get_data(os.path.join(workspace, tile2_fname), sds_name_wsa)
     tile2_data_qa = get_data(os.path.join(workspace, tile2_fname), sds_name_qa)
 
-    print(tile1_data_wsa.shape)
-    print(tile1_data_qa.shape)
-    print(tile2_data_wsa.shape)
-    print(tile2_data_qa.shape)
-    sys.exit()
     # Call masking function to cleanup data
     tile1_data_qa_masked = mask_qa(tile1_data_wsa, tile1_data_qa)
     tile2_data_qa_masked = mask_qa(tile2_data_wsa, tile2_data_qa)
-    # print(tile1_data_qa_masked)
-    # print(tile1_data_qa)
-    # Flaten np arrays into single column
+    print(tile1_data_qa_masked)
+    print(tile1_data_qa)
+    # Flatten np arrays into single column
     x = tile1_data_qa_masked.flatten()
     y = tile2_data_qa_masked.flatten()
     cmb_data = np.column_stack((x,y))
