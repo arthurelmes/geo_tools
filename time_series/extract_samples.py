@@ -223,7 +223,7 @@ def extract_pixel_value(in_dir, site, prdct, h_file_day, sds_names, base_dir):
     # Take just the sampled location's value, and scale to float
     wsa_swir_subset = wsa_swir_masked_qa[smp_rc]
     wsa_swir_subset_flt = np.multiply(wsa_swir_subset, 0.001)
-    bsa_swir_subset = bsa_swir_masked_qa[smp_rc]
+    plotbsa_swir_subset = bsa_swir_masked_qa[smp_rc]
     bsa_swir_subset_flt = np.multiply(bsa_swir_subset, 0.001)
 
     # Return a tuple of numpy arrays for wsa and bsa (and probably also qa?)

@@ -120,6 +120,7 @@ def plot_data(cmb_data, labels, stats, workspace):
     ax.set_ylim(lims)
 
     print('Saving plot to: ' + '{plt_name}.png'.format(plt_name=plt_name))
+    plt.show()
     plt.savefig('{plt_name}.png'.format(plt_name=plt_name))
 
     # Make heatmap scatterplot because there are usually way too many pixels for clarity
@@ -182,8 +183,12 @@ def main():
     # Call masking function to cleanup data
     tile1_data_qa_masked = mask_qa(tile1_data_wsa, tile1_data_qa)
     tile2_data_qa_masked = mask_qa(tile2_data_wsa, tile2_data_qa)
-    print(tile1_data_qa_masked)
-    print(tile1_data_qa)
+
+    #every other pixel. If both datasets are the same, do nothing.
+    if ("MCD" in labels[2] and "VNP" in labels[3]) or ("MCD" in labels[2] and "VNP" in labels[3]):
+        tile1_data_qa_masked = tile1_data_qa_masked[::2, ::2]
+    else:
+        pass
     # Flatten np arrays into single column
     x = tile1_data_qa_masked.flatten()
     y = tile2_data_qa_masked.flatten()
