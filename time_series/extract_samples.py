@@ -209,6 +209,8 @@ def extract_pixel_value(in_dir, site, prdct, h_file_day, sds_names, base_dir):
     bsa_swir_masked = np.ma.masked_array(bsa_band, bsa_band == 32767)
     bsa_swir_masked_qa = np.ma.masked_array(bsa_swir_masked, qa_band > 1)
 
+    #TODO is the plotting in this script appropriately ignoring values masked here?
+
     # Extract pixel value from product by converting lat/lon to row/col
     if "VNP" in prdct:
         smp_rc = convert_ll_vnp(site[1][0], site[1][1], site[1][2], copy_srs_dir, prdct)
@@ -223,7 +225,7 @@ def extract_pixel_value(in_dir, site, prdct, h_file_day, sds_names, base_dir):
     # Take just the sampled location's value, and scale to float
     wsa_swir_subset = wsa_swir_masked_qa[smp_rc]
     wsa_swir_subset_flt = np.multiply(wsa_swir_subset, 0.001)
-    bsa_swir_subset = bsa_swir_masked_qa[smp_rc]
+    plotbsa_swir_subset = bsa_swir_masked_qa[smp_rc]
     bsa_swir_subset_flt = np.multiply(bsa_swir_subset, 0.001)
 
     # Return a tuple of numpy arrays for wsa and bsa (and probably also qa?)

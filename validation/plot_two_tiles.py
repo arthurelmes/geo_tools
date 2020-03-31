@@ -3,11 +3,9 @@
 import os, matplotlib, math, sys
 from argparse import ArgumentParser
 import matplotlib.pyplot as plt
-# from matplotlib import cm
+from matplotlib.colors import LogNorm
 from sklearn.metrics import mean_squared_error
 import numpy as np
-# import pandas as pd
-# import rasterio as rio
 from pyhdf.SD import SD, SDC
 from h5py import File
 
@@ -37,8 +35,6 @@ def determine_sensor(fname):
 
 
 def get_data(fname, sds):
-    print(fname)
-    print(sds)
     if "MCD" in fname:
         np_data = hdf_to_np(fname, sds)
     elif "VNP" in fname:
@@ -77,65 +73,68 @@ def h5_to_np(h5_fname, sds):
 def mask_qa(hdf_data, hdf_qa):
     # Mask the wsa values with QA to keep only value 0 (highest quality)
     # Also, mask out nodata values (32767)
-    nodata_masked = np.ma.masked_where(hdf_data == 32767, hdf_data)
-    qa_masked = np.ma.masked_where(hdf_qa > 1, nodata_masked)
-    return qa_masked
+    # wsa_swir_masked = np.ma.masked_array(wsa_band, wsa_band == 32767)
+    # wsa_swir_masked_qa = np.ma.masked_array(wsa_swir_masked, qa_band > 1)
+    nodata_masked = np.ma.masked_array(hdf_data, hdf_data == 32767)
+
+    # NOTE: Uncomment below to also mask out all zeros. They seem to be mostly water pixels.
+    # nodata_masked = np.ma.masked_array(nodata_masked, nodata_masked == 0)
+
+    qa_masked = np.ma.masked_array(nodata_masked, hdf_qa > 1)
+    qa_masked_float = np.multiply(qa_masked, 0.001)
+
+    return qa_masked_float
 
 
 def plot_data(cmb_data, labels, stats, workspace):
     # Using masked numpy arrays, create scatterplot of tile1 vs tile2
-    plt.ion()
-    fig = plt.figure()
-    fig.suptitle(labels[0] + '_' + labels[1])
-    ax = fig.add_subplot(111)
-    # fig.subplots_adjust(top=0.85)
-    ax.set_title(labels[3])
-    ax.set_xlabel(labels[1] + " " + labels[4] + ' (scaled)')
-    ax.set_ylabel(labels[2] + " " + labels[5] + ' (scaled)')
-    plt.xlim(0.0, 1000)
-    plt.ylim(0.0, 1000)
 
-    # Add text box with RMSE and mean bias
+    # Get rid of all the masked data by filling with nans and then removing them
+    cmb_data_nans = np.ma.filled(cmb_data, np.nan)
+    cmb_data_nans = cmb_data_nans[~np.isnan(cmb_data_nans).any(axis=1)]
+
+    #hist = plt.hist2d(cmb_data_nans[:, 0], cmb_data_nans[:, 1], bins=50, norm=LogNorm())
+    x = cmb_data_nans[:, 0]
+    y = cmb_data_nans[:, 1]
+
+    hist = plt.hist2d(cmb_data_nans[:, 0], cmb_data_nans[:, 1], bins=200, norm=LogNorm(),
+                      cmap=plt.cm.YlOrRd)
+    plt.colorbar(hist[3])
+    plt.title(labels[0] + '_' + labels[1] + "_"+ labels[3])
+
+    plt.xlabel(labels[1] + " " + labels[4] + ' (scaled)')
+    plt.ylabel(labels[2] + " " + labels[5] + ' (scaled)')
+
+    # # Add text box with RMSE and mean bias
     textstr = '\n'.join((
         r'$\mathrm{RMSE}=%.2f$' % (stats[0], ),
         r'$\mathrm{Mean Bias}=%.2f$' % (stats[1], )))
 
     props = dict(boxstyle='round', facecolor='white', alpha=0.5)
-    ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14, verticalalignment='top', bbox=props)
-    ax.plot(cmb_data[:, 0], cmb_data[:, 1], marker=',', color='b', linestyle="None")
-    #TODO add band name to this plot output name
-    plt_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[4] + "_vs_" \
-                            + labels[2] + "_" + labels[5])
+    plt.text(0.05, 0.95, textstr, fontsize=14, verticalalignment='top', bbox=props)
 
     # Add x=y line
     lims = [
-        np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
-        np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
+        np.min([plt.xlim(), plt.ylim()]),  # min of both axes
+        np.max([plt.xlim(), plt.ylim()]),  # max of both axes
     ]
 
     # Plot limits against each other for 1:1 line
-    ax.plot(lims, lims, 'k-', alpha=0.75, zorder=0)
-    ax.set_aspect('equal')
-    ax.set_xlim(lims)
-    ax.set_ylim(lims)
+    plt.plot(lims, lims, 'k-', alpha=0.75, zorder=1)
+    plt.xlim(lims)
+    plt.ylim(lims)
 
-    print('Saving plot to: ' + '{plt_name}.png'.format(plt_name=plt_name))
-    plt.savefig('{plt_name}.png'.format(plt_name=plt_name))
-
-    # Make heatmap scatterplot because there are usually way too many pixels for clarity
-    # Uncomment the below to make a simple heatmap scatterplot. The 'bins' arg needs to be
-    # adjusted to make for a decent visualization.. right now everything looks like 0 density
-    # other than the x=y line
-
-    # heatmap, xedges, yedges = np.histogram2d(x, y, bins=50, range=[[0, 1000], [0, 1000]])
-    # extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
-    # plt.imshow(heatmap.T, extent=extent, origin='lower', cmap=cm.Reds)
-    # plt.savefig('{plt_name}_heatmap.png'.format(plt_name=plt_name))
+    #plt.show()
 
     # Export data as CSV in case needed
     hdrs = str(labels[1] + "." + labels[4] + "," + labels[2] + "." + labels[5])
-    np.savetxt(labels[0] + "_" + labels[1] + "_" + labels[2] + '_test_data.csv', cmb_data, delimiter=",", header=hdrs)
+    csv_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[2] + "_" + labels[3] + "_data.csv")
+    np.savetxt(csv_name, cmb_data, delimiter=",", header=hdrs)
 
+    plt_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[4] + "_vs_" \
+                            + labels[2] + "_" + labels[5] + "_" + labels[3])
+    print('Saving plot to: ' + '{plt_name}.png'.format(plt_name=plt_name))
+    plt.savefig('{plt_name}.png'.format(plt_name=plt_name))
 
 def main():
     # CLI args
@@ -152,9 +151,6 @@ def main():
     # Set input hdf/h5 filenames
     tile1_fname = args.file1
     tile2_fname = args.file2
-
-    # test tile 1 filename: MCD43A3.A2016365.h12v04.006.2017014043109.hdf
-    # test tile 2 filename: MCD43A3.A2016366.h12v04.006.2017014050856.hdf
 
     # Set workspace IO dirs
     workspace_out = workspace
@@ -182,12 +178,16 @@ def main():
     # Call masking function to cleanup data
     tile1_data_qa_masked = mask_qa(tile1_data_wsa, tile1_data_qa)
     tile2_data_qa_masked = mask_qa(tile2_data_wsa, tile2_data_qa)
-    print(tile1_data_qa_masked)
-    print(tile1_data_qa)
+
+    #every other pixel. If both datasets are the same, do nothing.
+    if ("MCD" in labels[2] and "VNP" in labels[3]) or ("MCD" in labels[2] and "VNP" in labels[3]):
+        tile1_data_qa_masked = tile1_data_qa_masked[::2, ::2]
+    else:
+        pass
     # Flatten np arrays into single column
     x = tile1_data_qa_masked.flatten()
     y = tile2_data_qa_masked.flatten()
-    cmb_data = np.column_stack((x,y))
+    cmb_data = np.ma.column_stack((x, y))
 
     # Calculate RMSE and Mean Bias, multiply by 0.001, which is the scale factor for MCD43/VNP43
     rmse = math.sqrt(mean_squared_error(x, y)) * 0.001
@@ -195,7 +195,7 @@ def main():
     stats = (rmse, mb)
 
     # Call plotting function
-    plot_data(cmb_data, labels, stats, workspace)
+    plot_data(cmb_data, labels, stats, workspace_out)
 
 
 if __name__ == "__main__":
