@@ -104,40 +104,37 @@ def plot_data(cmb_data, labels, stats, workspace):
 
     plt.xlabel(labels[1] + " " + labels[4] + ' (scaled)')
     plt.ylabel(labels[2] + " " + labels[5] + ' (scaled)')
-    plt.show()
 
     # # Add text box with RMSE and mean bias
-    # textstr = '\n'.join((
-    #     r'$\mathrm{RMSE}=%.2f$' % (stats[0], ),
-    #     r'$\mathrm{Mean Bias}=%.2f$' % (stats[1], )))
-    #
-    # props = dict(boxstyle='round', facecolor='white', alpha=0.5)
-    # plt.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14, verticalalignment='top', bbox=props)
-    # plt.plot(cmb_data[:, 0], cmb_data[:, 1], marker=',', color='b', linestyle="None")
-    # # #TODO add band name to this plot output name
-    # plt_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[4] + "_vs_" \
-    #                         + labels[2] + "_" + labels[5])
-    #
-    # # Add x=y line
-    # lims = [
-    #     np.min([plt.get_xlim(), plt.get_ylim()]),  # min of both axes
-    #     np.max([plt.get_xlim(), plt.get_ylim()]),  # max of both axes
-    # ]
-    #
-    # # Plot limits against each other for 1:1 line
-    # plt.plot(lims, lims, 'k-', alpha=0.75, zorder=0)
-    # plt.set_aspect('equal')
-    # plt.set_xlim(lims)
-    # plt.set_ylim(lims)
+    textstr = '\n'.join((
+        r'$\mathrm{RMSE}=%.2f$' % (stats[0], ),
+        r'$\mathrm{Mean Bias}=%.2f$' % (stats[1], )))
 
-    plt.show()
-    # print('Saving plot to: ' + '{plt_name}.png'.format(plt_name=plt_name))
-    # plt.savefig('{plt_name}.png'.format(plt_name=plt_name))
+    props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+    plt.text(0.05, 0.95, textstr, fontsize=14, verticalalignment='top', bbox=props)
+
+    # Add x=y line
+    lims = [
+        np.min([plt.xlim(), plt.ylim()]),  # min of both axes
+        np.max([plt.xlim(), plt.ylim()]),  # max of both axes
+    ]
+
+    # Plot limits against each other for 1:1 line
+    plt.plot(lims, lims, 'k-', alpha=0.75, zorder=1)
+    plt.xlim(lims)
+    plt.ylim(lims)
+
+    #plt.show()
 
     # Export data as CSV in case needed
     hdrs = str(labels[1] + "." + labels[4] + "," + labels[2] + "." + labels[5])
-    np.savetxt(labels[0] + "_" + labels[1] + "_" + labels[2] + '_test_data.csv', cmb_data, delimiter=",", header=hdrs)
+    csv_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[2] + "_" + labels[3] + "_data.csv")
+    np.savetxt(csv_name, cmb_data, delimiter=",", header=hdrs)
 
+    plt_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[4] + "_vs_" \
+                            + labels[2] + "_" + labels[5] + "_" + labels[3])
+    print('Saving plot to: ' + '{plt_name}.png'.format(plt_name=plt_name))
+    plt.savefig('{plt_name}.png'.format(plt_name=plt_name))
 
 def main():
     # CLI args
@@ -192,10 +189,9 @@ def main():
     y = tile2_data_qa_masked.flatten()
     cmb_data = np.ma.column_stack((x, y))
 
-    #TODO find out why these are broken
     # Calculate RMSE and Mean Bias, multiply by 0.001, which is the scale factor for MCD43/VNP43
-    rmse = 1 # math.sqrt(mean_squared_error(x, y)) * 0.001
-    mb = 1 # np.sum(x - y) / x.size * 0.001
+    rmse = math.sqrt(mean_squared_error(x, y)) * 0.001
+    mb = np.sum(x - y) / x.size * 0.001
     stats = (rmse, mb)
 
     # Call plotting function
