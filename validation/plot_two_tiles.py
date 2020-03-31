@@ -3,11 +3,9 @@
 import os, matplotlib, math, sys
 from argparse import ArgumentParser
 import matplotlib.pyplot as plt
-import seaborn as sns
+from matplotlib.colors import LogNorm
 from sklearn.metrics import mean_squared_error
 import numpy as np
-# import pandas as pd
-# import rasterio as rio
 from pyhdf.SD import SD, SDC
 from h5py import File
 
@@ -77,74 +75,64 @@ def mask_qa(hdf_data, hdf_qa):
     # Also, mask out nodata values (32767)
     # wsa_swir_masked = np.ma.masked_array(wsa_band, wsa_band == 32767)
     # wsa_swir_masked_qa = np.ma.masked_array(wsa_swir_masked, qa_band > 1)
-    np.set_printoptions(threshold=sys.maxsize)
     nodata_masked = np.ma.masked_array(hdf_data, hdf_data == 32767)
-    nodata_masked = np.ma.masked_array(nodata_masked, nodata_masked == 0)
+
+    # NOTE: Uncomment below to also mask out all zeros. They seem to be mostly water pixels.
+    # nodata_masked = np.ma.masked_array(nodata_masked, nodata_masked == 0)
+
     qa_masked = np.ma.masked_array(nodata_masked, hdf_qa > 1)
     qa_masked_float = np.multiply(qa_masked, 0.001)
+
     return qa_masked_float
 
 
 def plot_data(cmb_data, labels, stats, workspace):
     # Using masked numpy arrays, create scatterplot of tile1 vs tile2
-    import matplotlib.colors as mcolors
-    plt.ion()
+
+    # Get rid of all the masked data by filling with nans and then removing them
     cmb_data_nans = np.ma.filled(cmb_data, np.nan)
-    plt.hist2d(x=cmb_data_nans[:, 0], y=cmb_data_nans[:, 1], bins=80, cmap=plt.cm.PuRd,
-               range=((0, 1),(0, 1)), norm=mcolors.PowerNorm(0.5))
-    #TODO fix the color ramp til it looks good.
-    plt.colorbar()
+    cmb_data_nans = cmb_data_nans[~np.isnan(cmb_data_nans).any(axis=1)]
+
+    #hist = plt.hist2d(cmb_data_nans[:, 0], cmb_data_nans[:, 1], bins=50, norm=LogNorm())
+    x = cmb_data_nans[:, 0]
+    y = cmb_data_nans[:, 1]
+
+    hist = plt.hist2d(cmb_data_nans[:, 0], cmb_data_nans[:, 1], bins=200, norm=LogNorm(),
+                      cmap=plt.cm.YlOrRd)
+    plt.colorbar(hist[3])
+    plt.title(labels[0] + '_' + labels[1] + "_"+ labels[3])
+
+    plt.xlabel(labels[1] + " " + labels[4] + ' (scaled)')
+    plt.ylabel(labels[2] + " " + labels[5] + ' (scaled)')
     plt.show()
-    sys.exit()
-    # ax = sns.heatmap(cmb_data)
-    # plt.show()
-    # fig = plt.figure()
-    # fig.suptitle(labels[0] + '_' + labels[1])
-    # ax = fig.add_subplot(111)
-    # # fig.subplots_adjust(top=0.85)
-    # ax.set_title(labels[3])
-    # ax.set_xlabel(labels[1] + " " + labels[4] + ' (scaled)')
-    # ax.set_ylabel(labels[2] + " " + labels[5] + ' (scaled)')
-    # plt.xlim(0.0, 1000)
-    # plt.ylim(0.0, 1000)
-    #
+
     # # Add text box with RMSE and mean bias
     # textstr = '\n'.join((
     #     r'$\mathrm{RMSE}=%.2f$' % (stats[0], ),
     #     r'$\mathrm{Mean Bias}=%.2f$' % (stats[1], )))
     #
     # props = dict(boxstyle='round', facecolor='white', alpha=0.5)
-    # ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14, verticalalignment='top', bbox=props)
-    # ax.plot(cmb_data[:, 0], cmb_data[:, 1], marker=',', color='b', linestyle="None")
-    # #TODO add band name to this plot output name
+    # plt.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+    # plt.plot(cmb_data[:, 0], cmb_data[:, 1], marker=',', color='b', linestyle="None")
+    # # #TODO add band name to this plot output name
     # plt_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[4] + "_vs_" \
     #                         + labels[2] + "_" + labels[5])
     #
     # # Add x=y line
     # lims = [
-    #     np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
-    #     np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
+    #     np.min([plt.get_xlim(), plt.get_ylim()]),  # min of both axes
+    #     np.max([plt.get_xlim(), plt.get_ylim()]),  # max of both axes
     # ]
     #
     # # Plot limits against each other for 1:1 line
-    # ax.plot(lims, lims, 'k-', alpha=0.75, zorder=0)
-    # ax.set_aspect('equal')
-    # ax.set_xlim(lims)
-    # ax.set_ylim(lims)
+    # plt.plot(lims, lims, 'k-', alpha=0.75, zorder=0)
+    # plt.set_aspect('equal')
+    # plt.set_xlim(lims)
+    # plt.set_ylim(lims)
 
     plt.show()
     # print('Saving plot to: ' + '{plt_name}.png'.format(plt_name=plt_name))
     # plt.savefig('{plt_name}.png'.format(plt_name=plt_name))
-
-    # Make heatmap scatterplot because there are usually way too many pixels for clarity
-    # Uncomment the below to make a simple heatmap scatterplot. The 'bins' arg needs to be
-    # adjusted to make for a decent visualization.. right now everything looks like 0 density
-    # other than the x=y line
-
-    # heatmap, xedges, yedges = np.histogram2d(x, y, bins=50, range=[[0, 1000], [0, 1000]])
-    # extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
-    # plt.imshow(heatmap.T, extent=extent, origin='lower', cmap=cm.Reds)
-    # plt.savefig('{plt_name}_heatmap.png'.format(plt_name=plt_name))
 
     # Export data as CSV in case needed
     hdrs = str(labels[1] + "." + labels[4] + "," + labels[2] + "." + labels[5])
