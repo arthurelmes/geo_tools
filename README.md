@@ -7,4 +7,6 @@ This repo contains a set of assorted data management and analysis tools for EO d
 
 ## Purpose
 
+This repo is designed to facilitate typical EO downloading, processing, and analytical workflows.
+
 ## How to Contribute
