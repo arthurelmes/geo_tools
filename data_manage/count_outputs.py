@@ -2,8 +2,6 @@ from glob import glob
 import os
 
 # Set relevant dirs
-# TODO Figure out how to login to neponsit/muddy/ghpcc usinng user/pw combo, maybe with ftplib?
-#wk_dir = os.path.dirname(os.path.realpath(__file__))
 wk_dir = '/media/sf_LinuxShare/outputsTest'
 
 # Set year, band list, product list
