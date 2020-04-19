@@ -20,7 +20,7 @@ if not os.path.exists(out_dir):
 
 os.chdir(in_dir)
 
-in_file = "VNP09GA.A2018001.h30v11.002.2020021214039.h5"
+in_file = "VNP09GA.A2018185.h17v07.002.2020024191127.h5"
 out_name = in_file.rsplit('.', 1)[0]
 
 # Using h5py for heavy lifting
@@ -54,6 +54,44 @@ r = f[[a for a in datasets if 'M5' in a][0]] #M5 is red
 g = f[[a for a in datasets if 'M4' in a][0]] #M4 is green
 b = f[[a for a in datasets if 'M3' in a][0]] #M3 is blue
 n = f[[a for a in datasets if 'M7' in a][0]] #M7 is nir
+
+#TODO Update this to use dataset[()] instead of dataset.value
+qf1 = f[[a for a in datasets if 'QF1' in a][0]].value # Import QF1 SDS
+qf7 = f[[a for a in datasets if 'QF7' in a][0]].value # Import QF7 SDS
+
+# Unpack QA bits for aero quantity and cloud confidence
+
+# The QA SDSs of interest both have 8 bits
+bits = 8
+
+# Populate a list with all possible values, raise 2 to the power of however many bits you specified
+vals = list(range(0, (2**bits)))
+
+# Create a list to store 'good' bit values, i.e. those that match the binary pattern we specify below
+good_qf = []
+
+for v in vals:
+    bit_val = format(vals[v], 'b').zfill(bits) # converting to binary, zfill pads with 0
+    # Narrow to our bit pattern of interest, for the bit numbers of interest.
+    # Remember the index in the list of bit_value starts left to right as usual, but bits are
+    # numbered right to left, since least significant is farthest right. So to get bits 2 and 3, as
+    # defined in user guide, use index values 4:6.
+    if bit_val[4:6] == '11':
+        good_qf.append(vals[v])
+        print('\n' + str(vals[v]) + ' = ' + str(bit_val))
+
+
+# Mask the bands using the bit values defined above.
+#TODO Unpacking the bit flags from the QA bands is similar maybe? Mask themselves rather than the spectral bands, then relcassify???
+
+# Maybe this is clunky.. but this should work for a SINGLE bit value, but not yet a range
+qf7_unpacked = np.ma.MaskedArray(qf7, np.in1d(qf7, good_qf, invert=True))
+unique_vals = np.unique(qf7_unpacked)
+for u in unique_vals:
+    if u > 0:
+        qf7_unpacked[qf7_unpacked == u] = 1
+
+qf7_unpacked = np.where(qf7_unpacked == 1, 1, np.NaN)
 
 # Get scale factor and fill value
 scale_factor = r.attrs['Scale']
@@ -99,12 +137,15 @@ PARAMETER["false_northing",0], \
 UNIT["Meter",1]]'
 
 # This is a dictionary of all the bands to be exported. Modify this to be the wsa/bsa/qa bands for VNP43
-export_dict = {'red':{'data':red, 'band': 'M5'}, 'green':{'data':green, 'band': 'M4'},'blue':{'data':blue, 'band': 'M3'}}
+#export_dict = {'red':{'data':red, 'band': 'M5'}, 'green':{'data':green, 'band': 'M4'},'blue':{'data':blue, 'band': 'M3'}}
+export_dict = {'qf7':{'data':qf7_unpacked, 'band': 'QF7'}}
+
 
 for e in export_dict:
     try:
         data = export_dict[e]['data']
-        data[data.mask == True] = fill_value
+        sys.exit()
+        #data[data.mask == True] = fill_value
     except: AttributeError
     output_name = os.path.normpath('{}{}_{}.tif'.format(out_dir, out_name, export_dict[e]['band']))
     n_row, n_col = data.shape[0], data.shape[1]
@@ -114,6 +155,7 @@ for e in export_dict:
     # Left out the rgb export here, but would be interesting to revisit
     out_file = driver.Create(output_name, n_col, n_row, 1, data_type)
     band = out_file.GetRasterBand(1)
+    print(data)
     band.WriteArray(data)
     band.FlushCache
     band.SetNoDataValue(float(fill_value))
