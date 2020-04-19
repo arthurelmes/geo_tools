@@ -18,15 +18,16 @@ out_dir = os.path.join(in_dir, "tif/")
 if not os.path.exists(out_dir):
     os.makedirs(out_dir)
 
-os.chdir(in_dir)
 for root, dirs, files in os.walk(in_dir):
+    os.chdir(root)
     for file in files:
         in_file = file
         if 'h5' in file:
             out_name = in_file.rsplit('.', 1)[0]
-
+            print(os.getcwd())
+            print(in_file)
             # Using h5py for heavy lifting
-            f = h5py.File(in_file)
+            f = h5py.File(in_file, 'r')
 
             # Create a list of the grids -- do we care about this here?
             grids = list(f['HDFEOS']['GRIDS'])
