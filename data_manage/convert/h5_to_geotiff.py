@@ -142,7 +142,8 @@ for root, dirs, files in os.walk(in_dir):
 
             # This is a dictionary of all the bands to be exported. Modify this to be the wsa/bsa/qa bands for VNP43
             #export_dict = {'red':{'data':red, 'band': 'M5'}, 'green':{'data':green, 'band': 'M4'},'blue':{'data':blue, 'band': 'M3'}}
-            export_dict = {'qf7':{'data':qf7_unpacked, 'band': 'QF7'}, 'sens_zenith':{'data':sens_ang, 'band': 'SensorZenith_1'}}
+            export_dict = {'qf7':{'data':qf7_unpacked, 'band': 'QF7'}, 'sens_zenith':{'data':sens_ang, 'band': 'SensorZenith_1'},
+                           'rgb':{'data':rgb, 'band': 'RGB'}}
 
 
             for e in export_dict:
@@ -156,18 +157,30 @@ for root, dirs, files in os.walk(in_dir):
                 n_row, n_col = data.shape[0], data.shape[1]
                 data_type = gdal_array.NumericTypeCodeToGDALTypeCode(data.dtype)
                 driver = gdal.GetDriverByName('GTiff')
+                if e == 'rgb':  # Diff process for exporting RGB
+                    data = export_dict[e]['data']  # Define the array to be exported
+                    dataType = gdal_array.NumericTypeCodeToGDALTypeCode(data.dtype)  # Define output data type
+                    options = ['PHOTOMETRIC=RGB', 'PROFILE=GeoTIFF']  # Set options to RGB TIFF
+                    outFile = driver.Create(output_name, n_col, n_row, 3, dataType,
+                                            options=options)  # Specify parameters of the GeoTIFF
+                    for b in range(data.shape[2]):  # loop through each band (3)
+                        outFile.GetRasterBand(b + 1).WriteArray(rgb[:, :, b])  # Write to output bands 1-3
+                        outFile.GetRasterBand(b + 1).SetNoDataValue(0)  # Set fill value for each band
+                    outFile.GetRasterBand(1).SetColorInterpretation(gdal.GCI_RedBand)  # Define red band
+                    outFile.GetRasterBand(2).SetColorInterpretation(gdal.GCI_GreenBand)  # Define green band
+                    outFile.GetRasterBand(3).SetColorInterpretation(gdal.GCI_BlueBand)  # Define blue band
+                else:
+                    # Left out the rgb export here, but would be interesting to revisit
+                    out_file = driver.Create(output_name, n_col, n_row, 1, data_type)
+                    band = out_file.GetRasterBand(1)
+                    band.WriteArray(data)
+                    band.FlushCache
+                    band.SetNoDataValue(float(fill_value))
 
-                # Left out the rgb export here, but would be interesting to revisit
-                out_file = driver.Create(output_name, n_col, n_row, 1, data_type)
-                band = out_file.GetRasterBand(1)
-                band.WriteArray(data)
-                band.FlushCache
-                band.SetNoDataValue(float(fill_value))
+                    out_file.SetGeoTransform(geotransform)
+                    out_file.SetProjection(prj)
+                    out_file = None
+                    print('Processing: {}'.format(output_name))
 
-                out_file.SetGeoTransform(geotransform)
-                out_file.SetProjection(prj)
-                out_file = None
-                print('Processing: {}'.format(output_name))
-
-                #NOTE Need to fix the output directory, but otherwise this works for VNP09 RGBN bands.
-                #TODO Add CLI args to select SDSs desired, IO dirs, etc
+                    #NOTE Need to fix the output directory, but otherwise this works for VNP09 RGBN bands.
+                    #TODO Add CLI args to select SDSs desired, IO dirs, etc
