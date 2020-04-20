@@ -178,10 +178,7 @@ for root, dirs, files in os.walk(in_dir):
                     band.FlushCache
                     band.SetNoDataValue(float(fill_value))
 
-                    out_file.SetGeoTransform(geotransform)
-                    out_file.SetProjection(prj)
-                    out_file = None
-                    print('Processing: {}'.format(output_name))
-
-                    #NOTE Need to fix the output directory, but otherwise this works for VNP09 RGBN bands.
-                    #TODO Add CLI args to select SDSs desired, IO dirs, etc
+                out_file.SetGeoTransform(geotransform)
+                out_file.SetProjection(prj)
+                out_file = None
+                print('Processing: {}'.format(output_name))
