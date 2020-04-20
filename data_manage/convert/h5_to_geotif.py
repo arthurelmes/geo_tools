@@ -100,14 +100,14 @@ for root, dirs, files in os.walk(in_dir):
                 if u > 0:
                     qf7_unpacked[qf7_unpacked == u] = 1
 
-            qf7_unpacked = np.where(qf7_unpacked == 1, 1, np.NaN)
+            qf7_unpacked = np.where(qf7_unpacked == 1, 1, 0) # np.NaN)
 
             unique_vals_qf1 = np.unique(qf1_unpacked)
             for u in unique_vals_qf1:
                 if u > 0:
                     qf1_unpacked[qf1_unpacked == u] = 1
 
-            qf1_unpacked = np.where(qf1_unpacked == 1, 1, np.NaN)
+            qf1_unpacked = np.where(qf1_unpacked == 1, 1, 0) # np.NaN)
 
             # Get scale factor and fill value
             scale_factor = r.attrs['Scale']
