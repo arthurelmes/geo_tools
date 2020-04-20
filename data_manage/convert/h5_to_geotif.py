@@ -73,7 +73,8 @@ for root, dirs, files in os.walk(in_dir):
             vals = list(range(0, (2**bits)))
 
             # Create a list to store 'good' bit values, i.e. those that match the binary pattern we specify below
-            good_qf = []
+            good_qf1 = []
+            good_qf7 = []
 
             for v in vals:
                 bit_val = format(vals[v], 'b').zfill(bits) # converting to binary, zfill pads with 0
@@ -82,21 +83,30 @@ for root, dirs, files in os.walk(in_dir):
                 # numbered right to left, since least significant is farthest right. So to get bits 2 and 3, as
                 # defined in user guide, use index values 4:6.
                 if bit_val[4:6] == '11':
-                    good_qf.append(vals[v])
+                    good_qf7.append(vals[v])
                     #print('\n' + str(vals[v]) + ' = ' + str(bit_val))
-
+                # this is for the cloud mask, which HAPPEN to have the same bit numbers and value for conf cloud
+                elif bit_val[4:6] == '11':
+                    good_qf1.append(vals[v])
 
             # Mask the bands using the bit values defined above.
-            #TODO Unpacking the bit flags from the QA bands is similar maybe? Mask themselves rather than the spectral bands, then relcassify???
-
             # Maybe this is clunky.. but this should work for a SINGLE bit value, but not yet a range
-            qf7_unpacked = np.ma.MaskedArray(qf7, np.in1d(qf7, good_qf, invert=True))
-            unique_vals = np.unique(qf7_unpacked)
-            for u in unique_vals:
+            qf7_unpacked = np.ma.MaskedArray(qf7, np.in1d(qf7, good_qf7, invert=True))
+            unique_vals_qf7 = np.unique(qf7_unpacked)
+            for u in unique_vals_qf7:
                 if u > 0:
                     qf7_unpacked[qf7_unpacked == u] = 1
 
             qf7_unpacked = np.where(qf7_unpacked == 1, 1, np.NaN)
+            
+            qf1_unpacked = np.ma.MaskedArray(qf1, np.in1d(qf1, good_qf1, invert=True))
+            unique_vals_qf1 = np.unique(qf1_unpacked)
+            for u in unique_vals_qf1:
+                if u > 0:
+                    qf1_unpacked[qf1_unpacked == u] = 1
+
+            qf7_unpacked = np.where(qf7_unpacked == 1, 1, np.NaN)
+            qf1_unpacked = np.where(qf1_unpacked == 1, 1, np.NaN)
 
             # Get scale factor and fill value
             scale_factor = r.attrs['Scale']
@@ -142,9 +152,9 @@ for root, dirs, files in os.walk(in_dir):
             UNIT["Meter",1]]'
 
             # This is a dictionary of all the bands to be exported. Modify this to be the wsa/bsa/qa bands for VNP43
-            export_dict = {'rgb':{'data':rgb, 'band': 'RGB'}}
-            #export_dict = {'qf7':{'data':qf7_unpacked, 'band': 'QF7'}, 'sens_zenith':{'data':sens_ang, 'band': 'SensorZenith_1'},
-            #               'rgb':{'data':rgb, 'band': 'RGB'}}
+            #export_dict = {'rgb':{'data':rgb, 'band': 'RGB'}}
+            export_dict = {'qf1':{'data':qf1_unpacked, 'band': 'QF1'}, 'qf7':{'data':qf7_unpacked, 'band': 'QF7'},
+                           'sens_zenith':{'data':sens_ang, 'band': 'SensorZenith_1'}, 'rgb':{'data':rgb, 'band': 'RGB'}}
 
 
             for e in export_dict:
