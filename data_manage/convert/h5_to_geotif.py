@@ -109,6 +109,12 @@ for root, dirs, files in os.walk(in_dir):
 
             qf1_unpacked = np.where(qf1_unpacked == 1, 1, 0) # np.NaN)
 
+            # This is silly.. but for some reason I cannot write to gdal array unless it is manually set
+            # to float64. Maybe possible to do this in the np.where?
+            qf1_unpacked = np.array(qf1_unpacked, dtype="float64")
+            qf7_unpacked = np.array(qf7_unpacked, dtype="float64")
+
+
             # Get scale factor and fill value
             scale_factor = r.attrs['Scale']
             fill_value = r.attrs['_FillValue']
