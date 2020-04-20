@@ -24,8 +24,6 @@ for root, dirs, files in os.walk(in_dir):
         in_file = file
         if 'h5' in file:
             out_name = in_file.rsplit('.', 1)[0]
-            print(os.getcwd())
-            print(in_file)
             # Using h5py for heavy lifting
             f = h5py.File(in_file, 'r')
 
@@ -63,7 +61,6 @@ for root, dirs, files in os.walk(in_dir):
             qf7 = f[[a for a in datasets if 'QF7' in a][0]].value # Import QF7 SDS
             sens_ang = f[[a for a in datasets if 'SensorZenith_1' in a][0]].value # Import sensor angle SDS
 
-
             # Unpack QA bits for aero quantity and cloud confidence
 
             # The QA SDSs of interest both have 8 bits
@@ -84,28 +81,32 @@ for root, dirs, files in os.walk(in_dir):
                 # defined in user guide, use index values 4:6.
                 if bit_val[4:6] == '11':
                     good_qf7.append(vals[v])
-                    #print('\n' + str(vals[v]) + ' = ' + str(bit_val))
-                # this is for the cloud mask, which HAPPEN to have the same bit numbers and value for conf cloud
-                elif bit_val[4:6] == '11':
+                    # print('\n' + str(vals[v]) + ' = ' + str(bit_val))
+
+            # this is for the cloud mask, which HAPPEN to have the same bit numbers and value for conf cloud
+            for v in vals:
+                bit_val = format(vals[v], 'b').zfill(bits)
+                if bit_val[4:6] == '11':
                     good_qf1.append(vals[v])
+                    # print('\n' + str(vals[v]) + ' = ' + str(bit_val))
 
             # Mask the bands using the bit values defined above.
             # Maybe this is clunky.. but this should work for a SINGLE bit value, but not yet a range
             qf7_unpacked = np.ma.MaskedArray(qf7, np.in1d(qf7, good_qf7, invert=True))
+            qf1_unpacked = np.ma.MaskedArray(qf1, np.in1d(qf1, good_qf1, invert=True))
+
             unique_vals_qf7 = np.unique(qf7_unpacked)
             for u in unique_vals_qf7:
                 if u > 0:
                     qf7_unpacked[qf7_unpacked == u] = 1
 
             qf7_unpacked = np.where(qf7_unpacked == 1, 1, np.NaN)
-            
-            qf1_unpacked = np.ma.MaskedArray(qf1, np.in1d(qf1, good_qf1, invert=True))
+
             unique_vals_qf1 = np.unique(qf1_unpacked)
             for u in unique_vals_qf1:
                 if u > 0:
                     qf1_unpacked[qf1_unpacked == u] = 1
 
-            qf7_unpacked = np.where(qf7_unpacked == 1, 1, np.NaN)
             qf1_unpacked = np.where(qf1_unpacked == 1, 1, np.NaN)
 
             # Get scale factor and fill value
