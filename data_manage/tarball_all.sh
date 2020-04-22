@@ -1,8 +1,10 @@
 #!/bin/bash
 
-for dir in */
+in_dir=$1
+
+for dir in ${in_dir}/*
 do
     base=$(basename "$dir")
     echo "Compressing ${base}..."
-    tar -czf "${base}.tar.gz" "$dir"
+    tar -czfv "${in_dir}/${base}.tar.gz" "$dir"
 done
