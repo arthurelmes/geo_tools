@@ -18,6 +18,7 @@ def calc_lat(nc):
         new_lon = np.zeros(lon.shape)
 
         # iterate over blank lat array and fill in calculated values that flip and translate the values
+        print("About to iterate over latitude array to calc values " + str(datetime.datetime.now()))
         i = 1
         for y in np.nditer(new_lat):
             # calculate new value of latitude based on index and spatial resolution of 30 arcseconds
@@ -26,7 +27,7 @@ def calc_lat(nc):
             y = -90 + (1/120)*(0.5 + i - 1 )
             new_lat[i - 1] = y
             i += 1
-
+        print("About to iterate over longitude array to calc values " + str(datetime.datetime.now()))
         # iterate over blank lon array and fill in calculate values that translate the values
         j = 1
         for x in np.nditer(new_lon):
@@ -43,10 +44,10 @@ def set_global_atts(nc):
     # netcdf global attributes are set by modifying the root group's attributes.
     # The root group is analogous to unix root dir, and contains all vars (similar to SDS in hdf)
     with Dataset(nc, "r+") as rootgrp:
-
+        print("About to set global attrs " + str(datetime.datetime.now()))
         # Create/set global attributes
         rootgrp.description = "Partitioning of MODIS MCD12Q1 V006 L3 IGBP and PFT land cover " \
-                              "for the Ent Global Vegetation Structure Dataset, in geographic" \
+                              "for the Ent Global Vegetation Structure Dataset, in geographic " \
                               "coordinates for a Climate Modeling Grid (CMG)."
         rootgrp.creator="Qingsong Sun, Arthur Elmes, Crystal Schaaf, Nancy Y. Kiang"
         rootgrp.contact="nancy.y.kiang@nasa.gov, qingsong.sun@nasa.gov, arthur.elmes@umb.edu"
