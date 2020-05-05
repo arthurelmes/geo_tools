@@ -62,11 +62,11 @@ end_date=$(date -I -d "$end_date+1 day")
 # Loop through all dates in year, download with full url
 while [[ "$cur_date" < "$end_date" ]]; do 
     dl_dir_out=$dl_dir
+    year=`date --date="$cur_date" '+%Y'`
     cur_date_url=${cur_date:0:4}.${cur_date:5:2}.${cur_date:8:2}
     dl_url=${url_prod}${cur_date_url}/
     file="${short_name}*${tile}*.${fmt}"
     cur_date=$(date -I -d "$cur_date+1 day")
-    year=`date --date="$cur_date" '+%Y'`
     dl_dir_out=${dl_dir_out}${short_name}/${fmt}/${year}/${tile}
     if [ ! -r $dl_dir_out ]; then
 	mkdir -p $dl_dir_out
