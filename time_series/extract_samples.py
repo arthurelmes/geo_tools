@@ -117,7 +117,7 @@ def convert_ll(lat, lon, tile, in_dir, prdct):
 
     # # Current sample location convert from ll to m
     smpl_x, smpl_y = pyproj.transform(in_proj, out_proj, lon, lat)
-
+    #print(str(smpl_x) + " " + str(smpl_y))
     # Getting bounding coords from meta
     # Perhaps no longer neededm but they're slilghtly difft than gdal geotransofrm
     # NOTE gdal works fine if you call the geotransform
@@ -160,6 +160,7 @@ def convert_ll(lat, lon, tile, in_dir, prdct):
     col_m = int((smpl_x - x_origin) / pixel_width_m)
     row_m = int( -1 * (smpl_y - y_origin) / pixel_height_m)
     smp_rc = row_m, col_m
+    print(smp_rc)
     return smp_rc
 
 
@@ -227,8 +228,10 @@ def extract_pixel_value(in_dir, site, prdct, h_file_day, sds_names, base_dir):
     wsa_swir_subset_flt = np.multiply(wsa_swir_subset, 0.001)
     bsa_swir_subset = bsa_swir_masked_qa[smp_rc]
     bsa_swir_subset_flt = np.multiply(bsa_swir_subset, 0.001)
-
+    
     # Return a tuple of numpy arrays for wsa and bsa (and probably also qa?)
+    print(wsa_swir_subset_flt, bsa_swir_subset_flt)
+    print(wsa_swir_subset, bsa_swir_subset)
     return wsa_swir_subset_flt, bsa_swir_subset_flt
 
 
@@ -279,11 +282,13 @@ def main():
     # CLI args
     parser = ArgumentParser()
     parser.add_argument("-y", "--years", dest="years", help="Years to extract data for.", metavar="YEARS")
-    parser.add_argument("-t", "--tile", dest="tile", help="Tile the sample points are in.", metavar="TILE")
+    #TODO why include a required tile option if the tile has to be in the csv? change this. 
+    #parser.add_argument("-t", "--tile", dest="tile", help="Tile the sample points are in.", metavar="TILE")
     parser.add_argument("-d", "--input-dir", dest="base_dir",
                         help="Base directory containing sample and imagery data",
                         metavar="IN_DIR")
-    parser.add_argument("-s", "--sites", dest="sites_csv_fname", help="CSV with no headings containing smpls",
+    parser.add_argument("-s", "--sites", dest="sites_csv_fname", help="CSV with no headings containing smpls. "+\
+                        "must look like: id,lat,long,tile_it_is_in",
                         metavar="SITES")
     parser.add_argument("-p", "--product", dest="prdct", help="Imagery product to be input, e.g. LC08, MCD43A3.",
                         metavar="PRODUCT")
@@ -293,7 +298,7 @@ def main():
     # of the inputs specific to the albedo code. LC8 is also used in different Landsat data products, annoyingly.
     prdct = args.prdct
     base_dir = args.base_dir
-    tile = args.tile
+    #tile = args.tile
     years = [args.years]
     sites_csv_input = os.path.join(base_dir, args.sites_csv_fname)
     sites_dict = {}
@@ -308,9 +313,9 @@ def main():
 
     sds_name_wsa_sw = "Albedo_WSA_shortwave"
     sds_name_bsa_sw = "Albedo_BSA_shortwave"
-    # Note: the LC08 hdfs have a differently named qa sds. yaay.
+    #TODO: the LC08 hdfs have a differently named qa sds. yaay.
     sds_name_qa_sw = "BRDF_Albedo_Band_Mandatory_Quality_shortwave"
-    # sds_name_qa_sw = "Albedo_Band_Quality_shortwave"
+    #sds_name_qa_sw = "Albedo_Band_Quality_shortwave"
     sds_names = [sds_name_wsa_sw, sds_name_bsa_sw, sds_name_qa_sw]
 
     # Loop through the years provided, and extract the pixel values at the provided coordinates. Outputs CSV and figs.
@@ -328,7 +333,8 @@ def main():
         year_smpl_cmb_df = pd.DataFrame(doy_list, columns=['doy'])
         # Loop through each site and extract the pixel values
         for site in sites_dict.items():
-            in_dir = os.path.join(base_dir, prdct, year, site[1][2])
+            tile = site[1][2]
+            in_dir = os.path.join(base_dir, prdct, year, tile)
             fig_dir = os.path.join(base_dir, 'figs')
             if not os.path.isdir(fig_dir):
                os.makedirs(fig_dir)
@@ -348,12 +354,14 @@ def main():
                 # The list approach is because of the processing date part of the file
                 # name, which necessitates the wildcard -- this was just the easiest way.
                 h_file_list = make_prod_list(in_dir, prdct, year, day, tile)
-                file_name = "{prdct}.A{year}{day:03d}*.h*".format(prdct=prdct, day=day, year=year)
+                file_name = "{in_dir}/{prdct}.A{year}{day:03d}*.h*".format(in_dir=in_dir, prdct=prdct, day=day, year=year)
                 # See if there is a raster for the date, if not use a fill value for the graph
                 if len(h_file_list) == 0: # or len(bsa_tif_list) == 0 or len(qa_tif_list) == 0:
-                    # print('File not found: ' + file_name)
-                    wsa_swir_subset_flt = float('nan')
-                    bsa_swir_subset_flt = float('nan')
+                    print('File not found: ' + file_name)
+                    # wsa_swir_subset_flt = float('nan')
+                    # bsa_swir_subset_flt = float('nan')
+                    #TODO change the below to be nulls, not zeros.
+                    pixel_values = float('nan'), float('nan')
                 elif len(h_file_list) > 1:
                     print('Multiple matching files found for same date! Please remove one.')
                     sys.exit()
@@ -363,8 +371,13 @@ def main():
                     # Extract pixel values and append to dataframe
                     # Note the base_dir argument should go away when the correctly georeferenced VNP43 are available,
                     # because I can likely eliminate the vnp-specific value extractor function
-                    pixel_values = extract_pixel_value(in_dir, site, prdct, h_file_day, sds_names, base_dir)
-
+                    print(in_dir, site, prdct, h_file_day, sds_names, base_dir)
+                    sys.exit
+                    try:
+                        pixel_values = extract_pixel_value(in_dir, site, prdct, h_file_day, sds_names, base_dir)
+                    except:
+                        print("Warning! Pixel out of tile boundaries!")
+                        pixel_values = np.nan, np.nan
                 # Add each point to a temporary list
                 wsa_smpl_results = []
                 bsa_smpl_results = []
