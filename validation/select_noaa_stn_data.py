@@ -3,6 +3,9 @@ convert_noaa_stn_data.py
 Script also converts year, month, day, hour, minute to decimal day for ease of comparison with GC-Net data,
 and calculates albedo as U_GLOBAL/D_GLOBAL (upward solar radiance / downwelling total solar radiance)
 Author: Arthur Elmes
+
+NOTE: This code now redundant, as it has been incorporated into plot_stn_vs_sat.ipynb
+
 Date: 2020-05-27"""
 
 import pandas as pd

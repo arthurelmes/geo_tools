@@ -14,7 +14,7 @@ dat_file_names = glob.glob('*.dat')
 # headers = content[:4]
 headers = 'Year,Mn,Dy,Hr,Mi,D_GLOBAL,D_IR,U_GLOBAL,U_IR,Zenith\n'
 
-csv_name_all = 'noaa_summit_all.csv'
+csv_name_all = 'noaa_summit_all_2.csv'
 csv_out_all = open(csv_name_all, 'w')
 csv_out_all.write(headers)
 
