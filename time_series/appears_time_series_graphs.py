@@ -5,7 +5,6 @@ import datetime as dt
 import numpy as np
 import os
 
-import matplotlib.cm as cm
 from pandas import DataFrame
 from pandas import Grouper
 import matplotlib.pyplot as plt
@@ -21,7 +20,7 @@ dt_indx = pd.date_range('2000-01-01', '2020-12-31')
 csv_path = workspace + csv_name
 
 # Define the fields of interest so we can ignore the rest
-fields = ['Date','MCD43A3_006_Albedo_WSA_shortwave', 'MCD43A3_006_BRDF_Albedo_Band_Mandatory_Quality_shortwave']
+fields = ['Date', 'MCD43A3_006_Albedo_WSA_shortwave', 'MCD43A3_006_BRDF_Albedo_Band_Mandatory_Quality_shortwave']
 
 # Import raw APPEARS output
 ts_df = pd.read_csv(csv_path, usecols=fields, parse_dates=[0], index_col=0)
