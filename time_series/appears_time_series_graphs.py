@@ -10,6 +10,8 @@ from pandas import Grouper
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.cm as cmx
+from scipy import stats
+np.random.seed(12412412)
 
 # Update these as needed
 workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/'
@@ -148,8 +150,23 @@ ax_box.tick_params(
     labelsize=5
                )
 ax_box.set_ylabel('White sky Albedo (Overall Mean)')
-
 outlier_marker = dict(markerfacecolor='black', fillstyle=None, marker='.')
+
+# print(filtered_data[0].shape)
+# data_years = np.empty(filtered_data[0].shape)
+# for i in filtered_data:
+#     np.concatenate((data_years, i))
+# print(data_years.shape)
+data_climo = np.concatenate((filtered_data[0], filtered_data[1]))
+
+data_2019 = filtered_data[19]
+i = 0
+for dst in filtered_data:
+    data_year = filtered_data[i]
+    print('T test results for year {x}'.format(x=str(i+2000)))
+    print(stats.ttest_ind(data_year, data_2019))
+    print('Mean of year {x} is {y}'.format(x=str(i+2000), y=data_year.mean()))
+    i += 1
 
 # Create the boxplot
 bp = ax_box.boxplot(filtered_data, flierprops=outlier_marker)
