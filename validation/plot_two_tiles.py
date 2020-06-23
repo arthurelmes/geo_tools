@@ -24,6 +24,7 @@ matplotlib.rcParams['agg.path.chunksize'] = 100000
 # h26v04 8895604.1573329996317625,4447802.0786669999361038 : 10007554.6769999992102385,5559752.5983330002054572
 # h30v11 13343406.2359999995678663,-3335851.5589999998919666 : 14455356.7556669991463423,-2223901.0393329998478293
 
+
 def determine_sensor(fname):
     if "MCD" in fname:
         return fname.split("/")[-1][17:23], fname.split("/")[-1][:16], fname.split("/")[-1][24:27]
@@ -40,6 +41,7 @@ def get_data(fname, sds):
     elif "VNP" in fname or "VJ1" in fname:
         np_data = h5_to_np(fname, sds)
     return np_data
+
 
 def modis_process():
     #TODO fill in the processing chain for modis hdf products here, calling hdf_to_np etc
@@ -69,6 +71,7 @@ def h5_to_np(h5_fname, sds):
             return data_np
     except:
         print("Failed to open H5.")
+
 
 def mask_qa(hdf_data, hdf_qa):
     # Mask the wsa values with QA to keep only value 0 (highest quality)
@@ -111,7 +114,7 @@ def plot_data(cmb_data, labels, stats, workspace):
         r'$\mathrm{MeanBias}=%.2f$' % (stats[1], )))
 
     props = dict(boxstyle='round', facecolor='white', alpha=0.5)
-    plt.text(0.05, 0.95, textstr, fontsize=14, verticalalignment='top', bbox=props)
+    plt.text(0.1, 0.95, textstr, fontsize=14, verticalalignment='top', bbox=props)
 
     # Add x=y line
     lims = [
@@ -124,8 +127,6 @@ def plot_data(cmb_data, labels, stats, workspace):
     plt.xlim(lims)
     plt.ylim(lims)
 
-    #plt.show()
-
     # Export data as CSV in case needed
     hdrs = str(labels[1] + "." + labels[4] + "," + labels[2] + "." + labels[5])
     csv_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[2] + "_" + labels[3] + "_data.csv")
@@ -133,6 +134,7 @@ def plot_data(cmb_data, labels, stats, workspace):
 
     plt_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[4] + "_vs_" \
                             + labels[2] + "_" + labels[5] + "_" + labels[3])
+    #plt.show()
     print('Saving plot to: ' + '{plt_name}.png'.format(plt_name=plt_name))
     plt.savefig('{plt_name}.png'.format(plt_name=plt_name))
 
