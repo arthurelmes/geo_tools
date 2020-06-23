@@ -27,17 +27,17 @@ matplotlib.rcParams['agg.path.chunksize'] = 100000
 def determine_sensor(fname):
     if "MCD" in fname:
         return fname.split("/")[-1][17:23], fname.split("/")[-1][:16], fname.split("/")[-1][24:27]
-    elif "VNP" in fname:
+    elif "VNP" in fname or "VJ1" in fname:
         return fname.split("/")[-1][18:24], fname.split("/")[-1][:17], fname.split("/")[-1][25:28]
     else:
-        print("Check input data! Only MCD and VNP products work.")
+        print("Check input data! Only MCD and VNP/VJ1 products work.")
         sys.exit()
 
 
 def get_data(fname, sds):
     if "MCD" in fname:
         np_data = hdf_to_np(fname, sds)
-    elif "VNP" in fname:
+    elif "VNP" in fname or "VJ1" in fname:
         np_data = h5_to_np(fname, sds)
     return np_data
 
@@ -160,10 +160,10 @@ def main():
     # any band, selected as argument they should be args so
     # that different bands can be selected. Right now these are manually set
     # to reflect the band of interest
-    # sds_name_wsa = "Albedo_WSA_shortwave"
-    # sds_name_qa = "BRDF_Albedo_Band_Mandatory_Quality_shortwave"
-    sds_name_wsa = "Albedo_WSA_nir"
-    sds_name_qa = "BRDF_Albedo_Band_Mandatory_Quality_nir"
+    sds_name_wsa = "Albedo_WSA_shortwave"
+    sds_name_qa = "BRDF_Albedo_Band_Mandatory_Quality_shortwave"
+    # sds_name_wsa = "Albedo_WSA_nir"
+    # sds_name_qa = "BRDF_Albedo_Band_Mandatory_Quality_nir"
     # Extract identifying information from filenames
     tile1_deets = determine_sensor(tile1_fname.split("/")[-1])
     tile2_deets = determine_sensor(tile2_fname.split("/")[-1])
@@ -179,8 +179,9 @@ def main():
     tile1_data_qa_masked = mask_qa(tile1_data_wsa, tile1_data_qa)
     tile2_data_qa_masked = mask_qa(tile2_data_wsa, tile2_data_qa)
 
-    #every other pixel. If both datasets are the same, do nothing.
-    if ("MCD" in labels[2] and "VNP" in labels[3]) or ("MCD" in labels[2] and "VNP" in labels[3]):
+    # Take every other pixel if comparing MCD (500m) and VNP/VJ1 (1km). If both datasets are the same, do nothing.
+    #TODO This is janky because it requires that the MCD is entered first, right? Add some thing to fix this
+    if ("MCD" in labels[2] and "VNP" in labels[3]) or ("MCD" in labels[2] and "VJ1" in labels[3]):
         tile1_data_qa_masked = tile1_data_qa_masked[::2, ::2]
     else:
         pass
@@ -189,7 +190,7 @@ def main():
     y = tile2_data_qa_masked.flatten()
     cmb_data = np.ma.column_stack((x, y))
 
-    # Calculate RMSE and Mean Bias, multiply by 0.001, which is the scale factor for MCD43/VNP43
+    # Calculate RMSE and Mean Bias, multiply by 0.001, which is the scale factor for MCD43/VNP43/VJ143
     rmse = math.sqrt(mean_squared_error(x, y)) * 0.001
     mb = np.sum(x - y) / x.size * 0.001
     stats = (rmse, mb)
