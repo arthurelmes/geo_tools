@@ -1,6 +1,6 @@
-#!/home/arthur.elmes/software/anaconda3/envs/geo/bin/python
+# This script extracts all pixel values of two input files from the same MODIS grid tile, and plots the
+# results. 
 
-import os, matplotlib, math, sys
 from argparse import ArgumentParser
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
@@ -8,6 +8,7 @@ from sklearn.metrics import mean_squared_error
 import numpy as np
 from pyhdf.SD import SD, SDC
 from h5py import File
+import os, matplotlib, math, sys
 
 matplotlib.rcParams['agg.path.chunksize'] = 100000
 
@@ -79,6 +80,9 @@ def mask_qa(hdf_data, hdf_qa):
 def plot_data(cmb_data, labels, stats, workspace):
     # Using masked numpy arrays, create scatterplot of tile1 vs tile2
 
+    fig = plt.figure(figsize=(7, 5))
+    ax = fig.add_subplot(111)
+    
     # Get rid of all the masked data by filling with nans and then removing them
     cmb_data_nans = np.ma.filled(cmb_data, np.nan)
     cmb_data_nans = cmb_data_nans[~np.isnan(cmb_data_nans).any(axis=1)]
@@ -101,7 +105,7 @@ def plot_data(cmb_data, labels, stats, workspace):
         r'$\mathrm{MeanBias}=%.2f$' % (stats[1], )))
 
     props = dict(boxstyle='round', facecolor='white', alpha=0.5)
-    plt.text(0.1, 0.95, textstr, fontsize=14, verticalalignment='top', bbox=props)
+    plt.text(0.05, 0.85, textstr, fontsize=14, verticalalignment='top', bbox=props)
 
     # Add x=y line
     lims = [
@@ -114,6 +118,9 @@ def plot_data(cmb_data, labels, stats, workspace):
     plt.xlim(lims)
     plt.ylim(lims)
 
+    plt.set_xlim(0.0, 1.0)
+    plt.set_ylim(0.0, 1.0)
+    
     # Export data as CSV in case needed
     hdrs = str(labels[1] + "." + labels[4] + "," + labels[2] + "." + labels[5])
     csv_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[2] + "_" + labels[3] + "_data.csv")
