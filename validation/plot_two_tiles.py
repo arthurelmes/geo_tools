@@ -92,12 +92,13 @@ def plot_data(cmb_data, labels, stats, workspace):
     y = cmb_data_nans[:, 1]
 
     hist = plt.hist2d(cmb_data_nans[:, 0], cmb_data_nans[:, 1], bins=200, norm=LogNorm(),
-                      cmap=plt.cm.YlOrRd)
+                      range=[[0, 1.0], [0, 1.0]], cmap=plt.cm.YlOrRd)
+
     plt.colorbar(hist[3])
     plt.title(labels[0] + '_' + labels[1] + "_"+ labels[3])
 
-    plt.xlabel(labels[1] + " " + labels[4] + ' (scaled)')
-    plt.ylabel(labels[2] + " " + labels[5] + ' (scaled)')
+    plt.xlabel(labels[1] + " " + labels[4] + ' ' + labels[3].replace('_', ' '))
+    plt.ylabel(labels[2] + " " + labels[5] + ' ' + labels[3].replace('_', ' '))
 
     # # Add text box with RMSE and mean bias
     textstr = '\n'.join((
@@ -105,7 +106,7 @@ def plot_data(cmb_data, labels, stats, workspace):
         r'$\mathrm{MeanBias}=%.2f$' % (stats[1], )))
 
     props = dict(boxstyle='round', facecolor='white', alpha=0.5)
-    plt.text(0.05, 0.85, textstr, fontsize=14, verticalalignment='top', bbox=props)
+    plt.text(0.05, 0.95, textstr, fontsize=14, verticalalignment='top', bbox=props)
 
     # Add x=y line
     lims = [
@@ -118,9 +119,6 @@ def plot_data(cmb_data, labels, stats, workspace):
     plt.xlim(lims)
     plt.ylim(lims)
 
-    plt.set_xlim(0.0, 1.0)
-    plt.set_ylim(0.0, 1.0)
-    
     # Export data as CSV in case needed
     hdrs = str(labels[1] + "." + labels[4] + "," + labels[2] + "." + labels[5])
     csv_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[2] + "_" + labels[3] + "_data.csv")
@@ -128,7 +126,7 @@ def plot_data(cmb_data, labels, stats, workspace):
 
     plt_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[4] + "_vs_" \
                             + labels[2] + "_" + labels[5] + "_" + labels[3])
-    #plt.show()
+    plt.show()
     print('Saving plot to: ' + '{plt_name}.png'.format(plt_name=plt_name))
     plt.savefig('{plt_name}.png'.format(plt_name=plt_name))
 
