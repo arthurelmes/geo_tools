@@ -1,5 +1,6 @@
 *.txt
 *.out
+*.log
 *~
 *.err
 *temp*

@@ -126,7 +126,6 @@ def plot_data(cmb_data, labels, stats, workspace):
 
     plt_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[4] + "_vs_" \
                             + labels[2] + "_" + labels[5] + "_" + labels[3])
-    plt.show()
     print('Saving plot to: ' + '{plt_name}.png'.format(plt_name=plt_name))
     plt.savefig('{plt_name}.png'.format(plt_name=plt_name))
 
@@ -169,14 +168,15 @@ def main():
     tile1_data_qa = get_data(os.path.join(workspace, tile1_fname), sds_name_qa)
     tile2_data_wsa = get_data(os.path.join(workspace, tile2_fname), sds_name_wsa)
     tile2_data_qa = get_data(os.path.join(workspace, tile2_fname), sds_name_qa)
-
+    
     # Call masking function to cleanup data
     tile1_data_qa_masked = mask_qa(tile1_data_wsa, tile1_data_qa)
     tile2_data_qa_masked = mask_qa(tile2_data_wsa, tile2_data_qa)
-
+   
     # Take every other pixel if comparing MCD (500m) and VNP/VJ1 (1km). If both datasets are the same, do nothing.
     #TODO This is janky because it requires that the MCD is entered first, right? Add some thing to fix this
-    if ("MCD" in labels[2] and "VNP" in labels[3]) or ("MCD" in labels[2] and "VJ1" in labels[3]):
+    if ("MCD" in labels[1] and "VNP" in labels[2]) or ("MCD" in labels[1] and "VJ1" in labels[2]):
+        print('Subsampling every other pixel in MCD because of resolution mismatch.')
         tile1_data_qa_masked = tile1_data_qa_masked[::2, ::2]
     else:
         pass

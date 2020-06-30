@@ -31,7 +31,6 @@ def h5_to_np(h5_fname, sds):
 
 
 def convert_ll_vnp(lat, lon, tile, in_dir, prdct):
-    print(in_dir)
     # prdct = prdct
     # Convert the lat/long point of interest to a row/col location
     template_h_list = glob.glob(os.path.join(in_dir, '*.A*{tile}*.h*'.format(tile=tile)))
@@ -380,7 +379,6 @@ def main():
                     # Extract pixel values and append to dataframe
                     # Note the base_dir argument should go away when the correctly georeferenced VNP43 are available,
                     # because I can likely eliminate the vnp-specific value extractor function
-                    print(in_dir, site, prdct, h_file_day, sds_names, base_dir)
                     sys.exit
                     try:
                         pixel_values = extract_pixel_value(in_dir, site, prdct, h_file_day, sds_names, base_dir)
