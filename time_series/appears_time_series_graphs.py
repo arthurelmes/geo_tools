@@ -63,14 +63,26 @@ def box_plot(years, aoi_name, csv_path):
     # print(data_years.shape)
     data_climo = np.concatenate((filtered_data[0], filtered_data[1]))
 
+    #print(len(filtered_data))
+
     data_2019 = filtered_data[19]
     i = 0
+
+    # Store t-test of each year vs 2019 in txt file
+    stats_txt_name = csv_path[:-4] + '_t_stats_vs_2019.txt'
+    stats_txt = open(stats_txt_name, 'w')
+
     for dst in filtered_data:
         data_year = filtered_data[i]
-        print('T test results for year {x}'.format(x=str(i+2000)))
-        print(stats.ttest_ind(data_year, data_2019))
-        print('Mean of year {x} is {y}'.format(x=str(i+2000), y=data_year.mean()))
+        #print('T test results for year {x}'.format(x=str(i+2000)))
+        stats_txt.write('T test results for year {x}'.format(x=str(i+2000)) + '\n')
+        #print(stats.ttest_ind(data_year, data_2019))
+        stats_txt.write(str(stats.ttest_ind(data_year, data_2019)) + '\n')
+        #print('Mean of year {x} is {y}'.format(x=str(i+2000), y=data_year.mean()))
+        stats_txt.write('Mean of year {x} is {y}'.format(x=str(i+2000), y=data_year.mean()) + '\n')
         i += 1
+
+    stats_txt.close()
 
     # Create the boxplot
     bp = ax_box.boxplot(filtered_data, flierprops=outlier_marker)
@@ -130,9 +142,9 @@ def box_plot_anom(years, aoi_name, csv_path):
     i = 0
     for dst in filtered_data:
         data_year = filtered_data[i]
-        print('T test results for year {x}'.format(x=str(i+2000)))
-        print(stats.ttest_ind(data_year, data_2019))
-        print('Mean of year {x} is {y}'.format(x=str(i+2000), y=data_year.mean()))
+        # print('T test results for year {x}'.format(x=str(i+2000)))
+        # print(stats.ttest_ind(data_year, data_2019))
+        # print('Mean of year {x} is {y}'.format(x=str(i+2000), y=data_year.mean()))
         i += 1
 
     # Create the boxplot
@@ -380,9 +392,9 @@ def year_vs_avg_plot_anom(years, aoi_name, csv_path):
 def main():
     # Update these as needed
     workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/appears/'
-    csv_name = 'helheim-coastal-subset-MCD43A3-006-results.csv'
-    aoi_name = 'Helheim Glacier'
-    dt_indx = pd.date_range('2010-01-01', '2020-12-31')
+    csv_name = 'west-coast-combined-MCD43A3-006-results.csv'
+    aoi_name = 'West Coast 100 km Buffer'
+    dt_indx = pd.date_range('2000-01-01', '2020-12-31')
     csv_path = workspace + csv_name
 
     # Define the fields of interest so we can ignore the rest
@@ -489,10 +501,10 @@ def main():
     # make columns into strings for easier plot labeling
     years.columns = years.columns.astype(str)
 
-    # box_plot(years, aoi_name, csv_path)
+    box_plot(years, aoi_name, csv_path)
     # box_plot_anom(years, aoi_name, csv_path)
-    vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path)
-    vert_stack_plot_anom(years, nyears, strt_year, end_year, aoi_name, csv_path)
+    # vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path)
+    # vert_stack_plot_anom(years, nyears, strt_year, end_year, aoi_name, csv_path)
     # year_vs_avg_plot(years, aoi_name, csv_path)
     # year_vs_avg_plot_anom(years, aoi_name, csv_path)
     # overpost_all_plot(years, aoi_name, csv_path)
