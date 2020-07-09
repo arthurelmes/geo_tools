@@ -362,7 +362,8 @@ def main():
                 # The list approach is because of the processing date part of the file
                 # name, which necessitates the wildcard -- this was just the easiest way.
                 h_file_list = make_prod_list(in_dir, prdct, year, day, tile)
-                file_name = '{in_dir}/{prdct}.A{year}{day:03d}*.h*'.format(in_dir=in_dir, prdct=prdct, day=day, year=year)
+                file_name = '{in_dir}/{prdct}.A{year}{day:03d}*.h*'.format(in_dir=in_dir, prdct=prdct, day=day,
+                                                                           year=year)
                 # See if there is a raster for the date, if not use a fill value for the graph
                 if len(h_file_list) == 0: # or len(bsa_tif_list) == 0 or len(qa_tif_list) == 0:
                     print('File not found: ' + file_name)
