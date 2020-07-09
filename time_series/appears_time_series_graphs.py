@@ -164,7 +164,7 @@ def vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path):
     nrows = nyears + 1
 
     # create the plots
-    fig_stack = plt.figure(figsize=(10,15))
+    fig_stack = plt.figure(figsize=(10, 15))
     axes = [fig_stack.add_subplot(nrows, ncols, r * ncols + c + 1) for r in range(0, nrows) for c in range(0, ncols)]
 
     yr = strt_year
@@ -172,7 +172,7 @@ def vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path):
     for ax_stack in axes:
         col = str(yr)
         ax_stack.plot(years[col])
-        ax_stack.set_xlim(0, 364)
+        ax_stack.set_xlim(80, 250)
         ax_stack.set_ylim(0.0, 1.0)
         ax_stack.grid(b=True, which='major', color='LightGrey', linestyle='-')
         ax_stack.set_yticks([0.5])
@@ -180,7 +180,7 @@ def vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path):
             axis='y',
             labelsize=5
                        )
-        ax_stack.text(325, 0.33, str(yr), fontsize=8)
+        ax_stack.text(260, 0.33, str(yr), fontsize=8)
         # Remove ticks for everything but final year so no overlapping/messiness
         if yr != end_year:
             ax_stack.set_xticklabels([])
@@ -219,7 +219,7 @@ def vert_stack_plot_anom(years, nyears, strt_year, end_year, aoi_name, csv_path)
     for ax_stack_anom in axes:
         col = str(yr)
         ax_stack_anom.plot(years[col])
-        ax_stack_anom.set_xlim(0, 364)
+        ax_stack_anom.set_xlim(80, 250)
         ax_stack_anom.set_ylim(-0.3, 0.3)
         ax_stack_anom.grid(b=True, which='major', color='LightGrey', linestyle='-')
         ax_stack_anom.set_yticks([0.0])
@@ -227,7 +227,7 @@ def vert_stack_plot_anom(years, nyears, strt_year, end_year, aoi_name, csv_path)
             axis='y',
             labelsize=5
                        )
-        ax_stack_anom.text(325, -0.01, str(yr), fontsize=8)
+        ax_stack_anom.text(260, -0.01, str(yr), fontsize=8)
         # Remove ticks for everything but final year so no overlapping/messiness
         if yr != end_year:
             ax_stack_anom.set_xticklabels([])
@@ -272,7 +272,7 @@ def overpost_all_plot(years, aoi_name, csv_path):
     ax_comb.set_ylabel('White Sky Albedo')
     ax_comb.set_ylim(0.0, 1.0)
     fig_comb.suptitle(aoi_name)
-    plt.legend(ncol=3, loc='lower left', fontsize=5)
+    plt.legend(ncol=4, loc='lower left', fontsize=10)
 
     # Save fig in figs subdir, making the subdir if needed
     file_path, file_name = os.path.split(csv_path)
@@ -306,7 +306,7 @@ def overpost_all_plot_anom(years, aoi_name, csv_path):
     ax_comb_anom.set_ylabel('White Sky Albedo Anomaly')
     ax_comb_anom.set_ylim(-0.3, 0.3)
     fig_comb_anom.suptitle(aoi_name)
-    plt.legend(ncol=3, loc='lower left', fontsize=5)
+    plt.legend(ncol=4, loc='lower left', fontsize=10)
 
     # Save fig in figs subdir, making the subdir if needed
     file_path, file_name = os.path.split(csv_path)
@@ -392,8 +392,8 @@ def year_vs_avg_plot_anom(years, aoi_name, csv_path):
 def main():
     # Update these as needed
     workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/appears/'
-    csv_name = 'west-coast-combined-MCD43A3-006-results.csv'
-    aoi_name = 'West Coast 100 km Buffer'
+    csv_name = 'helheim-coastal-subset-MCD43A3-006-results.csv'
+    aoi_name = 'Helheim Glacier'
     dt_indx = pd.date_range('2000-01-01', '2020-12-31')
     csv_path = workspace + csv_name
 
@@ -502,13 +502,13 @@ def main():
     years.columns = years.columns.astype(str)
 
     box_plot(years, aoi_name, csv_path)
-    # box_plot_anom(years, aoi_name, csv_path)
-    # vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path)
-    # vert_stack_plot_anom(years, nyears, strt_year, end_year, aoi_name, csv_path)
-    # year_vs_avg_plot(years, aoi_name, csv_path)
-    # year_vs_avg_plot_anom(years, aoi_name, csv_path)
-    # overpost_all_plot(years, aoi_name, csv_path)
-    # overpost_all_plot_anom(years, aoi_name, csv_path)
+    box_plot_anom(years, aoi_name, csv_path)
+    vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path)
+    vert_stack_plot_anom(years, nyears, strt_year, end_year, aoi_name, csv_path)
+    year_vs_avg_plot(years, aoi_name, csv_path)
+    year_vs_avg_plot_anom(years, aoi_name, csv_path)
+    overpost_all_plot(years, aoi_name, csv_path)
+    overpost_all_plot_anom(years, aoi_name, csv_path)
 
 if __name__ == '__main__':
     main()
