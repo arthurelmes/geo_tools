@@ -1,9 +1,9 @@
-"""
+'''
 Created Sep 19 10:04:10 2018
 Significant updates March 17th 2020
 @author: arthur elmes arthur.elmes@gmail.com
 
-"""
+'''
 import os, glob, sys, pyproj, csv, statistics
 from argparse import ArgumentParser
 from osgeo import gdal
@@ -33,8 +33,13 @@ def h5_to_np(h5_fname, sds):
 def convert_ll_vnp(lat, lon, tile, in_dir, prdct):
     # prdct = prdct
     # Convert the lat/long point of interest to a row/col location
-    template_h_list = glob.glob(os.path.join(in_dir, "*.A*{tile}*.h*".format(tile=tile)))
-    template_h_file = template_h_list[0]
+    template_h_list = glob.glob(os.path.join(in_dir, '*.A*{tile}*.h*'.format(tile=tile)))
+    try:
+        template_h_file = template_h_list[0]
+    except IndexError:
+        print('Sorry, due to gdal not liking VIIRS h5 files, you need to download an MCD image of the same tile'
+              ' and put it in ../input_dir/copy_srs/')
+        sys.exit(1)
     template_h_ds = gdal.Open(template_h_file, gdal.GA_ReadOnly)
     template_h_band = gdal.Open(template_h_ds.GetSubDatasets()[0][0], gdal.GA_ReadOnly)
     # Use pyproj to create a geotransform between
@@ -90,7 +95,7 @@ def convert_ll_vnp(lat, lon, tile, in_dir, prdct):
 def convert_ll(lat, lon, tile, in_dir, prdct):
     prdct = prdct
    # Convert the lat/long point of interest to a row/col location
-    if "h" in tile:
+    if 'h' in tile:
         template_h_list = glob.glob(os.path.join(in_dir,
                                                  '{prdct}.A*{tile}*.h*'.format(prdct=prdct,
                                                                                tile=tile)))
@@ -117,7 +122,7 @@ def convert_ll(lat, lon, tile, in_dir, prdct):
 
     # # Current sample location convert from ll to m
     smpl_x, smpl_y = pyproj.transform(in_proj, out_proj, lon, lat)
-    #print(str(smpl_x) + " " + str(smpl_y))
+
     # Getting bounding coords from meta
     # Perhaps no longer neededm but they're slilghtly difft than gdal geotransofrm
     # NOTE gdal works fine if you call the geotransform
@@ -165,22 +170,22 @@ def convert_ll(lat, lon, tile, in_dir, prdct):
 
 
 def make_prod_list(in_dir, prdct, year, day, tile):
-    if "MCD" in prdct or "VNP" in prdct:
+    if 'MCD' in prdct or 'VNP' in prdct or 'VJ1' in prdct:
         h_file_list = glob.glob(os.path.join(in_dir,
                                              '{prdct}.A{year}{day:03d}*.h*'.format(prdct=prdct,
                                                                                    day=day, year=year)))
-    elif "LC08" in prdct:
-        dt_string = str(year) + "-" + str(day)
-        date_complete = datetime.strptime(dt_string, "%Y-%j")
-        mm = date_complete.strftime("%m")
-        dd = date_complete.strftime("%d")
+    elif 'LC08' in prdct:
+        dt_string = str(year) + '-' + str(day)
+        date_complete = datetime.strptime(dt_string, '%Y-%j')
+        mm = date_complete.strftime('%m')
+        dd = date_complete.strftime('%d')
         h_file_list = glob.glob(os.path.join(in_dir, '{prdct}*{tile}_{year}{month}{day}_*.h*'.format(prdct=prdct,
                                                                                                      tile=tile,
                                                                                                      month=mm,
                                                                                                      day=dd,
                                                                                                      year=year)))
     else:
-        print("Product type unknown! Please check that input is MCD, VNP, or LC08.")
+        print('Product type unknown! Please check that input is MCD, VNP, VJ1 or LC08.')
         sys.exit()
 
     return h_file_list
@@ -188,20 +193,20 @@ def make_prod_list(in_dir, prdct, year, day, tile):
 
 def extract_pixel_value(in_dir, site, prdct, h_file_day, sds_names, base_dir):
     # Open tifs as gdal ds
-    # print("Opening: " + h_file_day + " " + sds_name_wsa_sw)
-    if "VNP" in prdct:
-        # print("Found VIIRS product.")
-        copy_srs_dir = os.path.join(base_dir, "copy_srs")
+    # print('Opening: ' + h_file_day + ' ' + sds_name_wsa_sw)
+    if 'VNP' in prdct or 'VJ1' in prdct:
+        # print('Found VIIRS product.')
+        copy_srs_dir = os.path.join(base_dir, 'copy_srs')
         wsa_band = h5_to_np(h_file_day, sds_names[0])
         bsa_band = h5_to_np(h_file_day, sds_names[1])
         qa_band = h5_to_np(h_file_day, sds_names[2])
-    elif "MCD" in prdct or "LC08" in prdct:
-        # print("Found MODIS product.")
+    elif 'MCD' in prdct or 'LC08' in prdct:
+        # print('Found MODIS product.')
         wsa_band = hdf_to_np(h_file_day, sds_names[0])
         bsa_band = hdf_to_np(h_file_day, sds_names[1])
         qa_band = hdf_to_np(h_file_day, sds_names[2])
     else:
-        print("Unknown product! This only works for MCD, VNP, or LC8/LC08 hdf or h5 files!")
+        print('Unknown product! This only works for MCD, VNP, VJ1 or LC8/LC08 hdf or h5 files!')
         sys.exit()
 
     # Mask out nodata values
@@ -213,14 +218,14 @@ def extract_pixel_value(in_dir, site, prdct, h_file_day, sds_names, base_dir):
     #TODO is the plotting in this script appropriately ignoring values masked here?
 
     # Extract pixel value from product by converting lat/lon to row/col
-    if "VNP" in prdct:
+    if 'VNP' in prdct or 'VJ1' in prdct:
         smp_rc = convert_ll_vnp(site[1][0], site[1][1], site[1][2], copy_srs_dir, prdct)
-    elif "MCD" in prdct:
+    elif 'MCD' in prdct:
         smp_rc = convert_ll(site[1][0], site[1][1], site[1][2], in_dir, prdct)
-    elif "LC08" in prdct:
+    elif 'LC08' in prdct:
         smp_rc = convert_ll(site[1][0], site[1][1], site[1][2], in_dir, prdct)
     else:
-        print("Unknown product! This only works for MCD, VNP, or LC8/LC08 hdf or h5 files!")
+        print('Unknown product! This only works for MCD, VNP/VJ1, or LC8/LC08 hdf or h5 files!')
         sys.exit()
 
     # Take just the sampled location's value, and scale to float
@@ -236,25 +241,25 @@ def extract_pixel_value(in_dir, site, prdct, h_file_day, sds_names, base_dir):
 
 
 def draw_plot(year, year_smpl_cmb_df, fig_dir, prdct, sites_dict):
-    sns.set_style("darkgrid")
+    sns.set_style('darkgrid')
 
     for site in sites_dict.keys():
-        for sds in ["wsa", "bsa"]:
-            col_name = str(site) + "_" + str(sds)
+        for sds in ['wsa', 'bsa']:
+            col_name = str(site) + '_' + str(sds)
 
             # Create a seaborn scatterplot (or replot for now, small differences)
-            sct = sns.regplot(x="doy", y=col_name, data=year_smpl_cmb_df, marker="o", label="sw " + str(sds),
-                              fit_reg=False, scatter_kws={"color":"darkblue", "alpha":0.3,"s":20})
+            sct = sns.regplot(x='doy', y=col_name, data=year_smpl_cmb_df, marker='o', label='sw ' + str(sds),
+                              fit_reg=False, scatter_kws={'color':'darkblue', 'alpha':0.3,'s':20})
             sct.set_ylim(0, 1.0)
             sct.set_xlim(1, 366)
-            sct.legend(loc="best")
+            sct.legend(loc='best')
 
             # Access the figure, add title
-            plt_name = str(year + " " + prdct + " SW " + str(sds))
+            plt_name = str(year + ' ' + prdct + ' SW ' + str(sds))
             plt.title(plt_name)
             #plt.show()
 
-            plt_name = plt_name.replace(" ", "_") + "_" + str(site)
+            plt_name = plt_name.replace(' ', '_') + '_' + str(site)
             # Save each plot to figs dir
             print('Saving plot to: ' + '{fig_dir}/{plt_name}.png'.format(fig_dir=fig_dir, plt_name=plt_name))
             plt.savefig('{fig_dir}/{plt_name}.png'.format(fig_dir=fig_dir, plt_name=plt_name))
@@ -281,24 +286,23 @@ def check_leap(year):
 def main():
     # CLI args
     parser = ArgumentParser()
-    parser.add_argument("-y", "--years", dest="years", help="Years to extract data for.", metavar="YEARS")
-    #TODO why include a required tile option if the tile has to be in the csv? change this. 
-    #parser.add_argument("-t", "--tile", dest="tile", help="Tile the sample points are in.", metavar="TILE")
-    parser.add_argument("-d", "--input-dir", dest="base_dir",
-                        help="Base directory containing sample and imagery data",
-                        metavar="IN_DIR")
-    parser.add_argument("-s", "--sites", dest="sites_csv_fname", help="CSV with no headings containing smpls. "+\
-                        "must look like: id,lat,long,tile_it_is_in",
-                        metavar="SITES")
-    parser.add_argument("-p", "--product", dest="prdct", help="Imagery product to be input, e.g. LC08, MCD43A3.",
-                        metavar="PRODUCT")
+    parser.add_argument('-y', '--years', dest='years', help='Years to extract data for.', metavar='YEARS')
+    #TODO why include a required tile option if the tile has to be in the csv? change this.
+    parser.add_argument('-d', '--input-dir', dest='base_dir',
+                        help='Base directory containing sample and dir of imagery data called the product name'
+                             ', e.g. ../MCD43A3/',
+                        metavar='IN_DIR')
+    parser.add_argument('-s', '--sites', dest='sites_csv_fname', help='CSV with no headings containing smpls. '+\
+                        'must look like: id,lat,long,tile_it_is_in',
+                        metavar='SITES')
+    parser.add_argument('-p', '--product', dest='prdct', help='Imagery product to be input, e.g. LC08, MCD43A3.',
+                        metavar='PRODUCT')
     args = parser.parse_args()
 
     # Note: I have chosen to call the landsat product LC08, rather than LC8, due to the file naming convention
     # of the inputs specific to the albedo code. LC8 is also used in different Landsat data products, annoyingly.
     prdct = args.prdct
     base_dir = args.base_dir
-    #tile = args.tile
     years = [args.years]
     sites_csv_input = os.path.join(base_dir, args.sites_csv_fname)
     sites_dict = {}
@@ -311,11 +315,11 @@ def main():
     # TODO this 'copy_srs_dir' location is here because currently VNP43 has broken spatial reference
     # TODO information. Check V002 and remove this if it has been fixed, as this is ludicrously clunky.
 
-    sds_name_wsa_sw = "Albedo_WSA_shortwave"
-    sds_name_bsa_sw = "Albedo_BSA_shortwave"
+    sds_name_wsa_sw = 'Albedo_WSA_shortwave'
+    sds_name_bsa_sw = 'Albedo_BSA_shortwave'
     #TODO: the LC08 hdfs have a differently named qa sds. yaay.
-    sds_name_qa_sw = "BRDF_Albedo_Band_Mandatory_Quality_shortwave"
-    #sds_name_qa_sw = "Albedo_Band_Quality_shortwave"
+    sds_name_qa_sw = 'BRDF_Albedo_Band_Mandatory_Quality_shortwave'
+    #sds_name_qa_sw = 'Albedo_Band_Quality_shortwave'
     sds_names = [sds_name_wsa_sw, sds_name_bsa_sw, sds_name_qa_sw]
 
     # Loop through the years provided, and extract the pixel values at the provided coordinates. Outputs CSV and figs.
@@ -338,11 +342,15 @@ def main():
             fig_dir = os.path.join(base_dir, 'figs')
             if not os.path.isdir(fig_dir):
                os.makedirs(fig_dir)
-               print("Made new folder for figs: " + str(fig_dir))
+               print('Made new folder for figs: ' + str(fig_dir))
             else:
                pass
-            os.chdir(in_dir)
-            print("Processing site: " + str(site))
+            try:
+                os.chdir(in_dir)
+            except FileNotFoundError:
+                print('Sorry, data directory must be organized like: ../MCD43A3/2016/h12v04/ e.g.')
+                sys.exit(1)
+            print('Processing site: ' + str(site))
 
             # Create empty arrays for mean, sd
             wsa_swir_mean = []
@@ -354,7 +362,8 @@ def main():
                 # The list approach is because of the processing date part of the file
                 # name, which necessitates the wildcard -- this was just the easiest way.
                 h_file_list = make_prod_list(in_dir, prdct, year, day, tile)
-                file_name = "{in_dir}/{prdct}.A{year}{day:03d}*.h*".format(in_dir=in_dir, prdct=prdct, day=day, year=year)
+                file_name = '{in_dir}/{prdct}.A{year}{day:03d}*.h*'.format(in_dir=in_dir, prdct=prdct, day=day,
+                                                                           year=year)
                 # See if there is a raster for the date, if not use a fill value for the graph
                 if len(h_file_list) == 0: # or len(bsa_tif_list) == 0 or len(qa_tif_list) == 0:
                     print('File not found: ' + file_name)
@@ -371,13 +380,12 @@ def main():
                     # Extract pixel values and append to dataframe
                     # Note the base_dir argument should go away when the correctly georeferenced VNP43 are available,
                     # because I can likely eliminate the vnp-specific value extractor function
-                    print(in_dir, site, prdct, h_file_day, sds_names, base_dir)
                     sys.exit
                     try:
                         pixel_values = extract_pixel_value(in_dir, site, prdct, h_file_day, sds_names, base_dir)
                     except:
-                        print("Warning! Pixel out of tile boundaries!")
-                        pixel_values = np.nan, np.nan
+                       print('Warning! Pixel out of tile boundaries!')
+                       pixel_values = np.nan, np.nan
                 # Add each point to a temporary list
                 wsa_smpl_results = []
                 bsa_smpl_results = []
@@ -407,11 +415,11 @@ def main():
 
         # Export data to csv
         os.chdir(fig_dir)
-        output_name = str(sites_csv_input[:-4] + "_extracted_values")
-        csv_name = str(output_name + "_" + prdct + ".csv")
-        print("writing csv: " + csv_name)
+        output_name = str(sites_csv_input[:-4] + '_extracted_values')
+        csv_name = str(output_name + '_' + prdct + '.csv')
+        print('writing csv: ' + csv_name)
         year_smpl_cmb_df.to_csv(csv_name, index=False)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

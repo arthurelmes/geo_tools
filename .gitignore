@@ -1,5 +1,10 @@
 *.txt
 *.out
+*.log
 *~
 *.err
 *temp*
+OSquery-result.xml
+product_list
+products-list.csv
+			

@@ -1,6 +1,5 @@
-#%%
 
-# Little Jupyter notebook to explore time series data from in situ stations and satellite observations,
+# Script to explore time series data from in situ stations and satellite observations,
 # both already in csv format.
 
 import matplotlib.pyplot as plt
@@ -9,86 +8,7 @@ import numpy as np
 import os
 
 # These two datasets are for the GCNet data
-# os.chdir('/home/arthur/Dropbo
-# #%%
-#
-# # Subset and mask mcd43 data
-# mcd_df = all_data_mcd.loc['noaasummit', [date, mcd_variable, mcd_qa]]
-#
-# # Mask out fill values
-# mcd_df[mcd_variable].mask(mcd_df[mcd_qa] == 255, np.NaN, inplace=True)
-#
-# # If specified, remove QA == 1
-# if high_qa_only:
-#     mcd_df[mcd_variable].mask(mcd_df[mcd_qa] == 1, np.NaN, inplace=True)
-#
-# print(mcd_df.head())
-#
-#
-# #%%
-#
-# # Plot data
-# import matplotlib.pyplot as plt
-# import math
-# from sklearn.metrics import mean_squared_error
-# from pandas.plotting import register_matplotlib_converters
-# register_matplotlib_converters()
-#
-# mcd_df[date] = pd.to_datetime(mcd_df[date], yearfirst=True)
-# mcd_df = mcd_df.set_index(mcd_df[date])
-#
-# stn_df.set_index(stn_df['date'])
-#
-# # Join satellite observations to stn data based on date
-# joined_df = mcd_df.join(stn_df, lsuffix='_mcd', rsuffix='_stn')
-#
-# if dataset == "GCNET":
-#     #del joined_df['date']
-#     del joined_df[mcd_qa]
-#     del joined_df['sw_down']
-#     del joined_df['sw_up']
-#     del joined_df['net_rad']
-#     del joined_df['Date']
-# elif dataset == "NOAA":
-#     del joined_df[mcd_qa]
-#     del joined_df['Date']
-#     del joined_df['D_GLOBAL']
-#     del joined_df['U_GLOBAL']
-#
-# # Subset dataset to correct time period (different for different stations?
-# joined_subset_df = joined_df.loc['2013-01-01':'2019-12-01']
-#
-# # Calculate stats on dataset that has no missing values
-# joined_subset_no_nans_df = joined_subset_df.dropna()
-# sw_wsa_mse = mean_squared_error(joined_subset_no_nans_df[mcd_variable], joined_subset_no_nans_df['alb'])
-# sw_wsa_rmse = round(math.sqrt(sw_wsa_mse), 2)
-#
-# # Add back in the missing days in a plottable way
-# joined_subset_no_nans_filled_df = joined_subset_no_nans_df.asfreq('D')
-# joined_subset_no_nans_filled_df.to_csv('final_data_test.csv')
-# props = dict(boxstyle='round', facecolor='white', alpha=0.5)
-#
-# # Do plot
-# ax = joined_subset_no_nans_filled_df.plot(kind='scatter', x='date', y='alb', color='Indigo', label='MCD43')
-# ax.text(pd.Timestamp("2013-07-01"), 1.008, "RMSE: " + str(sw_wsa_rmse))
-# ax.set_ylim([-0.005,1.0])
-# ax.set_xlim([pd.Timestamp("2013-07-01"),pd.Timestamp("2018-01-05")])
-# ax.grid(b=True, which='major', color='LightGrey', linestyle='-')
-# ax.minorticks_on()
-#
-# joined_subset_no_nans_filled_df.plot(kind='scatter', x='date', y=mcd_variable, ax=ax, color='Tomato', label='Summit',
-#                                      figsize=(10,5))
-# ax.legend(loc='lower left')
-# ax.set_xlabel('Date')
-# ax.set_ylabel('Blue Sky Albedo')
-# ax.set_title('NOAA ICECAPCS Observatory at Summit Station')
-#
-# plt.savefig('summit_noaa_vs_mcd43_bluesky.png')
-# # joined_subset_df.plot(kind='scatter', y='alb', x='date', use_index=True)
-# # joined_subset_df.plot(kind='scatter', y=mcd_variable, x='date', use_index=True)
-# #
-# # # Export csv if needed
-# joined_subset_no_nans_filled_df.to_csv('test_high_qa_only.csv')x/projects/greenland/station_data/appears_extraction')
+# os.chdir('/home/arthur/Dropbox/projects/greenland/station_data/appears_extraction')
 # all_data_mcd = pd.read_csv('greenland-stations-MCD43A3-006-results.csv', index_col=0)
 #
 # os.chdir('/home/arthur/Dropbox/projects/greenland/station_data/tower_data/orig_data_std_format/')
@@ -116,6 +36,8 @@ mcd_qa = 'MCD43_QA'
 # Specify whether to keep QA == 1, i.e. magnitude inversions
 
 high_qa_only = True
+
+
 # Subset and mask station data
 
 # Valid dataset options: GCNET, NOAA
@@ -188,4 +110,87 @@ elif dataset == "NOAA":
     # Set the selection back to the original df variable to fit into exisiting code.
     stn_df = df_selection.copy()
 #print(stn_df.head())
+
+
+# Subset and mask mcd43 data
+mcd_df = all_data_mcd.loc['noaasummit', [date, mcd_variable, mcd_qa]]
+
+# Mask out fill values
+mcd_df[mcd_variable].mask(mcd_df[mcd_qa] == 255, np.NaN, inplace=True)
+
+# If specified, remove QA == 1
+if high_qa_only:
+    mcd_df[mcd_variable].mask(mcd_df[mcd_qa] == 1, np.NaN, inplace=True)
+
+# Remove spuriously low albedo values in both satellite and stn records
+mcd_df[mcd_variable].mask(mcd_df[mcd_variable] < 0.4, np.NaN, inplace=True)
+stn_df['alb'].mask(stn_df['alb'] < 0.4, np.NaN, inplace=True)
+
+
+
+
+# Plot data
+import matplotlib.pyplot as plt
+import math
+from sklearn.metrics import mean_squared_error
+from pandas.plotting import register_matplotlib_converters
+register_matplotlib_converters()
+
+mcd_df[date] = pd.to_datetime(mcd_df[date], yearfirst=True)
+mcd_df = mcd_df.set_index(mcd_df[date])
+
+stn_df.set_index(stn_df['date'])
+
+# Join satellite observations to stn data based on date
+joined_df = mcd_df.join(stn_df, lsuffix='_mcd', rsuffix='_stn')
+
+if dataset == "GCNET":
+    #del joined_df['date']
+    del joined_df[mcd_qa]
+    del joined_df['sw_down']
+    del joined_df['sw_up']
+    del joined_df['net_rad']
+    del joined_df['Date']
+elif dataset == "NOAA":
+    del joined_df[mcd_qa]
+    del joined_df['Date']
+    del joined_df['D_GLOBAL']
+    del joined_df['U_GLOBAL']
+
+# Subset dataset to correct time period (different for different stations?
+joined_subset_df = joined_df.loc['2013-01-01':'2019-12-01']
+
+# Calculate stats on dataset that has no missing values
+joined_subset_no_nans_df = joined_subset_df.dropna()
+sw_wsa_mse = mean_squared_error(joined_subset_no_nans_df[mcd_variable], joined_subset_no_nans_df['alb'])
+sw_wsa_rmse = round(math.sqrt(sw_wsa_mse), 2)
+
+# Add back in the missing days in a plottable way
+joined_subset_no_nans_filled_df = joined_subset_no_nans_df.asfreq('D')
+joined_subset_no_nans_filled_df.to_csv('final_data_test.csv')
+props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+
+# Do plot
+ax = joined_subset_no_nans_filled_df.plot(kind='scatter', x='date', y='alb', color='Indigo', label='MCD43')
+ax.text(pd.Timestamp("2013-07-01"), 1.008, "RMSE: " + str(sw_wsa_rmse))
+ax.set_ylim([-0.005,1.0])
+ax.set_xlim([pd.Timestamp("2013-07-01"),pd.Timestamp("2018-01-05")])
+ax.grid(b=True, which='major', color='LightGrey', linestyle='-')
+ax.minorticks_on()
+
+joined_subset_no_nans_filled_df.plot(kind='scatter', x='date', y=mcd_variable, ax=ax, color='Tomato', label='Summit',
+                                     figsize=(10,5))
+ax.legend(loc='lower left')
+ax.set_xlabel('Date')
+ax.set_ylabel('Blue Sky Albedo')
+ax.set_title('NOAA ICECAPCS Observatory at Summit Station')
+
+plt.savefig('summit_noaa_vs_mcd43_bluesky.png')
+# joined_subset_df.plot(kind='scatter', y='alb', x='date', use_index=True)
+# joined_subset_df.plot(kind='scatter', y=mcd_variable, x='date', use_index=True)
+#
+# # Export csv if needed
+joined_subset_no_nans_filled_df.to_csv('test_high_qa_only.csv')
+
+
 
