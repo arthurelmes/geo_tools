@@ -7,44 +7,55 @@ import rasterio as rio
 import rasterio.mask
 import fiona
 from esda.moran import Moran
-import timeit
+import ntpath
+import csv
+import glob
 
 
 np.random.seed(34539)
 
-workspace = '/lovells/data02/arthur.elmes/greenland/sensor_intercompare/tif/LC8/wsa_wgs84/'
+#workspace = '/lovells/data02/arthur.elmes/greenland/sensor_intercompare/tif/LC8/wsa_wgs84/'
+workspace = '/media/arthur/Windows/LinuxShare/LC08/greenland/tif/wsa/wgs84/'
+clip_file_name = '/home/arthur/Dropbox/projects/greenland/sensor_intercompare/intersection_006013_T22WEV_h16v02_wgs84.shp'
 tif = workspace + \
       'LC08_L1TP_006013_20190610_20190619_01_T1_albedo_broad_wsa_broad_wgs84.tif'
 
-with fiona.open('/lovells/data02/arthur.elmes/greenland/sensor_intercompare/shp/intersection_006013_T22WEV_h16v02_wgs84.shp',
-                'r') as clip_shp:
-    shapes = [feature["geometry"] for feature in clip_shp]
-
-with rio.open(tif) as src:
-    clipped_img, clipped_transform = rio.mask.mask(src, shapes, crop=True)
-    clipped_meta = src.meta
-
-# clipped_meta.update({"driver": "GTiff",
-#                  "height": clipped_img.shape[1],
-#                  "width": clipped_img.shape[2],
-#                  "transform": clipped_transform})
-
-# with rasterio.open("RGB.byte.masked.tif", "w", **clipped_meta) as dest:
-#     dest.write(clipped_img)
+# with fiona.open(clip_file_name, 'r') as clip_shp:
+#     shapes = [feature["geometry"] for feature in clip_shp]
 
 
-#print((clipped_img.shape[1], clipped_img.shape[2]))
-#print((src.shape[0], src.shape[1]))
 
-masked_clipped_img = np.ma.masked_array(clipped_img, clipped_img == 32767)
+# List to hold outputs
+stats_list = []
+csv_header = ['product', 'mean', 'sd_dev']
 
-print(masked_clipped_img.shape)
+for tif in glob.glob(workspace + '*.tif'):
+    tif_name = ntpath.basename(tif)
 
-#2004, 4640
+    # Loop over all tifs in indir, clip each using clip_shp, and then calculate moran's i, append to list
+    with fiona.open(clip_file_name, 'r') as clip_shp:
+        shapes = [feature["geometry"] for feature in clip_shp]
 
-weights = lat2W(2004, 4640, rook=False, id_type='int')
-moran = Moran(masked_clipped_img, weights)
-print(moran.I)
+    with rio.open(tif) as src:
+        clipped_img, clipped_transform = rio.mask.mask(src, shapes, crop=True)
+        clipped_meta = src.meta
 
+    # Mask out nodata
+    masked_clipped_img = np.ma.masked_array(clipped_img, clipped_img == 32767)
+    # print(masked_clipped_img.shape[1])
+    # print(masked_clipped_img.shape[2])
 
-#print(timeit.timeit(test_code), number = 1)
+    # Calculate weights matrix for the raster, and calculate Moran's i
+    print("Building weights matrix for {x}".format(x=tif))
+    weights = lat2W(masked_clipped_img.shape[1], masked_clipped_img.shape[2], rook=False, id_type='int')
+    print("Calculating Moran's i for {x}".format(x=tif))
+    moran = Moran(masked_clipped_img, weights)
+
+    # Add moran's i to csv
+    stats_list.append((tif_name, moran.I))
+
+# Write stats_list to csv
+with open(workspace + '_morani.csv', 'w') as csv_file:
+    writer = csv.writer(csv_file)
+    writer.writerow(csv_header)
+    writer.writerows(stats_list)
