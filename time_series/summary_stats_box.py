@@ -14,13 +14,12 @@ import glob
 import ntpath
 
 # Set workspaces etc
-workspace = '/media/arthur/Windows/LinuxShare/S2/albedo/T22WEV/wsa/wgs84/'
-product_name = 's2'
+workspace = '/media/arthur/Windows/LinuxShare/MCD43A2/'
+product_name = 'SZA'
 
-with fiona.open('/home/arthur/Dropbox/projects/greenland/sensor_intercompare/intersection_006013_T22WEV_h16v02_wgs84.shp',
+with fiona.open('/home/arthur/Dropbox/projects/greenland/vector_basedata/tile_extents/h16v02.shp',
                 'r') as clip_shp:
     shapes = [feature["geometry"] for feature in clip_shp]
-
 
 # List to hold outputs
 stats_list = []
@@ -32,7 +31,7 @@ for tif in glob.glob(workspace + '*.tif'):
         clipped_img, clipped_transform = rio.mask.mask(src, shapes, crop=True)
         clipped_meta = src.meta
 
-    masked_clipped_img = np.ma.masked_array(clipped_img, clipped_img == 32767)
+    masked_clipped_img = np.ma.masked_array(clipped_img, clipped_img == 255)
 
     if 'mcd' in product_name or 'MCD' in product_name:
         mean = masked_clipped_img.mean() * 0.001
@@ -40,6 +39,10 @@ for tif in glob.glob(workspace + '*.tif'):
     elif 'lc' in product_name or 's2' in product_name or 'LC' in product_name or 'S2' in product_name:
         mean = masked_clipped_img.mean() * 0.0001
         std = masked_clipped_img.std() * 0.0001
+    else:
+        mean = masked_clipped_img.mean()
+        std = masked_clipped_img.std()
+
     tif_name = ntpath.basename(tif)
 
     stats_list.append((tif_name, mean, std))
