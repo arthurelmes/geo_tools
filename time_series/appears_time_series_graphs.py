@@ -321,7 +321,7 @@ def year_vs_avg_plot(years, aoi_name, csv_path):
     #### Now plot 2019 vs the 2000 - 2018 avg
 
     # Calculate stats
-    cols = years.loc[:, "2000":"2018"]
+    cols = years.loc[:, "2000":"2020"]
     years['base_mean'] = cols.mean(axis=1)
     years['base_sd'] = cols.std(axis=1)
 
@@ -329,8 +329,10 @@ def year_vs_avg_plot(years, aoi_name, csv_path):
 
     fig_comb_mean = plt.figure(figsize=(10, 5))
     ax_comb_mean = fig_comb_mean.add_subplot(111)
-    ax_comb_mean.plot(years.index, years['2019'], label='2019', color='orange')
-    ax_comb_mean.plot(years.index[:-85], years['base_mean'][:-85], label='2000-2018 Mean +/- 1 SD', color='slateblue',
+    ax_comb_mean.plot(years.index, years['2010'], label='2010', color='chartreuse')
+    ax_comb_mean.plot(years.index, years['2012'], label='2012', color='yellow')
+    ax_comb_mean.plot(years.index, years['2019'], label='2019', color='darkorange')
+    ax_comb_mean.plot(years.index[:-85], years['base_mean'][:-85], label='2000-2020 Mean +/- 1 SD', color='slateblue',
                       alpha=0.5)
     plt.fill_between(years.index[:-85], years['base_mean'][:-85] - years['base_sd'][:-85], years['base_mean'][:-85] +
                      years['base_sd'][:-85], color='lightgrey')
@@ -392,8 +394,8 @@ def year_vs_avg_plot_anom(years, aoi_name, csv_path):
 def main():
     # Update these as needed
     workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/appears/'
-    csv_name = 'helheim-coastal-subset-MCD43A3-006-results.csv'
-    aoi_name = 'Helheim Glacier'
+    csv_name = 'west-coast-combined-MCD43A3-006-results.csv'
+    aoi_name = 'West Coast 100 km Buffer'
     dt_indx = pd.date_range('2000-01-01', '2020-12-31')
     csv_path = workspace + csv_name
 
@@ -501,14 +503,14 @@ def main():
     # make columns into strings for easier plot labeling
     years.columns = years.columns.astype(str)
 
-    box_plot(years, aoi_name, csv_path)
-    box_plot_anom(years, aoi_name, csv_path)
-    vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path)
-    vert_stack_plot_anom(years, nyears, strt_year, end_year, aoi_name, csv_path)
+    # box_plot(years, aoi_name, csv_path)
+    # box_plot_anom(years, aoi_name, csv_path)
+    # vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path)
+    # vert_stack_plot_anom(years, nyears, strt_year, end_year, aoi_name, csv_path)
     year_vs_avg_plot(years, aoi_name, csv_path)
     year_vs_avg_plot_anom(years, aoi_name, csv_path)
-    overpost_all_plot(years, aoi_name, csv_path)
-    overpost_all_plot_anom(years, aoi_name, csv_path)
+    # overpost_all_plot(years, aoi_name, csv_path)
+    # overpost_all_plot_anom(years, aoi_name, csv_path)
 
 if __name__ == '__main__':
     main()

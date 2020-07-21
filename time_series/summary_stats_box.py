@@ -44,8 +44,8 @@ for tif in glob.glob(workspace + '*.tif'):
 
     stats_list.append((tif_name, mean, std))
 
-    # Write stats_list to csv
-    with open(workspace + product_name + '_stats.csv', 'w') as csv_file:
-        writer = csv.writer(csv_file)
-        writer.writerow(csv_header)
-        writer.writerows(stats_list)
+# Write stats_list to csv
+with open(workspace + product_name + '_stats.csv', 'w') as csv_file:
+    writer = csv.writer(csv_file)
+    writer.writerow(csv_header)
+    writer.writerows(stats_list)
