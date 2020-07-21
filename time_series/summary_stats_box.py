@@ -14,10 +14,11 @@ import glob
 import ntpath
 
 # Set workspaces etc
-workspace = '/media/arthur/Windows/LinuxShare/MCD43A2/'
+#workspace = '/media/arthur/Windows/LinuxShare/MCD43A2/'
+workspace = '/ipswich/data01/arthur.elmes/MCD43A2/2019/h16v02/sza/'
 product_name = 'SZA'
 
-with fiona.open('/home/arthur/Dropbox/projects/greenland/vector_basedata/tile_extents/h16v02.shp',
+with fiona.open('/lovells/data02/arthur.elmes/greenland/tile_extents/h16v02.shp',
                 'r') as clip_shp:
     shapes = [feature["geometry"] for feature in clip_shp]
 
