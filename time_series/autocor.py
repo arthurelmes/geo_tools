@@ -13,21 +13,23 @@ import glob
 
 
 np.random.seed(34539)
-
+workspace = '/lovells/data02/arthur.elmes/greenland/sensor_intercompare/tif/S2/wsa_wgs84/'
+#workspace = '/lovells/data02/arthur.elmes/greenland/sensor_intercompare/tif/MCD43A3/wsa_wgs84/'
 #workspace = '/lovells/data02/arthur.elmes/greenland/sensor_intercompare/tif/LC8/wsa_wgs84/'
-workspace = '/media/arthur/Windows/LinuxShare/LC08/greenland/tif/wsa/wgs84/'
-clip_file_name = '/home/arthur/Dropbox/projects/greenland/sensor_intercompare/intersection_006013_T22WEV_h16v02_wgs84.shp'
+#workspace = '/media/arthur/Windows/LinuxShare/LC08/greenland/tif/wsa/wgs84/'
+#clip_file_name = '/home/arthur/Dropbox/projects/greenland/sensor_intercompare/intersection_006013_T22WEV_h16v02_wgs84.shp'
+clip_file_name = '/lovells/data02/arthur.elmes/greenland/sensor_intercompare/shp/intersection_006013_T22WEV_h16v02_wgs84.shp'
 tif = workspace + \
       'LC08_L1TP_006013_20190610_20190619_01_T1_albedo_broad_wsa_broad_wgs84.tif'
 
-# with fiona.open(clip_file_name, 'r') as clip_shp:
-#     shapes = [feature["geometry"] for feature in clip_shp]
+
+
 
 
 
 # List to hold outputs
 stats_list = []
-csv_header = ['product', 'mean', 'sd_dev']
+csv_header = ['image', 'morans_i']
 
 for tif in glob.glob(workspace + '*.tif'):
     tif_name = ntpath.basename(tif)

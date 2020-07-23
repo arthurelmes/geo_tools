@@ -1,5 +1,6 @@
 #!/bin/bash
-# Script to download MODIS or VIIRS data products from Terra (MOD), Aqua (MYD), combined Terra Aqua (MCD), or SNPP-VIIRS (VNP)
+# Script to download TILED MODIS or VIIRS data products from Terra (MOD), Aqua (MYD), combined Terra Aqua (MCD), or SNPP-VIIRS (VNP)
+# Does not currenty work for CMG products, future revision will
 # Arthur Elmes
 # Created 2019-05-01
 

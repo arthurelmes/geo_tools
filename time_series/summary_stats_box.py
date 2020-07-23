@@ -12,10 +12,12 @@ import csv
 import numpy as np
 import glob
 import ntpath
+import sys
 
 # Set workspaces etc
 #workspace = '/media/arthur/Windows/LinuxShare/MCD43A2/'
-workspace = '/ipswich/data01/arthur.elmes/MCD43A2/2019/h16v02/sza/'
+#workspace = '/ipswich/data01/arthur.elmes/MCD43A2/2019/h16v02/sza/'
+workspace = sys.argv[1]
 product_name = 'SZA'
 
 with fiona.open('/lovells/data02/arthur.elmes/greenland/tile_extents/h16v02.shp',
