@@ -12,18 +12,27 @@ import csv
 import numpy as np
 import glob
 import ntpath
-import sys
+import sys, os
 
 # Set workspaces etc
 #workspace = '/media/arthur/Windows/LinuxShare/MCD43A2/'
 #workspace = '/ipswich/data01/arthur.elmes/MCD43A2/2019/h16v02/sza/'
 workspace = sys.argv[1]
-product_name = 'SZA'
+product_name = sys.argv[2]
+tile = sys.argv[3]
 
-with fiona.open('/lovells/data02/arthur.elmes/greenland/tile_extents/h16v02.shp',
-                'r') as clip_shp:
-    shapes = [feature["geometry"] for feature in clip_shp]
+#TODO this should be changed as it relies on dir structure
+if 'SZA' in product_name:
+    year = workspace[-16:-12]
+    with fiona.open('/lovells/data02/arthur.elmes/greenland/tile_extents/{x}.shp'.format(x=tile), 'r') as clip_shp:
+        shapes = [feature["geometry"] for feature in clip_shp]
 
+elif 'AOD' in product_name:
+    year = workspace[-5:-1]
+    with fiona.open('/lovells/data02/arthur.elmes/greenland/tile_extents/{x}_wgs84.shp'.format(x=tile), 'r') as clip_shp:
+        shapes = [feature["geometry"] for feature in clip_shp]
+
+    
 # List to hold outputs
 stats_list = []
 csv_header = ['product', 'mean', 'sd_dev']
@@ -34,27 +43,36 @@ for tif in glob.glob(workspace + '*.tif'):
         clipped_img, clipped_transform = rio.mask.mask(src, shapes, crop=True)
         clipped_meta = src.meta
 
-    masked_clipped_img = np.ma.masked_array(clipped_img, clipped_img == -9999)
-
+    
     if 'mcd' in product_name or 'MCD' in product_name:
+        masked_clipped_img = np.ma.masked_array(clipped_img, clipped_img == 32767)
         mean = masked_clipped_img.mean() * 0.001
         std = masked_clipped_img.std() * 0.001
     elif 'lc' in product_name or 's2' in product_name or 'LC' in product_name or 'S2' in product_name:
+        masked_clipped_img = np.ma.masked_array(clipped_img, clipped_img == 32767)
         mean = masked_clipped_img.mean() * 0.0001
         std = masked_clipped_img.std() * 0.0001
     elif 'AOD' in product_name:
+        masked_clipped_img = np.ma.masked_array(clipped_img, clipped_img == -9999)
         mean = masked_clipped_img.mean() * 0.001
         std = masked_clipped_img.std() * 0.001
-    else:
+    elif 'SZA' in product_name:
+        masked_clipped_img = np.ma.masked_array(clipped_img, clipped_img == 255)
         mean = masked_clipped_img.mean()
         std = masked_clipped_img.std()
-
+    else:
+        print("Product not recognized!")
+        sys.exit(1)
+        
     tif_name = ntpath.basename(tif)
 
     stats_list.append((tif_name, mean, std))
 
 # Write stats_list to csv
-with open(workspace + product_name + '_stats.csv', 'w') as csv_file:
+os.chdir(workspace)
+csv_name = str(product_name + '_' + year + '_' + tile[1:] + '_stats.csv')
+print(csv_name)
+with open(csv_name, 'w') as csv_file:
     writer = csv.writer(csv_file)
     writer.writerow(csv_header)
     writer.writerows(stats_list)
