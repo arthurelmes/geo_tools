@@ -13,11 +13,10 @@
 in_dir=$1 
 out_dir=$2
 
-#TODO fix this so the single (or double?) quotes are actually stored in the string variable
-srs_str='PROJCS["unnamed", GEOGCS["Unknown datum based upon the custom spheroid", DATUM["Not specified (based on custom spheroid)", SPHEROID["Custom spheroid",6371007.181,0]], PRIMEM["Greenwich",0], UNIT["degree",0.0174532925199433]], PROJECTION["Sinusoidal"], PARAMETER["longitude_of_center",0], PARAMETER["false_easting",0], PARAMETER["false_northing",0],UNIT["Meter",1]]'
+srs_str="+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m +no_defs"
 
-ul_coord='-5559752.5983330002054572 5559752.5983330002054572'
-lr_coord='-4447802.0786669999361038 4447802.0786669999361038'
+ul_coord='-2223901.0393329998478293 7783653.6376670002937317'
+lr_coord='-1111950.5196670000441372 6671703.1179999997839332'
 
 if [ ! -d ${out_dir} ]; then
     mkdir ${out_dir}
@@ -46,23 +45,20 @@ do
     extension="${filename##*.}"
     filename_bare="${filename%.*}"
 
-#    echo -a_ullr $ul_coord $lr_coord -of GTiff HDF5:'"'${in_dir}/${filename}'"'://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/Albedo_WSA_shortwave ${out_dir}/wsa/${filename}_wsa_shortwave.tif
+    # for wsa, bsa, qa
+    gdal_translate -a_nodata 32767 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:"${in_dir}/${filename}"://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/Albedo_WSA_shortwave ${out_dir}/wsa/${filename}_wsa_shortwave.tif
+    gdal_translate -a_nodata 32767 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:"${in_dir}/${filename}"://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/Albedo_BSA_shortwave ${out_dir}/bsa/${filename}_bsa_shortwave.tif    
+    gdal_translate -a_nodata 255 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:"${in_dir}/${filename}"://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/BRDF_Albedo_Band_Mandatory_Quality_shortwave ${out_dir}/qa/${filename}_qa_shortwave.tif    
 
 
-    #gdal_translate -a_nodata 255 -a_srs 'PROJCS["unnamed", GEOGCS["Unknown datum based upon the custom spheroid", DATUM["Not specified (based on custom spheroid)", SPHEROID["Custom spheroid",6371007.181,0]], PRIMEM["Greenwich",0], UNIT["degree",0.0174532925199433]], PROJECTION["Sinusoidal"], PARAMETER["longitude_of_center",0], PARAMETER["false_easting",0], PARAMETER["false_northing",0],UNIT["Meter",1]]' -a_ullr $ul_coord $lr_coord -of GTiff HDF5:'"'${in_dir}/${filename}'"'://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/BRDF_Albedo_LandWaterType ${out_dir}/lwmask/${filename}_lw_type.tif
-    
-    gdal_translate -a_nodata 32767 -a_srs 'PROJCS["unnamed", GEOGCS["Unknown datum based upon the custom spheroid", DATUM["Not specified (based on custom spheroid)", SPHEROID["Custom spheroid",6371007.181,0]], PRIMEM["Greenwich",0], UNIT["degree",0.0174532925199433]], PROJECTION["Sinusoidal"], PARAMETER["longitude_of_center",0], PARAMETER["false_easting",0], PARAMETER["false_northing",0],UNIT["Meter",1]]' -a_ullr $ul_coord $lr_coord -of GTiff HDF5:'"'${in_dir}/${filename}'"'://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/Albedo_WSA_shortwave ${out_dir}/wsa/${filename}_wsa_shortwave.tif
+    # for VNP43IA3Albedo_WSA_I2
+    #gdal_translate -a_nodata 32767 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:'"'${in_dir}/${filename}'"'://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/Albedo_WSA_I2 ${out_dir}/wsa/${filename}_wsa_i2.tif
 
-    gdal_translate -a_nodata 32767 -a_srs 'PROJCS["unnamed", GEOGCS["Unknown datum based upon the custom spheroid", DATUM["Not specified (based on custom spheroid)", SPHEROID["Custom spheroid",6371007.181,0]], PRIMEM["Greenwich",0], UNIT["degree",0.0174532925199433]], PROJECTION["Sinusoidal"], PARAMETER["longitude_of_center",0], PARAMETER["false_easting",0], PARAMETER["false_northing",0],UNIT["Meter",1]]' -a_ullr $ul_coord $lr_coord -of GTiff HDF5:'"'${in_dir}/${filename}'"'://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/Albedo_BSA_shortwave ${out_dir}/bsa/${filename}_bsa_shortwave.tif    
+    # for VNP43MA1 BRDF_Albedo_Parameters_M4
+    # gdal_translate -a_nodata 32767 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:'"'${in_dir}/${filename}'"'://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/BRDF_Albedo_Parameters_M4 ${out_dir}/${filename}_params_ma4.tif
 
-    gdal_translate -a_nodata 255 -a_srs 'PROJCS["unnamed", GEOGCS["Unknown datum based upon the custom spheroid", DATUM["Not specified (based on custom spheroid)", SPHEROID["Custom spheroid",6371007.181,0]], PRIMEM["Greenwich",0], UNIT["degree",0.0174532925199433]], PROJECTION["Sinusoidal"], PARAMETER["longitude_of_center",0], PARAMETER["false_easting",0], PARAMETER["false_northing",0],UNIT["Meter",1]]' -a_ullr $ul_coord $lr_coord -of GTiff HDF5:'"'${in_dir}/${filename}'"'://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/BRDF_Albedo_Band_Mandatory_Quality_shortwave ${out_dir}/qa/${filename}_qa_shortwave.tif    
-
-    #for VNP43IA3Albedo_WSA_I2
-#    gdal_translate -a_nodata 32767 -a_srs 'PROJCS["unnamed", GEOGCS["Unknown datum based upon the custom spheroid", DATUM["Not spAlbedo_WSA_I2ecified (based on custom spheroid)", SPHEROID["Custom spheroid",6371007.181,0]], PRIMEM["Greenwich",0], UNIT["degree",0.0174532925199433]], PROJECTION["Sinusoidal"], PARAMETER["longitude_of_center",0], PARAMETER["false_easting",0], PARAMETER["false_northing",0],UNIT["Meter",1]]' -a_ullr $ul_coord $lr_coord -of GTiff HDF5:'"'${in_dir}/${filename}'"'://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/Albedo_WSA_I2 ${out_dir}/wsa/${filename}_wsa_i2.tif
-
-    #for VNP43MA1 BRDF_Albedo_Parameters_M4
-#    gdal_translate -a_nodata 32767 -a_srs 'PROJCS["unnamed", GEOGCS["Unknown datum based upon the custom spheroid", DATUM["Not spAlbedo_WSA_I2ecified (based on custom spheroid)", SPHEROID["Custom spheroid",6371007.181,0]], PRIMEM["Greenwich",0], UNIT["degree",0.0174532925199433]], PROJECTION["Sinusoidal"], PARAMETER["longitude_of_center",0], PARAMETER["false_easting",0], PARAMETER["false_northing",0],UNIT["Meter",1]]' -a_ullr $ul_coord $lr_coord -of GTiff HDF5:'"'${in_dir}/${filename}'"'://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/BRDF_Albedo_Parameters_M4 ${out_dir}/${filename}_params_ma4.tif
-
+    # for the land-water mask
+    # gdal_translate -a_nodata 255 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:'"'${in_dir}/${filename}'"'://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/BRDF_Albedo_LandWaterType ${out_dir}/lwmask/${filename}_lw_type.tif
 done
 
 
