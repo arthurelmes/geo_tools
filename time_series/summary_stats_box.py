@@ -16,12 +16,14 @@ import sys, os
 
 # Set workspaces etc
 #workspace = '/media/arthur/Windows/LinuxShare/MCD43A2/'
-#workspace = '/ipswich/data01/arthur.elmes/MCD43A2/2019/h16v02/sza/'
-workspace = sys.argv[1]
-product_name = sys.argv[2]
+workspace = '/media/arthur/Windows/LinuxShare/bsky_test/tif/merged/'
+#workspace = sys.argv[1]
+product_name = 'actual_albedo'
+#product_name = sys.argv[2]
 tile = sys.argv[3]
 
 #TODO this should be changed as it relies on dir structure
+#TODO and really, there's no reason to not just have the AOI shp be an input arg
 if 'SZA' in product_name:
     year = workspace[-16:-12]
     with fiona.open('/lovells/data02/arthur.elmes/greenland/tile_extents/{x}.shp'.format(x=tile), 'r') as clip_shp:
@@ -31,8 +33,13 @@ elif 'AOD' in product_name:
     year = workspace[-5:-1]
     with fiona.open('/lovells/data02/arthur.elmes/greenland/tile_extents/{x}_wgs84.shp'.format(x=tile), 'r') as clip_shp:
         shapes = [feature["geometry"] for feature in clip_shp]
+else:
+    year = 2000
+    with fiona.open('/home/arthur/Dropbox/projects/greenland/vector_basedata/greenland_coast_buffer_100km_mod_sin.shp',
+                    'r') as clip_shp:
+        shapes = [feature["geometry"] for feature in clip_shp]
 
-    
+
 # List to hold outputs
 stats_list = []
 csv_header = ['product', 'mean', 'sd_dev']
@@ -60,6 +67,10 @@ for tif in glob.glob(workspace + '*.tif'):
         masked_clipped_img = np.ma.masked_array(clipped_img, clipped_img == 255)
         mean = masked_clipped_img.mean()
         std = masked_clipped_img.std()
+    elif 'actual_albedo' in product_name:
+        masked_clipped_img = np.ma.masked_array(clipped_img, clipped_img == 32767)
+        mean = masked_clipped_img.mean()
+        std = masked_clipped_img.std()
     else:
         print("Product not recognized!")
         sys.exit(1)
@@ -70,7 +81,8 @@ for tif in glob.glob(workspace + '*.tif'):
 
 # Write stats_list to csv
 os.chdir(workspace)
-csv_name = str(product_name + '_' + year + '_' + tile[1:] + '_stats.csv')
+#csv_name = str(product_name + '_' + year + '_' + tile[1:] + '_stats.csv')
+csv_name = str(product_name + '_' + str(year) + '_' + '_stats.csv')
 print(csv_name)
 with open(csv_name, 'w') as csv_file:
     writer = csv.writer(csv_file)

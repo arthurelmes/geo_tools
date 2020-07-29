@@ -7,8 +7,8 @@
 workspace="/media/arthur/Windows/LinuxShare/bsky_test/tif/"
 output_dir="/media/arthur/Windows/LinuxShare/bsky_test/tif/merged/"
 
-if [ ! -d ${out_dir} ]; then
-    mkdir ${out_dir}
+if [ ! -d ${output_dir} ]; then
+    mkdir ${output_dir}
 fi
 
 for yr in $( seq 2000 2020); do
@@ -21,7 +21,7 @@ for yr in $( seq 2000 2020); do
 	full_date=${yr}${dt}
 	hdf_list=`find $workspace -type f -name "*${yr}${dt}*"`
 	if [ ${#hdf_list} -gt 0 ]; then
-	    echo ${hdf_list}
+	    gdal_merge.py -o "${output_dir}MCD43_actual_albedo_greenland_west_coast_${yr}${dt}.tif" -of GTiff ${hdf_list}
 	fi
     done
 done
