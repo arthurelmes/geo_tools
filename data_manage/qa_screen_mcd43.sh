@@ -4,18 +4,25 @@
 # Should be improved in many ways, e.g. specify more than qa=0, intake the HDFs, etc
 # Author: Arthur Elmes 2020-08-01
 
+tile=$1
+
 # Set these
-in_dir="/media/arthur/Windows/LinuxShare/screen_qa/bluesky/"
-qa_dir="/media/arthur/Windows/LinuxShare/screen_qa/qa/"
-sza_dir="/media/arthur/Windows/LinuxShare/screen_qa/sza/"
-out_dir="/media/arthur/Windows/LinuxShare/screen_qa/bluesky_screened/"
+in_dir="/ipswich/data01/arthur.elmes/bsky/tif/${tile}"
+qa_dir="/ipswich/data01/arthur.elmes/MCD43_mandatory_qa/${tile}"
+sza_dir="/ipswich/data01/arthur.elmes/MCD43A2/all/${tile}"
+out_dir="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened/${tile}"
+
+if [ ! -d ${out_dir} ]; then
+    mkdir $out_dir
+fi
+
 
 for tif in ${in_dir}/*.tif; do 
     filename=$(basename -- ${tif})
     extension="${filename##*.}"
     filename_bare="${filename%.*}"
     date=${filename_bare:9:14}
-    tmp_name=${tif}.vrt
+    tmp_name=${tif}_temp.tif
     out_name=${out_dir}/${filename_bare}_high_qa.tif
 
     # Find matching qa file
@@ -25,8 +32,11 @@ for tif in ${in_dir}/*.tif; do
     sza_tif=`find ${sza_dir} -type f -name "*${date}*sza*"`
     
     # This could probably be one step
-    gdal_calc.py -A ${tif} -B ${qa_tif} --outfile=${tmp_name} --calc="A*(B==0)"
-    gdal_calc.py -A ${tmp_name} --outfile=${tmp_name} --calc="A*(A>0)" --NoDataValue=0
-    gdal_calc.py -A ${tmp_name} -B ${sza_tif} --outfile=${out_name} --calc="A*(B<72.0)"
+    gdal_calc.py --format GTiff -A ${tif} -B ${qa_tif} --outfile=${tmp_name} --calc="A*(B==0)"
+    gdal_calc.py --format GTiff -A ${tmp_name} --outfile=${tmp_name}_2 --calc="A*(A>0)" --NoDataValue=0
+    gdal_calc.py --format GTiff -A ${tmp_name}_2 -B ${sza_tif} --outfile=${out_name} --calc="A*(B<72.0)" --NoDataValue=0
 
+    # For some reason the vrt format is not working, so delete the temporary tifs (this is super non-optimal)
+    rm ${tmp_name}
+    rm ${tmp_name}_2
 done
