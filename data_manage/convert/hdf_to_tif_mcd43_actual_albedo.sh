@@ -53,5 +53,5 @@ do
     filename=$(basename -- $hdf)
     extension="${filename##*.}"
     filename_bare="${filename%.*}"
-    gdal_translate -a_nodata 32767 -a_srs "${srs_str}" -a_nodata 255 -a_ullr ${ul_coord} ${lr_coord} -of GTiff HDF4_SDS:UNKNOWN:"${in_dir}${filename}":9 ${out_dir}/${filename_bare}_sw_blue_sky_albedo.tif
+    gdal_translate -a_nodata 32767 -a_srs "${srs_str}" -a_nodata 32767 -a_ullr ${ul_coord} ${lr_coord} -of GTiff HDF4_SDS:UNKNOWN:"${in_dir}${filename}":9 ${out_dir}/${filename_bare}_sw_blue_sky_albedo.tif
 done
