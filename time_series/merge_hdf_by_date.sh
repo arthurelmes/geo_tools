@@ -5,8 +5,10 @@
 ### Author: Arthur Elmes 2020-07-29
 
 # Currently these must be tifs
-workspace=$1
-output_dir=$2
+#workspace=$1
+#output_dir=$2
+workspace="/ipswich/data01/arthur.elmes/bsky/tif/qa_screen_test/"
+output_dir="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_merged/"
 
 if [ ! -d ${output_dir} ]; then
     mkdir ${output_dir}
