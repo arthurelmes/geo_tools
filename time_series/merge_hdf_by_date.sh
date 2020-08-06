@@ -4,8 +4,8 @@
 ### Currently set up specifically for the output hdf from actual_albedo_hdf.exe, but can be easily modified.
 ### Author: Arthur Elmes 2020-07-29
 
-workspace="/media/arthur/Windows/LinuxShare/bsky_test/tif/"
-output_dir="/media/arthur/Windows/LinuxShare/bsky_test/tif/merged/"
+workspace="/ipswich/data01/arthur.elmes/bsky/tif/qa_screen_test/"
+output_dir="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_merged/"
 
 if [ ! -d ${output_dir} ]; then
     mkdir ${output_dir}
