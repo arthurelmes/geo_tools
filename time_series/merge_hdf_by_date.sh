@@ -7,14 +7,14 @@
 # Currently these must be tifs
 #workspace=$1
 #output_dir=$2
-workspace="/ipswich/data01/arthur.elmes/bsky/tif/qa_screen_test/"
-output_dir="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_merged/"
+workspace="/ipswich/data01/arthur.elmes/bsky/tif/2020_all_qa_screened/"
+output_dir="/ipswich/data01/arthur.elmes/bsky/2020_merged_qa_screened/"
 
 if [ ! -d ${output_dir} ]; then
     mkdir ${output_dir}
 fi
 
-for yr in $( seq 2000 2020); do
+for yr in $( seq 2020 2020); do
     for dt in $( seq 1 366); do
 	if [ ${dt} -lt 10 ]; then
 	    dt=00${dt}
