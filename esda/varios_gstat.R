@@ -6,7 +6,7 @@ library(gstat)
 #library(Formula)
 
 # set wd
-wd_path <-'/home/arthur/Dropbox/projects/greenland/sensor_intercompare/'
+wd_path <-'/media/arthur/Windows/LinuxShare/sensor_intercompare/'
 setwd(wd_path)
 
 # shapefile to clip with  
@@ -17,13 +17,14 @@ clip_file_name <- readOGR('/home/arthur/Dropbox/projects/greenland/sensor_interc
 # this will become a loop through all tifs in the wd
 file.names <- dir(wd_path, pattern=".tif")
 for(i in 1:length(file.names)){
+  print(i)
   tif_raster <- raster(x = file.names[i])
   tif_raster_variable <- tools::file_path_sans_ext(file.names[i])
   
   print("masking raster")  
   # clip the raster to the shapefile and its extent (trim)
   masked_raster <- mask(tif_raster, clip_file_name)
-  non_na_raster <- trim(masked_raster)
+  try(non_na_raster <- trim(masked_raster))
   
   # construct a SpatailPointsDataFrame from a sample of the raster, because using all points, as in the commented out line,
   # is waaaay to resource intensive
@@ -46,7 +47,7 @@ for(i in 1:length(file.names)){
   
   
   print("running variogram")
-  gstat_variogram <- variogram(h, data = point_data)
+  try(gstat_variogram <- variogram(h, data = point_data))
   plot(gstat_variogram)
 }
 

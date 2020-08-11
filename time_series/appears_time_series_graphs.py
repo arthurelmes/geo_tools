@@ -13,6 +13,7 @@ import matplotlib.colors as colors
 import matplotlib.cm as cmx
 from cycler import cycler
 from scipy import stats
+import math
 np.random.seed(12412412)
 
 def calc_anom_doy(years):
@@ -332,6 +333,7 @@ def year_vs_avg_plot(years, aoi_name, csv_path):
     ax_comb_mean.plot(years.index, years['2010'], label='2010', color='chartreuse')
     ax_comb_mean.plot(years.index, years['2012'], label='2012', color='yellow')
     ax_comb_mean.plot(years.index, years['2019'], label='2019', color='darkorange')
+    ax_comb_mean.plot(years.index, years['2020'], label='2020', color='firebrick')
     ax_comb_mean.plot(years.index[:-85], years['base_mean'][:-85], label='2000-2020 Mean +/- 1 SD', color='slateblue',
                       alpha=0.5)
     plt.fill_between(years.index[:-85], years['base_mean'][:-85] - years['base_sd'][:-85], years['base_mean'][:-85] +
@@ -391,19 +393,58 @@ def year_vs_avg_plot_anom(years, aoi_name, csv_path):
     plt.savefig(save_name, dpi=300, bbox_inches='tight')
 
 
+def calc_sza(lat, doy):
+
+    doy = int(doy)
+    lat = float(lat)
+    # ported from MCD43C code
+    # time uses 24 hours with local noon = 12
+    time = 12
+    h = (12.0 - time)/12.0 * math.pi
+    lat = lat * math.pi / 180.0
+    delta = -23.45 * (math.pi / 180) * math.cos(2 * math.pi / 365.0 * (doy + 10))
+    sza = math.acos(math.sin(lat) * math.sin(delta) + math.cos(lat) * math.cos(delta) * math.cos(h))
+
+    sza = sza * 180.0 / math.pi
+
+    return sza
+
+
 def main():
     # Update these as needed
     workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/appears/'
-    csv_name = 'west-coast-combined-MCD43A3-006-results.csv'
+    csv_name = 'west-coast-combined-MCD43A3-006-results-2000-2020.csv'
     aoi_name = 'West Coast 100 km Buffer'
     dt_indx = pd.date_range('2000-01-01', '2020-12-31')
     csv_path = workspace + csv_name
 
     # Define the fields of interest so we can ignore the rest
-    fields = ['Date', 'MCD43A3_006_Albedo_WSA_shortwave', 'MCD43A3_006_BRDF_Albedo_Band_Mandatory_Quality_shortwave']
+    fields = ['Date', 'Latitude', 'MCD43A3_006_Albedo_WSA_shortwave',
+              'MCD43A3_006_BRDF_Albedo_Band_Mandatory_Quality_shortwave']
 
     # Import raw APPEARS output
-    ts_df = pd.read_csv(csv_path, usecols=fields, parse_dates=[0], index_col=0)
+    #ts_df = pd.read_csv(csv_path, usecols=fields, parse_dates=[1], index_col=1)
+    ts_df = pd.read_csv(csv_path, usecols=fields, parse_dates=[1])
+
+    # check doy from date
+    ts_df['doy'] = ts_df['Date'].dt.strftime('%j')
+    ts_df.set_index('Date', inplace=True)
+
+    # calculate sza for each row
+    ts_df['sza'] = ts_df.apply(lambda x: calc_sza(x.Latitude, x.doy), axis=1)
+
+    print(ts_df.shape)
+    # mask wsa value where sza > 72
+    ts_df = ts_df[ts_df['sza'] < 72]
+    print(ts_df.shape)
+    
+
+    del ts_df['doy']
+    del ts_df['sza']
+    del ts_df['Latitude']
+
+    # pass an otherwise identical ts_df to the stuff below
+
 
     # Add missing dates to beginning of modis time series
     start_date = dt.datetime(2000, 1, 1)
@@ -415,7 +456,12 @@ def main():
 
     pad_df = pd.DataFrame({'Date': daterange, 'MCD43A3_006_Albedo_WSA_shortwave': empty_wsa,
                            'MCD43A3_006_BRDF_Albedo_Band_Mandatory_Quality_shortwave': empty_qa})
+
+
     pad_df.set_index('Date', inplace=True)
+
+    print(ts_df.columns)
+    print(pad_df.columns)
 
     # Add to beginning of data series
     ts_df = pd.concat([pad_df, ts_df])
@@ -436,6 +482,7 @@ def main():
 
     # Make the date index, then group by it to make monthly averages
     ts_df['Date'] = pd.to_datetime(ts_df['Date'])
+
     ts_df.set_index('Date', inplace=True)
     ts_df = ts_df.groupby(['Date']).mean()
 
@@ -503,14 +550,14 @@ def main():
     # make columns into strings for easier plot labeling
     years.columns = years.columns.astype(str)
 
-    # box_plot(years, aoi_name, csv_path)
-    # box_plot_anom(years, aoi_name, csv_path)
-    # vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path)
-    # vert_stack_plot_anom(years, nyears, strt_year, end_year, aoi_name, csv_path)
+    box_plot(years, aoi_name, csv_path)
+    box_plot_anom(years, aoi_name, csv_path)
+    vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path)
+    vert_stack_plot_anom(years, nyears, strt_year, end_year, aoi_name, csv_path)
     year_vs_avg_plot(years, aoi_name, csv_path)
     year_vs_avg_plot_anom(years, aoi_name, csv_path)
-    # overpost_all_plot(years, aoi_name, csv_path)
-    # overpost_all_plot_anom(years, aoi_name, csv_path)
+    overpost_all_plot(years, aoi_name, csv_path)
+    overpost_all_plot_anom(years, aoi_name, csv_path)
 
 if __name__ == '__main__':
     main()
