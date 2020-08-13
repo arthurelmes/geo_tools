@@ -2,6 +2,7 @@
 library(raster)
 library(rgdal)
 library(gstat)
+library(ggplot2)
 #library(geoR)
 #library(Formula)
 
@@ -11,15 +12,16 @@ setwd(wd_path)
 
 # shapefile to clip with  
 clip_file_name <- readOGR('/home/arthur/Dropbox/projects/greenland/sensor_intercompare/intersection_006013_T22WEV_h16v02.shp')
-#clip_file_name <- readOGR('/home/arthur/Dropbox/projects/greenland/sensor_intercompare/test_clip_wgs84.shp')
 
+file_names <- dir(wd_path, pattern=".tif")
 
-# this will become a loop through all tifs in the wd
-file.names <- dir(wd_path, pattern=".tif")
-for(i in 1:length(file.names)){
-  print(i)
-  tif_raster <- raster(x = file.names[i])
-  tif_raster_variable <- tools::file_path_sans_ext(file.names[i])
+plot_list = list()
+
+for(i in 1:length(file_names)){
+  print(file_names[i])
+  tif_raster <- raster(file_names[i])
+  tif_raster_variable <- tools::file_path_sans_ext(file_names[i])
+  print(tif_raster_variable)
   
   print("masking raster")  
   # clip the raster to the shapefile and its extent (trim)
@@ -41,38 +43,21 @@ for(i in 1:length(file.names)){
   #plot(non_na_raster)
   #plot(point_data, add=TRUE)
   
-  #tif_raster_variable <- 'test'
   f <- paste(tif_raster_variable, "~ 1")
   h <- as.formula(f)
   
-  
   print("running variogram")
   try(gstat_variogram <- variogram(h, data = point_data))
-  plot(gstat_variogram)
+  print("ok the variogram is created")
+  plot_title = "Variogram for "
+  p = plot(gstat_variogram, main = plot_title, cex.main=0.5)
+  plot_list[[i]] = p
+  
 }
 
-
-
-
-
-
-
-### Extra stuff
-
-#geor_variogram <- variog(as.geodata(point_data))
-#plot(geor_variogram)
-
-# Vario for entire area, not clipped
-#point_data_big <- as.data.frame(sampleRandom(x=tif_raster, size = 5000, na.rm = TRUE, ext = tif_raster, xy = TRUE))
-#xy <- cbind(point_data_big[1], point_data_big[2])
-#point_data_big <- SpatialPointsDataFrame(xy, point_data_big)
-
-# plot the layers to check
-#plot(tif_raster)
-#plot(point_data_big, add=TRUE)
-
-#gstat_variogram_big <- variogram(LC08_L1TP_006013_20190610_20190619_01_T1_albedo_broad_wsa_broad ~ 1, data = point_data_big)
-#plot(gstat_variogram)
-
-#geor_variogram_big <- variog(as.geodata(point_data_big))
-#plot(geor_variogram)
+for(i in 1:length(plot_list)){
+  file_name = paste("variogram_", i, ".tif", sep="")
+  tiff(file_name)
+  print(plot_list[[i]])
+  dev.off()
+}
