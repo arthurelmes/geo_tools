@@ -9,10 +9,10 @@ start_year=$2
 end_year=$3
 
 # Set these
-in_dir="/ipswich/data01/arthur.elmes/bsky/tif/${tile}"
+in_dir="/ipswich/data01/arthur.elmes/bsky/tif/${tile}_2020/"
 qa_dir="/ipswich/data01/arthur.elmes/MCD43_mandatory_qa/${tile}"
 sza_dir="/ipswich/data01/arthur.elmes/MCD43A2/all/${tile}"
-out_dir="/ipswich/data01/arthur.elmes/bsky/tif/qa_screen_test/${tile}"
+out_dir="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_2020/${tile}"
 
 if [ ! -d ${out_dir} ]; then
     mkdir $out_dir
@@ -36,14 +36,25 @@ for year in $(seq ${start_year} ${end_year}); do
 	sza_tif=`find ${sza_dir} -type f -name "*${date}*sza*"`
 	
 	# This could probably be one step
-	gdal_calc.py --format GTiff -A ${tif} -B ${qa_tif} --outfile=${tmp_name} --calc="A*(B==0)" --NoDataValue=0
-	gdal_calc.py --format GTiff -A ${tmp_name} --outfile=${tmp_name_2} --calc="A*(A>0)" --NoDataValue=32767
-	gdal_calc.py --format GTiff -A ${tmp_name_2} -B ${sza_tif} --outfile=${tmp_name_3} --calc="A*(B<72.0)" --NoDataValue=0
-	gdal_calc.py --format GTiff -A ${tmp_name_3} --outfile=${out_name} --calc="A*(A>0)" --NoDataValue=32767
+	echo "Procesing:"
+	echo $tif
+	echo $qa_tif
+	echo $sza_tif
+	
+	gdal_calc.py --format GTiff -A ${tif} -B ${qa_tif} --outfile=${tmp_name} --calc="A*(B==0)" --NoDataValue=0 --quiet
+	gdal_calc.py --format GTiff -A ${tmp_name} --outfile=${tmp_name_2} --calc="A*(A>0)" --NoDataValue=32767 --quiet
+	gdal_calc.py --format GTiff -A ${tmp_name_2} -B ${sza_tif} --outfile=${tmp_name_3} --calc="A*(B<72.0)" --NoDataValue=0 --quiet
+	gdal_calc.py --format GTiff -A ${tmp_name_3} --outfile=${out_name} --calc="A*(A>0)" --NoDataValue=32767 --quiet
 
 	# For some reason the vrt format is not working, so delete the temporary tifs (this is super non-optimal)
-	rm ${tmp_name}
-	rm ${tmp_name_2}
-	rm ${tmp_name_3}
+	if [ -f ${tmp_name} ]; then
+	    rm ${tmp_name}
+	fi
+	if [ -f ${tmp_name_2} ]; then
+	    rm ${tmp_name_2}
+	fi
+	if [ -f ${tmp_name_3} ]; then
+	    rm ${tmp_name_3}
+	fi
     done
 done
