@@ -6,8 +6,7 @@ dl_dir=/muddy/data05/arthur.elmes/lance
 # MxD09
 
 # New England
-wget -e robots=off -m -np -R .html,.tmp -nH --cut-dirs=4 -A *h12v04*.hdf "https://nrt3.modaps.eosdis.nasa.gov/archive/allData/6/MOD09GA/Recent" --header "Authorization: Bearer A5041508-D88A-11E8-858A-7C099B439298" -P $dl_dir/MOD09GA/h12v04/
-
+wget -e robots=off -m -np -R .html,.tmp -nH --cut-dirs=4 -A *h12v04*.hdf "https://nrt3.modaps.eosdis.nasa.gov/api/v2/content/archives/allData/6/MOD09GA/Recent" --header "Authorization: Bearer A5041508-D88A-11E8-858A-7C099B439298" -P $dl_dir/MOD09GA/h12v04/
 wget -e robots=off -m -np -R .html,.tmp -nH --cut-dirs=4 -A *h12v04*.hdf "https://nrt3.modaps.eosdis.nasa.gov/api/v2/content/archives/allData/6/MYD09GA/Recent" --header "Authorization: Bearer A5041508-D88A-11E8-858A-7C099B439298" -P $dl_dir/MYD09GA/h12v04/
 
 # Sahel
