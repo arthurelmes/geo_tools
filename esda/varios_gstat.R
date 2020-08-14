@@ -7,11 +7,11 @@ library(ggplot2)
 #library(Formula)
 
 # set wd
-wd_path <-'/media/arthur/Windows/LinuxShare/sensor_intercompare/'
+wd_path <-'/media/arthur/Windows/LinuxShare/sensor_intercompare/MCD43A3/'
 setwd(wd_path)
 
 # shapefile to clip with  
-clip_file_name <- readOGR('/home/arthur/Dropbox/projects/greenland/sensor_intercompare/intersection_006013_T22WEV_h16v02.shp')
+clip_file_name <- readOGR('/home/arthur/Dropbox/projects/greenland/sensor_intercompare/intersection_006013_T22WEV_h16v02_wgs84.shp')
 
 file_names <- dir(wd_path, pattern=".tif")
 
