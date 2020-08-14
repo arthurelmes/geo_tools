@@ -9,3 +9,5 @@ product_list
 products-list.csv
 .idea/rSettings.xml
 rGraphicsSettings.xml
+.Rhistory
+.#download_lance.sh
