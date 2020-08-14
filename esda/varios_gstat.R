@@ -7,11 +7,11 @@ library(ggplot2)
 #library(Formula)
 
 # set wd
-wd_path <-'/media/arthur/Windows/LinuxShare/sensor_intercompare/MCD43A3/'
+wd_path <-'/lovells/data02/arthur.elmes/greenland/sensor_intercompare/tif/LC8/wsa/'
 setwd(wd_path)
 
 # shapefile to clip with  
-clip_file_name <- readOGR('/home/arthur/Dropbox/projects/greenland/sensor_intercompare/intersection_006013_T22WEV_h16v02_wgs84.shp')
+clip_file_name <- readOGR('/lovells/data02/arthur.elmes/greenland/sensor_intercompare/shp/intersection_006013_T22WEV_h16v02.shp')
 
 file_names <- dir(wd_path, pattern=".tif")
 
@@ -50,9 +50,20 @@ for(i in 1:length(file_names)){
     print("running variogram")
     gstat_variogram <- variogram(h, data = point_data)
     print("ok the variogram is created")
-    plot_title = "Variogram for "
-    p = plot(gstat_variogram, main = plot_title, cex.main=0.5)
-    plot_list[[i]] = p
+
+    #plot_title = file_names[i]
+    #p = plot(gstat_variogram, main = plot_title, cex.main=0.25)
+    #plot_list[[i]] = p
+
+    # Ok this is dumb.. python I miss you
+    x = strsplit(file_names[1], ".", fixed = TRUE)[0:4]
+    y = x[[1]][1:4]
+    z = paste(y[[1]], y[[2]], y[[3]], y[[4]])
+    
+    p = ggplot(gstat_variogram, aes(x=dist,y=gamma)) + geom_point()
+    q = p + ggtitle(z) + theme(plot.title = element_text(hjust = 0.5))
+    plot_list[[i]] = q
+
   })
 }
 
