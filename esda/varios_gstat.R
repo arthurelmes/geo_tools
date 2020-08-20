@@ -9,7 +9,7 @@ wd_path <-'/media/arthur/Windows/LinuxShare/sensor_intercompare/LC8/'
 setwd(wd_path)
 
 # shapefile to clip with  
-clip_file_name <- readOGR('/media/arthur/Windows/LinuxShare/sensor_intercompare/shp/intersection_006013_T22WEV_h16v02.shp')
+clip_file_name <- readOGR('/lovells/data02/arthur.elmes/greenland/sensor_intercompare/shp/test/intersection_006013_T22WEV_h16v02.shp', verbose = FALSE)
 
 file_names <- dir(wd_path, pattern=".tif")
 
@@ -22,8 +22,7 @@ for(i in 1:iter){
     print(file_names[i])
     tif_raster <- raster(file_names[i])
     tif_raster_variable <- tools::file_path_sans_ext(file_names[i])
-    print(tif_raster_variable)
-  
+    
     print("masking raster")  
     # clip the raster to the shapefile and its extent (trim)
       try(
@@ -51,7 +50,7 @@ for(i in 1:iter){
     
     print("running variogram")
     gstat_variogram <- variogram(h, data = point_data)
-    print("ok the variogram is created")
+    # print("ok the variogram is created")
 
     #plot_title = file_names[i]
     #p = plot(gstat_variogram, main = plot_title, cex.main=0.25)
