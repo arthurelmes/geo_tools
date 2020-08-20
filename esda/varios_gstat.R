@@ -9,7 +9,7 @@ wd_path <-'/media/arthur/Windows/LinuxShare/sensor_intercompare/LC8/'
 setwd(wd_path)
 
 # shapefile to clip with  
-clip_file_name <- readOGR('/lovells/data02/arthur.elmes/greenland/sensor_intercompare/shp/test/intersection_006013_T22WEV_h16v02.shp', verbose = FALSE)
+clip_file_name <- readOGR('/media/arthur/Windows/LinuxShare/sensor_intercompare/shp/intersection_006013_T22WEV_h16v02.shp', verbose = FALSE)
 
 file_names <- dir(wd_path, pattern=".tif")
 
@@ -25,14 +25,13 @@ for(i in 1:iter){
     
     print("masking raster")  
     # clip the raster to the shapefile and its extent (trim)
-      try(
-        {masked_raster <- mask(tif_raster, clip_file_name)
-        non_na_raster <- trim(masked_raster)}
-      )
+
+      masked_raster <- mask(tif_raster, clip_file_name)
+      non_na_raster <- trim(masked_raster)
       
     # construct a SpatailPointsDataFrame from a sample of the raster, because using all points, as in the commented out line,
     # is waaaay to resource intensive
-    #point_data <- as(non_na_raster, 'SpatialPointsDataFrame')
+    point_data <- as(non_na_raster, 'SpatialPointsDataFrame')
     
     print("sampling raster")
     point_data <- as.data.frame(sampleRandom(x=non_na_raster, size = 500, na.rm = TRUE, ext = clip_file_name, xy = TRUE))
