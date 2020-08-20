@@ -11,24 +11,27 @@ wd_path <-'/lovells/data02/arthur.elmes/greenland/sensor_intercompare/tif/LC8/ws
 setwd(wd_path)
 
 # shapefile to clip with  
-clip_file_name <- readOGR('/lovells/data02/arthur.elmes/greenland/sensor_intercompare/shp/intersection_006013_T22WEV_h16v02.shp')
+clip_file_name <- readOGR('/lovells/data02/arthur.elmes/greenland/sensor_intercompare/shp/test/intersection_006013_T22WEV_h16v02.shp', verbose = FALSE)
 
 file_names <- dir(wd_path, pattern=".tif")
 
 plot_list = list()
 
-for(i in 1:length(file_names)){
+iter = length(file_names) - 1
+
+for(i in 1:iter){
   try({
     print(file_names[i])
     tif_raster <- raster(file_names[i])
     tif_raster_variable <- tools::file_path_sans_ext(file_names[i])
-    print(tif_raster_variable)
-  
+    
     print("masking raster")  
     # clip the raster to the shapefile and its extent (trim)
+
     masked_raster <- mask(tif_raster, clip_file_name)
     non_na_raster <- trim(masked_raster)
-    
+        
+
     # construct a SpatailPointsDataFrame from a sample of the raster, because using all points, as in the commented out line,
     # is waaaay to resource intensive
     #point_data <- as(non_na_raster, 'SpatialPointsDataFrame')
@@ -49,14 +52,14 @@ for(i in 1:length(file_names)){
     
     print("running variogram")
     gstat_variogram <- variogram(h, data = point_data)
-    print("ok the variogram is created")
+    # print("ok the variogram is created")
 
     #plot_title = file_names[i]
     #p = plot(gstat_variogram, main = plot_title, cex.main=0.25)
     #plot_list[[i]] = p
 
     # Ok this is dumb.. python I miss you
-    x = strsplit(file_names[1], ".", fixed = TRUE)[0:4]
+    x = strsplit(file_names[i], ".", fixed = TRUE)[0:4]
     y = x[[1]][1:4]
     z = paste(y[[1]], y[[2]], y[[3]], y[[4]])
     
