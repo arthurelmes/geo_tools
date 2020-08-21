@@ -140,8 +140,6 @@ def main():
             key = row[0]
             sites_dict[key] = row[1:]
 
-    for r in sites_dict.items():
-        print(r)
     # TODO this 'copy_srs_dir' location is here because currently VNP43 has broken spatial reference
     # TODO information. Check V002 and remove this if it has been fixed, as this is ludicrously clunky.
 
@@ -172,9 +170,9 @@ def main():
             except FileNotFoundError:
                 print('Sorry, data directory not found!')
                 sys.exit(1)
-            print('Processing site: ' + str(site))
+            #print('Processing site: ' + str(site))
 
-            # Create empty arrays for mean, sd
+            # Create empty array for mean
             tif_mean = []
             for day in doy_list:
                 # Open the ONLY BAND IN THE TIF! Cannot currently deal with multiband tifs
@@ -183,9 +181,7 @@ def main():
                                                                            year=year)
                 # See if there is a raster for the date, if not use a fill value for the graph
                 if len(h_file_list) == 0:
-                    print('File not found: ' + file_name)
-
-                    #TODO change the below to be nulls, not zeros.
+                    #print('File not found: ' + file_name)
                     pixel_value = np.nan
                 elif len(h_file_list) > 1:
                     print('Multiple matching files found for same date! Please remove one.')
@@ -202,19 +198,18 @@ def main():
                          pixel_value = np.nan
 
                 # Add each point to a temporary list
-                print(pixel_value)
                 pixel_value = pixel_value * 0.001
                 smpl_results = []
                 smpl_results.append(pixel_value)
-                #TODO this is currently silly, but ultimately will be replaced by an averaging
-                #TODO function for points of the same sample area
                 try:
                     tmp_mean = statistics.mean(smpl_results)
                     tif_mean.append(tmp_mean)
                 except:
                     tif_mean.append(np.nan)
+            cols = str((site[0][0]))
 
-            smpl_results_df = pd.DataFrame(tif_mean)
+            smpl_results_df = pd.DataFrame(tif_mean, columns=[cols])
+            print(smpl_results_df.head())
 
             # Append the site's results to the existing yearly dataframe, initiated above
             year_smpl_cmb_df = pd.concat([year_smpl_cmb_df, smpl_results_df], axis=1)
