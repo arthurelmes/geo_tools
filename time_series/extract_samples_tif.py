@@ -6,13 +6,13 @@ Significant updates March 17th 2020
 '''
 import os, glob, sys, pyproj, csv, statistics
 from argparse import ArgumentParser
-from osgeo import gdal
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
 import seaborn as sns
 import rasterio as rio
+import timeit
 
 
 def tif_to_np(tif_fname):
@@ -25,7 +25,7 @@ def tif_to_np(tif_fname):
 
 def make_prod_list(in_dir, prdct, year, day):
     if 'MCD' in prdct or 'VNP' in prdct or 'VJ1' in prdct:
-        h_file_list = glob.glob(os.path.join(in_dir,
+        t_file_list = glob.glob(os.path.join(in_dir,
                                              '{prdct}*{year}{day:03d}*.tif'.format(prdct=prdct,
                                                                                    day=day, year=year)))
     elif 'LC08' in prdct:
@@ -33,7 +33,7 @@ def make_prod_list(in_dir, prdct, year, day):
         date_complete = datetime.strptime(dt_string, '%Y-%j')
         mm = date_complete.strftime('%m')
         dd = date_complete.strftime('%d')
-        h_file_list = glob.glob(os.path.join(in_dir, '{prdct}*_{year}{month}{day}_*.h*'.format(prdct=prdct,
+        t_file_list = glob.glob(os.path.join(in_dir, '{prdct}*_{year}{month}{day}_*.h*'.format(prdct=prdct,
                                                                                                      month=mm,
                                                                                                      day=dd,
                                                                                                      year=year)))
@@ -42,10 +42,10 @@ def make_prod_list(in_dir, prdct, year, day):
         sys.exit()
 
     #print('{prdct}*{year}{day:03d}*.tif'.format(prdct=prdct, day=day, year=year))
-    return h_file_list
+    return t_file_list
 
 
-def extract_pixel_value(in_dir, site, prdct, t_file_day, base_dir):
+def extract_pixel_value(site, t_file_day):
     # Open tifs with rasterio
     #print('Opening: ' + t_file_day)
 
@@ -164,7 +164,7 @@ def main():
                os.makedirs(fig_dir)
                print('Made new folder for figs: ' + str(fig_dir))
             else:
-               pass
+                pass
             try:
                 os.chdir(in_dir)
             except FileNotFoundError:
@@ -176,26 +176,25 @@ def main():
             tif_mean = []
             for day in doy_list:
                 # Open the ONLY BAND IN THE TIF! Cannot currently deal with multiband tifs
-                h_file_list = make_prod_list(in_dir, prdct, year, day)
+                t_file_list = make_prod_list(in_dir, prdct, year, day)
                 file_name = '{in_dir}/{prdct}*{year}{day:03d}*.tif'.format(in_dir=in_dir, prdct=prdct, day=day,
                                                                            year=year)
                 # See if there is a raster for the date, if not use a fill value for the graph
-                if len(h_file_list) == 0:
+                if len(t_file_list) == 0:
                     #print('File not found: ' + file_name)
                     pixel_value = np.nan
-                elif len(h_file_list) > 1:
+                elif len(t_file_list) > 1:
                     print('Multiple matching files found for same date! Please remove one.')
                     sys.exit()
                 else:
                     # print('Found file: ' + file_name)
-                    h_file_day = h_file_list[0]
+                    t_file_day = t_file_list[0]
                     # Extract pixel values and append to dataframe
                     try:
-                        pixel_value = extract_pixel_value(in_dir, site, prdct, h_file_day, base_dir)
-
+                        extract_pixel_value(site, t_file_day)
                     except:
-                         print('Warning! Pixel out of raster boundaries!')
-                         pixel_value = np.nan
+                        print('Warning! Pixel out of raster boundaries!')
+                        pixel_value = np.nan
 
                 # Add each point to a temporary list
                 pixel_value = pixel_value * 0.001
@@ -209,7 +208,7 @@ def main():
             cols = str((site[0][0]))
 
             smpl_results_df = pd.DataFrame(tif_mean, columns=[cols])
-            print(smpl_results_df.head())
+            #print(smpl_results_df.head())
 
             # Append the site's results to the existing yearly dataframe, initiated above
             year_smpl_cmb_df = pd.concat([year_smpl_cmb_df, smpl_results_df], axis=1)
