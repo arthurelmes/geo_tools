@@ -5,11 +5,11 @@ library(gstat)
 library(ggplot2)
 
 # set wd
-wd_path <-'/media/arthur/Windows/LinuxShare/sensor_intercompare/LC8/'
+wd_path <-'/lovells/data02/arthur.elmes/greenland/sensor_intercompare/tif/LC8/wsa/'
 setwd(wd_path)
 
 # shapefile to clip with  
-clip_file_name <- readOGR('/media/arthur/Windows/LinuxShare/sensor_intercompare/shp/intersection_006013_T22WEV_h16v02.shp', verbose = FALSE)
+clip_file_name <- readOGR('/lovells/data02/arthur.elmes/greenland/sensor_intercompare/shp/intersection_006013_T22WEV_h16v02.shp', verbose = FALSE)
 
 file_names <- dir(wd_path, pattern=".tif")
 

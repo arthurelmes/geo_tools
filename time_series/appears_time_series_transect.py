@@ -417,9 +417,9 @@ def anomalies_overall_mean_graph(ts_df, years, aoi_name, csv_path):
 
 def main():
     # Update these as needed
-    workspace = '/home/arthur/Dropbox/projects/greenland/transect_points/appears/'
-    csv_name = 'helheim-transect-1-3km-spacing-MCD43A3-006-results.csv'
-    aoi_name = 'Helheim Glacier Transect 1'
+    workspace = '/lovells/data02/arthur.elmes/greenland/vector/'
+    csv_name = '65_deg_north_ice_clip_wgs84_pts_extracted_values_MCD43_actual_albedo.csv'
+    aoi_name = '65 Deg Transect 1'
     csv_path = workspace + csv_name
 
     #TODO the 'category' column name is only in the widened transect. check the shapefiles
