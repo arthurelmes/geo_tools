@@ -146,6 +146,7 @@ def main():
         os.makedirs(fig_dir)
 
     years = [args.years]
+    years = [2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020]
     sites_csv_input = os.path.join(base_dir, args.sites_csv_fname)
     sites_dict = {}
     with open(sites_csv_input, mode='r') as sites_csv:

@@ -9,10 +9,10 @@ start_year=$2
 end_year=$3
 
 # Set these
-in_dir="/ipswich/data01/arthur.elmes/bsky/tif/${tile}_2020/"
-qa_dir="/ipswich/data01/arthur.elmes/MCD43_mandatory_qa/${tile}"
+in_dir="/ipswich/data01/arthur.elmes/bsky/tif/${tile}/"
+qa_dir="/lovells/data02/arthur.elmes/greenland/MCD43A1/tif/e_coast/qa/${tile}"
 sza_dir="/ipswich/data01/arthur.elmes/MCD43A2/all/${tile}"
-out_dir="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_2020/${tile}"
+out_dir="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened/"
 
 if [ ! -d ${out_dir} ]; then
     mkdir $out_dir

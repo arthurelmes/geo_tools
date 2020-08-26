@@ -13,13 +13,25 @@ import numpy as np
 import glob
 import ntpath
 import sys, os
+from argparse import ArgumentParser
 
-# Set workspaces etc
-#TODO these need to be changed; e.g. tile should be optional, year should be a range to iterate over
-workspace = sys.argv[1]
-product_name = sys.argv[2]
-tile = sys.argv[3]
-year = sys.argv[4]
+#TODO sort out these. e.g. year and tile are not always needed, so make them optional.
+# CLI args                                                                                                                        
+parser = ArgumentParser()
+parser.add_argument('-i', '--input-dir', dest='workspace', help='Directory containing tif data.', metavar='WORKSPACE')
+parser.add_argument('-p', '--product', dest='product_name',
+                    help='Product name, e.g. mcd, SZA, AOD, actual_albedo',
+                    metavar='PRDCT')
+parser.add_argument('-t', '--tile', dest='tile', help='Tile of interest. Enter h00v00 for non-tile-based summary. ',
+                    metavar='TILE')
+parser.add_argument('-y', '--year', dest='year', help='Year to extract data for.',
+                    metavar='YEAR')
+args = parser.parse_args()
+
+workspace = args.workspace
+product_name = args.product_name
+tile = args.tile
+year = args.year
 
 #TODO this should be changed as it relies on dir structure
 #TODO and really, there's no reason to not just have the AOI shp be an input arg
@@ -33,14 +45,14 @@ elif 'AOD' in product_name:
     with fiona.open('/lovells/data02/arthur.elmes/greenland/tile_extents/{x}_wgs84.shp'.format(x=tile), 'r') as clip_shp:
         shapes = [feature["geometry"] for feature in clip_shp]
 else:
-    with fiona.open('/lovells/data02/arthur.elmes/greenland/vector/greenland_coast_buffer_100km_mod_sin.shp',
+    with fiona.open('/lovells/data02/arthur.elmes/greenland/vector/catchments_top_level_w_coast_ekholm_polys_dissolve_sinusoidal.shp',
                     'r') as clip_shp:
         shapes = [feature["geometry"] for feature in clip_shp]
 
 
 # List to hold outputs
 stats_list = []
-csv_header = ['product', 'mean', 'sd_dev']
+csv_header = ['product', 'mean', 'sd_dev', 'valid_pixels_count']
 
 for tif in glob.glob(workspace + '/*.tif'):
     # Loop over all tifs in indir, clip each using clip_shp, and then calculate mean an sd, append to list
@@ -53,36 +65,41 @@ for tif in glob.glob(workspace + '/*.tif'):
         masked_clipped_img = np.ma.masked_array(clipped_img, clipped_img == 32767)
         mean = masked_clipped_img.mean() * 0.001
         std = masked_clipped_img.std() * 0.001
+        count = masked_clipped_img.count()
     elif 'lc' in product_name or 's2' in product_name or 'LC' in product_name or 'S2' in product_name:
         masked_clipped_img = np.ma.masked_array(clipped_img, clipped_img == 32767)
         mean = masked_clipped_img.mean() * 0.0001
         std = masked_clipped_img.std() * 0.0001
+        count = masked_clipped_img.count()
     elif 'AOD' in product_name:
         masked_clipped_img = np.ma.masked_array(clipped_img, clipped_img == -9999)
         mean = masked_clipped_img.mean() * 0.001
         std = masked_clipped_img.std() * 0.001
+        count = masked_clipped_img.count()
     elif 'SZA' in product_name:
         masked_clipped_img = np.ma.masked_array(clipped_img, clipped_img == 255)
         mean = masked_clipped_img.mean()
         std = masked_clipped_img.std()
+        count = masked_clipped_img.count()
     elif 'actual_albedo' in product_name:
         masked_clipped_img = np.ma.masked_array(clipped_img, clipped_img == 32767)
         mean = masked_clipped_img.mean() * 0.001
         std = masked_clipped_img.std() * 0.001
-        print(mean)
-        print(tif)        
+        count = masked_clipped_img.count()
+        print(str(tif) + ": mean = " + str(mean) + " count = " + str(count))
+        
     else:
         print("Product not recognized!")
         sys.exit(1)
         
     tif_name = ntpath.basename(tif)
 
-    stats_list.append((tif_name, mean, std))
+    stats_list.append((tif_name, mean, std, count))
 
 # Write stats_list to csv
 os.chdir(workspace)
-#csv_name = str(product_name + '_' + year + '_' + tile[1:] + '_stats.csv')
-csv_name = str(product_name + '_' + '_stats.csv')
+csv_name = str(product_name + '_' + year + '_' + tile[1:] + '_stats.csv')
+#csv_name = str(product_name + '_' + '_stats.csv')
 print(csv_name)
 with open(csv_name, 'w') as csv_file:
     writer = csv.writer(csv_file)
