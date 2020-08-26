@@ -6,6 +6,7 @@ import sys, os
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from cycler import cycler
+import datetime
 
 
 def clean_df(input_df):
@@ -29,9 +30,8 @@ def monthly_graphs(ts_df, years, aoi_name, csv_path):
         ts_df_yr = ts_df[str(year)]
 
         # Here's where the subsetting by year then month happens
-        monthly_mean_df = pd.DataFrame(ts_df_yr.groupby(['Category', pd.Grouper(freq='M')])['SW_WSA'].mean())
+        monthly_mean_df = pd.DataFrame(ts_df_yr.groupby(['Category', pd.Grouper(freq='M')])['Value'].mean())
         ids_df = clean_df(monthly_mean_df)[0]
-
         #todo Couldn't this be done outside the years loop to save time?
 
         # Use a temporary DF to organize the SW WSA values each time period into columns, then add them
@@ -43,7 +43,7 @@ def monthly_graphs(ts_df, years, aoi_name, csv_path):
             build_df = build_df.sort_values('Category_int')
             build_df.set_index('Category_int', inplace=True)
             build_df.sort_index(inplace=True)
-            ids_df[str(dt)] = build_df['SW_WSA']
+            ids_df[str(dt)] = build_df['Value']
 
             # To check that the indices are aligned right, uncomment the below and check output
             # ids_df['test_index'] = build_df.index
@@ -90,7 +90,7 @@ def tenday_graphs(ts_df, years, aoi_name, csv_path):
         ts_df_yr = ts_df[str(year)]
         # print(ts_df_yr.head())
         # Here's where the subsetting by year then month happens
-        tenday_mean_df = pd.DataFrame(ts_df_yr.groupby(['Category', pd.Grouper(freq='10D')])['SW_WSA'].mean())
+        tenday_mean_df = pd.DataFrame(ts_df_yr.groupby(['Category', pd.Grouper(freq='10D')])['Value'].mean())
         ids_df = clean_df(tenday_mean_df)[0]
 
         for dt in clean_df(tenday_mean_df)[1]:
@@ -99,7 +99,7 @@ def tenday_graphs(ts_df, years, aoi_name, csv_path):
             build_df = build_df.sort_values('Category_int')
             build_df.set_index('Category_int', inplace=True)
             build_df.sort_index(inplace=True)
-            ids_df[str(dt)] = build_df['SW_WSA']
+            ids_df[str(dt)] = build_df['Value']
 
             # To check that the indices are aligned right, uncomment the below and check output
             #ids_df['test_index'] = build_df.index
@@ -139,7 +139,7 @@ def tenday_graphs(ts_df, years, aoi_name, csv_path):
 
 def overall_mean_graph(ts_df, aoi_name, csv_path, month_labels):
     # Here's where the subsetting by year then month happens
-    monthly_mean_df = pd.DataFrame(ts_df.groupby(['Category', pd.Grouper(freq='M')])['SW_WSA'].mean())
+    monthly_mean_df = pd.DataFrame(ts_df.groupby(['Category', pd.Grouper(freq='M')])['Value'].mean())
 
     # Pull off the dates and Category numbers (corresponding to distance from coast for transects),
     # and make a new DF with unique values only
@@ -165,7 +165,7 @@ def overall_mean_graph(ts_df, aoi_name, csv_path, month_labels):
         build_df = build_df.sort_values('Category_int')
         build_df.set_index('Category_int', inplace=True)
         build_df.sort_index(inplace=True)
-        ids_df[str(dt)] = build_df['SW_WSA']
+        ids_df[str(dt)] = build_df['Value']
 
         # To check that the indices are aligned right, uncomment the below and check output
         # ids_df['test_index'] = build_df.index
@@ -211,7 +211,7 @@ def anomalies_graph(ts_df, years, aoi_name, csv_path):
     ts_df_doy_location_mean = ts_df.copy()
     ts_df_doy_location_mean.reset_index(inplace=True)
     ts_df_doy_location_mean['doy'] = ts_df_doy_location_mean['Date'].dt.dayofyear
-    ts_df_doy_location_mean = pd.DataFrame(ts_df_doy_location_mean.groupby(['Category', 'doy'])['SW_WSA'].mean())
+    ts_df_doy_location_mean = pd.DataFrame(ts_df_doy_location_mean.groupby(['Category', 'doy'])['Value'].mean())
     # modify this from monthly_mean func
     #for year in years:
         #ts_df_yr = ts_df[str(year)]
@@ -238,7 +238,7 @@ def anomalies_graph(ts_df, years, aoi_name, csv_path):
         build_df = build_df.sort_values('Category_int')
         build_df.set_index('Category_int', inplace=True)
         build_df.sort_index(inplace=True)
-        ids_df[str(dt)] = build_df['SW_WSA']
+        ids_df[str(dt)] = build_df['Value']
 
     ts_df_doy_location_mean = ts_df_doy_location_mean.unstack(level=1)
     ts_df_doy_location_mean.columns = [col[1] for col in ts_df_doy_location_mean.columns]
@@ -311,7 +311,7 @@ def anomalies_overall_mean_graph(ts_df, years, aoi_name, csv_path):
     ts_df_doy_location_mean = ts_df.copy()
     ts_df_doy_location_mean.reset_index(inplace=True)
     ts_df_doy_location_mean['doy'] = ts_df_doy_location_mean['Date'].dt.dayofyear
-    ts_df_doy_location_mean = pd.DataFrame(ts_df_doy_location_mean.groupby(['Category', 'doy'])['SW_WSA'].mean())
+    ts_df_doy_location_mean = pd.DataFrame(ts_df_doy_location_mean.groupby(['Category', 'doy'])['Value'].mean())
     # modify this from monthly_mean func
     #for year in years:
         #ts_df_yr = ts_df[str(year)]
@@ -338,7 +338,7 @@ def anomalies_overall_mean_graph(ts_df, years, aoi_name, csv_path):
         build_df = build_df.sort_values('Category_int')
         build_df.set_index('Category_int', inplace=True)
         build_df.sort_index(inplace=True)
-        ids_df[str(dt)] = build_df['SW_WSA']
+        ids_df[str(dt)] = build_df['Value']
 
     ts_df_doy_location_mean = ts_df_doy_location_mean.unstack(level=1)
     ts_df_doy_location_mean.columns = [col[1] for col in ts_df_doy_location_mean.columns]
@@ -417,8 +417,8 @@ def anomalies_overall_mean_graph(ts_df, years, aoi_name, csv_path):
 
 def main():
     # Update these as needed
-    workspace = '/home/arthur/Dropbox/projects/greenland/transect_points/extracted/'
-    csv_name = '65_deg_north_ice_clip_wgs84_pts_extracted_values_MCD43_actual_albedo_test_.csv'
+    workspace = '/media/arthur/Windows/LinuxShare/actual_albedo/wgs84/fig/'
+    csv_name = '65_deg_north_ice_clip_wgs84_pts.csv_extracted_values_MCD43_actual_albedo_2020_stacked.csv'
     aoi_name = '65 Degree Transect 1'
     csv_path = workspace + csv_name
 
@@ -433,23 +433,25 @@ def main():
     # Do some initial df cleanup here.. maybe move to the cleanup func
 
     # Define the fields of interest so we can ignore the rest
-    fields = ['Category', 'Date', 'MCD43A3_006_Albedo_WSA_shortwave',
-              'MCD43A3_006_BRDF_Albedo_Band_Mandatory_Quality_shortwave']
+    # fields = ['Category', 'Date', 'MCD43A3_006_Albedo_WSA_shortwave',
+    #           'MCD43A3_006_BRDF_Albedo_Band_Mandatory_Quality_shortwave']
+    fields = ['Category', 'Date', 'Value']
 
-    # Import raw APPEARS output
-    ts_df = pd.read_csv(csv_path, usecols=fields, parse_dates=[1], index_col=[1])
+    ts_df = pd.read_csv(csv_path, usecols=fields, parse_dates=[1])
+    ts_df['Date'] = ts_df['Date'].map(lambda x: datetime.datetime.strptime(x, '%Y%j').date())
+    ts_df['Date'] = pd.to_datetime(ts_df['Date'])
 
     # Mask out fill values (and could optionally also mask out mag inversions by adding another condition == 1
-    ts_df['MCD43A3_006_Albedo_WSA_shortwave'].mask(
-        ts_df['MCD43A3_006_BRDF_Albedo_Band_Mandatory_Quality_shortwave'] == 255, np.NaN, inplace=True)
-    ts_df['MCD43A3_006_Albedo_WSA_shortwave'].mask(
-        ts_df['MCD43A3_006_BRDF_Albedo_Band_Mandatory_Quality_shortwave'] == 1, np.NaN, inplace=True)
-    ts_df['SW_WSA'] = ts_df['MCD43A3_006_Albedo_WSA_shortwave']
-    del ts_df['MCD43A3_006_BRDF_Albedo_Band_Mandatory_Quality_shortwave']
-    del ts_df['MCD43A3_006_Albedo_WSA_shortwave']
+    # ts_df['MCD43A3_006_Albedo_WSA_shortwave'].mask(
+    #     ts_df['MCD43A3_006_BRDF_Albedo_Band_Mandatory_Quality_shortwave'] == 255, np.NaN, inplace=True)
+    # ts_df['MCD43A3_006_Albedo_WSA_shortwave'].mask(
+    #     ts_df['MCD43A3_006_BRDF_Albedo_Band_Mandatory_Quality_shortwave'] == 1, np.NaN, inplace=True)
+    # ts_df['Value'] = ts_df['MCD43A3_006_Albedo_WSA_shortwave']
+    # del ts_df['MCD43A3_006_BRDF_Albedo_Band_Mandatory_Quality_shortwave']
+    # del ts_df['MCD43A3_006_Albedo_WSA_shortwave']
 
     #TODO Can I use this to input multiple concatenated appears requests??
-    ts_df = pd.DataFrame(ts_df.groupby(['Category', 'Date'])['SW_WSA'].mean())
+    ts_df = pd.DataFrame(ts_df.groupby(['Category', 'Date'])['Value'].mean())
 
     years = [i for i in range(2000, 2021, 1)]
 
@@ -459,13 +461,12 @@ def main():
     szn_mask = (ts_df['Date'].dt.month >= begin_month) & (ts_df['Date'].dt.month <= end_month)
     ts_df = ts_df.loc[szn_mask]
 
-    ts_df['Date'] = pd.to_datetime(ts_df['Date'])
+    #ts_df['Date'] = pd.to_datetime(ts_df['Date'])
     ts_df.set_index('Date', inplace=True)
-
-    #monthly_graphs(ts_df, years, aoi_name, csv_path)
+    monthly_graphs(ts_df, years, aoi_name, csv_path)
     #tenday_graphs(ts_df, years, aoi_name, csv_path)
     #overall_mean_graph(ts_df, aoi_name, csv_path, month_labels)
-    anomalies_overall_mean_graph(ts_df, years, aoi_name, csv_path)
+    #anomalies_overall_mean_graph(ts_df, years, aoi_name, csv_path)
     #anomalies_graph(ts_df, years, aoi_name, csv_path)
 
 if __name__ == '__main__':
@@ -481,6 +482,6 @@ if __name__ == '__main__':
 # g = ts_df.groupby(['year', 'month'])
 #
 # # For each group, calculate the average of only the snow_depth column
-# monthly_averages = g.aggregate({"SW_WSA": np.mean})
+# monthly_averages = g.aggregate({"Value": np.mean})
 # monthly_averages.to_csv(workspace + 'grouped_date.csv')
 # sys.exit()

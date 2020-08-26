@@ -73,25 +73,26 @@ def extract_pixel_values(sites_dict, t_file_day):
 
 
 def draw_plot(year, smpl_results_df, fig_dir, prdct, sites_dict):
+    # This is for the the monthly averages
+
     sns.set_style('darkgrid')
     smpl_results_df.rename(columns={0: 'id_0', 1: 'id_1', 2: 'id_2', 3: 'id_3', 4: 'id_4'}, inplace=True)
 
     for site in smpl_results_df.columns.tolist():
         if site != 'doy':
-
             print(site)
             # Create a seaborn scatterplot (or replot for now, small differences)
-            #sct = sns.scatterplot(x='doy', y=site, data=smpl_results_df)
-            sct = sns.regplot(x='doy', y=site, data=smpl_results_df, marker='o', label='sw ' ,
-                              fit_reg=False, scatter_kws={'color':'darkblue', 'alpha':0.3,'s':20})
+            sct = sns.scatterplot(x='doy', y=site, data=smpl_results_df)
+            # sct = sns.regplot(x='doy', y=site, data=smpl_results_df, marker='o', label='sw ' ,
+            #                   fit_reg=False, scatter_kws={'color':'darkblue', 'alpha':0.3,'s':20})
             sct.set_ylim(0, 1.0)
             sct.set_xlim(1, 366)
             sct.legend(loc='best')
 
             # Access the figure, add title
-            plt_name = str(year + ' ' + prdct )
+            plt_name = str(str(year) + ' ' + prdct)
             plt.title(plt_name)
-            #plt.show()
+            plt.show()
 
             plt_name = plt_name.replace(' ', '_') + '_' + str(site)
             # Save each plot to figs dir
@@ -115,6 +116,20 @@ def check_leap(year):
         leap_status = False
 
     return leap_status
+
+
+def convert_to_doy(doy):
+    doy = int(doy)
+    print(doy)
+    if doy < 10:
+        return '00' + str(doy)
+    elif 10 <= doy < 100:
+        return '0' + str(doy)
+    elif doy >= 100:
+        return str(doy)
+    else:
+        print('Oops, this is not a DOY!')
+        sys.exit(1)
 
 
 def main():
@@ -146,7 +161,8 @@ def main():
         os.makedirs(fig_dir)
 
     years = [args.years]
-    years = [2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020]
+    years = [2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2010, 2011, 2012, 2013, 2014, 2015, 2016,
+             2017, 2018, 2019, 2020]
     sites_csv_input = os.path.join(base_dir, args.sites_csv_fname)
     sites_dict = {}
     with open(sites_csv_input, mode='r') as sites_csv:
@@ -200,23 +216,29 @@ def main():
             tif_mean.append(pixel_values)
 
         smpl_results_df = pd.DataFrame(tif_mean)
+        smpl_results_df = smpl_results_df * 0.001
+        doy_list_year = doy_list
+        i = 0
+        for doy in doy_list_year:
+            doy_list_year[i] = str(year) + convert_to_doy(doy)
+            i += 1
         smpl_results_df['doy'] = doy_list
         cols = smpl_results_df.columns.tolist()
         cols = cols[-1:] + cols[:-1]
         smpl_results_df = smpl_results_df[cols]
-        smpl_results_df = smpl_results_df * 0.001
 
-        # Do plotting and save output PER YEAR (individual csv per year)
-        #TODO this does not work!
-        #draw_plot(year, smpl_results_df, fig_dir, prdct, sites_dict)
 
-        # Export data to csv
-        os.chdir(fig_dir)
-        output_name = str(sites_csv_input[:-4] + '_extracted_values')
-        csv_name = str(output_name + '_' + prdct + '.csv')
-        #print('writing csv: ' + csv_name)
-        #print(year_smpl_cmb_df)
-        smpl_results_df.to_csv(csv_name, index=False)
+    # Do plotting and save output PER YEAR (individual csv per year)
+    #TODO this does not work!
+    #draw_plot(year, smpl_results_df, fig_dir, prdct, sites_dict)
+
+    # Export data to csv
+    os.chdir(fig_dir)
+    file_name = sites_csv_input.split(sep='/')[-1]
+    output_name = str(fig_dir + '/' + file_name[:-4] + '_extracted_values')
+    csv_name = str(output_name + '_' + prdct + '_' + str(year) + '.csv')
+    print('writing csv: ' + csv_name)
+    smpl_results_df.to_csv(csv_name, index=False)
 
 
 if __name__ == '__main__':
