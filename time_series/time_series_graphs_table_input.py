@@ -31,6 +31,7 @@ def calc_anom_doy(years):
 
 def box_plot(years, aoi_name, csv_path):
     # Quck boxplot for each year
+    years = years.iloc[80:250, ].copy()
     years = years.astype(float)
     overall_mean = years.stack().mean()
     data_to_plot = years.to_numpy()
@@ -103,7 +104,7 @@ def box_plot(years, aoi_name, csv_path):
 
 def box_plot_anom(years, aoi_name, csv_path):
     # Quck boxplot for each year
-
+    years = years.iloc[80:250, ].copy()
     years = calc_anom_doy(years)
 
     overall_mean = years.stack().mean()
@@ -160,6 +161,7 @@ def box_plot_anom(years, aoi_name, csv_path):
 
 def vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path):
     ### Create plot with all years stacked vertically in a series of parallel time series graphs
+    #years = years.iloc[80:250, ].copy()
     ncols = 1
     nrows = nyears + 1
 
@@ -208,6 +210,8 @@ def vert_stack_plot_anom(years, nyears, strt_year, end_year, aoi_name, csv_path)
     ncols = 1
     nrows = nyears + 1
 
+    years = years.iloc[80:250, ].copy()
+
     years = calc_anom_doy(years)
 
     # create the plots
@@ -253,6 +257,7 @@ def vert_stack_plot_anom(years, nyears, strt_year, end_year, aoi_name, csv_path)
 def overpost_all_plot(years, aoi_name, csv_path):
     ### Create a plot where all the years are combined in a single graph
 
+
     fig_comb = plt.figure(figsize=(10,5))
     ax_comb = fig_comb.add_subplot(111)
 
@@ -286,6 +291,7 @@ def overpost_all_plot_anom(years, aoi_name, csv_path):
     ### Create a plot where all the years are combined in a single graph
 
     years = calc_anom_doy(years)
+    years = years.iloc[80:250, ].copy()
 
     fig_comb_anom = plt.figure(figsize=(10,5))
     ax_comb_anom = fig_comb_anom.add_subplot(111)
@@ -372,6 +378,7 @@ def year_vs_avg_plot_anom(years, aoi_name, csv_path):
     cols = years.loc[:, "2000":"2018"]
     years['base_mean'] = cols.mean(axis=1)
     years['base_sd'] = cols.std(axis=1)
+    years = years.iloc[80:250, ].copy()
     # base_mean = cols.mean(axis=1)
     # base_sd = cols.std(axis=1)
 
@@ -401,27 +408,12 @@ def year_vs_avg_plot_anom(years, aoi_name, csv_path):
     plt.savefig(save_name, dpi=300, bbox_inches='tight')
 
 
-def calc_sza(lat, doy):
-
-    doy = int(doy)
-    lat = float(lat)
-    # ported from MCD43C code
-    # time uses 24 hours with local noon = 12
-    time = 12
-    h = (12.0 - time)/12.0 * math.pi
-    lat = lat * math.pi / 180.0
-    delta = -23.45 * (math.pi / 180) * math.cos(2 * math.pi / 365.0 * (doy + 10))
-    sza = math.acos(math.sin(lat) * math.sin(delta) + math.cos(lat) * math.cos(delta) * math.cos(h))
-    sza = sza * 180.0 / math.pi
-
-    return sza
-
 
 def main():
     # Update these as needed
-    workspace = '/home/arthur/Dropbox/projects/greenland/blue_sky_variables/actual_albedo/'
-    csv_name = 'west_coast_greenland_actual_albedo_2000_2020.csv'
-    aoi_name = 'West Coast 100 km Buffer HDF'
+    workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/'
+    csv_name = 'actual_albedo_stats_w_coast_catchments_2000-2020.csv'
+    aoi_name = 'West Coast Catchments'
     dt_indx = pd.date_range('2000-01-01', '2020-12-31')
     csv_path = workspace + csv_name
 
@@ -433,6 +425,13 @@ def main():
 
     # Make the date index, then group by it to make monthly averages
     ts_df['date'] = pd.to_datetime(ts_df['date'])
+
+
+    # Simple masking by month due to small available pixels, so noisy even when szn-masked
+    begin_month = 3
+    end_month = 9
+    szn_mask = (ts_df['date'].dt.month >= begin_month) & (ts_df['date'].dt.month <= end_month)
+    ts_df = ts_df.loc[szn_mask]
 
     ts_df.set_index('date', inplace=True)
 
@@ -449,11 +448,7 @@ def main():
     for name, group in groups:
         years[name.year] = group.values[:364]
 
-    # print(years.head())
-    # years = years.loc[60:250, ].copy()
-    # print(years.head())
-    # sys.exit()
-    #make columns into strings for easier plot labeling
+    # make columns into strings for easier plot labeling
     years.columns = years.columns.astype(str)
 
     box_plot(years, aoi_name, csv_path)
