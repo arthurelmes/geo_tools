@@ -173,6 +173,8 @@ def main():
 
     # Loop through the years provided, and extract the pixel values at the provided coordinates. Outputs CSV and figs.
     for year in years:
+        print("extracting values for year:")
+        print(year)
         doy_list = []
         if check_leap(year):
             for i in range(1, 367):
@@ -228,17 +230,17 @@ def main():
         smpl_results_df = smpl_results_df[cols]
 
 
-    # Do plotting and save output PER YEAR (individual csv per year)
-    #TODO this does not work!
-    #draw_plot(year, smpl_results_df, fig_dir, prdct, sites_dict)
+        # Do plotting and save output PER YEAR (individual csv per year)
+        #TODO this does not work!
+        #draw_plot(year, smpl_results_df, fig_dir, prdct, sites_dict)
 
-    # Export data to csv
-    os.chdir(fig_dir)
-    file_name = sites_csv_input.split(sep='/')[-1]
-    output_name = str(fig_dir + '/' + file_name[:-4] + '_extracted_values')
-    csv_name = str(output_name + '_' + prdct + '_' + str(year) + '.csv')
-    print('writing csv: ' + csv_name)
-    smpl_results_df.to_csv(csv_name, index=False)
+        # Export data to csv
+        os.chdir(fig_dir)
+        file_name = sites_csv_input.split(sep='/')[-1]
+        output_name = str(fig_dir + '/' + file_name[:-4] + '_extracted_values')
+        csv_name = str(output_name + '_' + prdct + '_' + str(year) + '.csv')
+        print('writing csv: ' + csv_name)
+        smpl_results_df.to_csv(csv_name, index=False)
 
 
 if __name__ == '__main__':
