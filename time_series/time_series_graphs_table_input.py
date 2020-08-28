@@ -411,9 +411,9 @@ def year_vs_avg_plot_anom(years, aoi_name, csv_path):
 
 def main():
     # Update these as needed
-    workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/'
-    csv_name = 'actual_albedo_stats_w_coast_catchments_2000-2020.csv'
-    aoi_name = 'West Coast Catchments'
+    workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/entire_island/'
+    csv_name = 'actual_albedo_stats_entire_island_filtered_by_count_q3.csv'
+    aoi_name = 'Entire Island Filtered by Q3'
     dt_indx = pd.date_range('2000-01-01', '2020-12-31')
     csv_path = workspace + csv_name
 

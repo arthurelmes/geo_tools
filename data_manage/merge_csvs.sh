@@ -5,7 +5,7 @@
 in_dir=$1
 out_file_name=$2      # Fix the output name
 i=0                                       # Reset a counter
-for filename in ./${in_dir}/*.csv; do 
+for filename in ${in_dir}/*.csv; do 
  if [ "$filename"  != "$out_file_name" ] ;      # Avoid recursion 
  then 
    if [[ $i -eq 0 ]] ; then 

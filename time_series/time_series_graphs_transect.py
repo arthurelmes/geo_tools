@@ -417,8 +417,8 @@ def anomalies_overall_mean_graph(ts_df, years, aoi_name, csv_path):
 
 def main():
     # Update these as needed
-    workspace = '/media/arthur/Windows/LinuxShare/actual_albedo/wgs84/fig/'
-    csv_name = '65_deg_north_ice_clip_wgs84_pts.csv_extracted_values_MCD43_actual_albedo_2020_stacked.csv'
+    workspace = '/home/arthur/Dropbox/projects/greenland/transect_points/extracted/'
+    csv_name = '65_deg_north_ice_clip_wgs84_pts_extracted_values_MCD43_actual_albedo_2000-2020_stacked.csv'
     aoi_name = '65 Degree Transect 1'
     csv_path = workspace + csv_name
 
@@ -460,7 +460,6 @@ def main():
     ts_df.reset_index(inplace=True)
     szn_mask = (ts_df['Date'].dt.month >= begin_month) & (ts_df['Date'].dt.month <= end_month)
     ts_df = ts_df.loc[szn_mask]
-
     #ts_df['Date'] = pd.to_datetime(ts_df['Date'])
     ts_df.set_index('Date', inplace=True)
     monthly_graphs(ts_df, years, aoi_name, csv_path)
