@@ -14,15 +14,16 @@ import glob
 import ntpath
 import sys, os
 from argparse import ArgumentParser
+from datetime import datetime
 
-#TODO sort out these. e.g. year and tile are not always needed, so make them optional.
 # CLI args                                                                                                                        
 parser = ArgumentParser()
-parser.add_argument('-i', '--input-dir', dest='workspace', help='Directory containing tif data.', metavar='WORKSPACE')
+parser.add_argument('-d', '--input-dir', dest='workspace', help='Directory containing tif data.', metavar='WORKSPACE')
 parser.add_argument('-p', '--product', dest='product_name',
                     help='Product name, e.g. mcd, SZA, AOD, actual_albedo',
                     metavar='PRDCT')
-parser.add_argument('-t', '--tile', dest='tile', help='Optional. Tile of interest. Enter h00v00 for non-tile-based summary. ',
+parser.add_argument('-t', '--tile', dest='tile', help='Optional. Tile of interest. '
+                                                      'Enter h00v00 for non-tile-based summary. ',
                     metavar='TILE')
 parser.add_argument('-y', '--year', dest='year', help='Optional. Year to extract data for.',
                     metavar='YEAR')
@@ -38,8 +39,13 @@ if args.tile:
 if args.year:
     year = args.year
 
+def convert_doy(doy):
+    date_complete = datetime.strptime(doy, '%Y%j').date()
+    date_complete = date_complete.strftime('%m/%d/%Y')
+    return date_complete
+
+
 #TODO this should be changed as it relies on dir structure
-#TODO and really, there's no reason to not just have the AOI shp be an input arg
 if 'SZA' in product_name:
     year = workspace[-16:-12]
     with fiona.open('/lovells/data02/arthur.elmes/greenland/tile_extents/{x}.shp'.format(x=tile), 'r') as clip_shp:
@@ -50,14 +56,12 @@ elif 'AOD' in product_name:
     with fiona.open('/lovells/data02/arthur.elmes/greenland/tile_extents/{x}_wgs84.shp'.format(x=tile), 'r') as clip_shp:
         shapes = [feature["geometry"] for feature in clip_shp]
 else:
-    #todo change this to be a CLI parameter
     with fiona.open(vector, 'r') as clip_shp:
         shapes = [feature["geometry"] for feature in clip_shp]
 
-
 # List to hold outputs
 stats_list = []
-csv_header = ['product', 'mean', 'sd_dev', 'valid_pixels_count']
+csv_header = ['date', 'product', 'mean', 'sd_dev', 'valid_pixels_count']
 
 for tif in glob.glob(workspace + '/*.tif'):
     # Loop over all tifs in indir, clip each using clip_shp, and then calculate mean an sd, append to list
@@ -91,24 +95,37 @@ for tif in glob.glob(workspace + '/*.tif'):
                 mean = masked_clipped_img.mean() * 0.001
                 std = masked_clipped_img.std() * 0.001
                 count = masked_clipped_img.count()
-                print(str(tif) + ": mean = " + str(mean) + " count = " + str(count))
-
             else:
                 print("Product not recognized!")
                 sys.exit(1)
-
-            tif_name = ntpath.basename(tif)
-            stats_list.append((tif_name, mean, std, count))
-
         except:
-            mean = np.nan
-            std = np.nan
-            count = np.nan
+            mean = None
+            std = None
+            count = None
+
+        if mean is None:
+            pass
+        else:
+            mean = ''
+
+        if std is None:
+            pass
+        else:
+            std = ''
+
+        if count is None:
+            pass
+        else:
+            count = ''
+
+        tif_name = ntpath.basename(tif)
+        date = convert_doy(tif_name[-11:-4])
+        stats_list.append((date, tif_name, mean, std, count))
+
 
 # Write stats_list to csv
 os.chdir(workspace)
-csv_name = str(product_name) + '_' + str(vector[:-4]) + '_stats.csv'
-#csv_name = str(product_name + '_' + '_stats.csv')
+csv_name = str(product_name) + '_' + os.path.basename(str(vector[:-4])) + '_stats.csv'
 print(csv_name)
 with open(csv_name, 'w') as csv_file:
     writer = csv.writer(csv_file)
