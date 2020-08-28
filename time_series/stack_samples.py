@@ -6,8 +6,8 @@ all of the transect points are stacked vertically, with their correct doy.
 import pandas as pd
 import sys
 
-workspace = '/media/arthur/Windows/LinuxShare/actual_albedo/wgs84/fig/'
-csv_name = '65_deg_north_ice_clip_wgs84_pts.csv_extracted_values_MCD43_actual_albedo_2020.csv'
+workspace = '/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_merged/entire_island/wgs84/fig/'
+csv_name = '65_deg_north_ice_clip_wgs84_pts_extracted_values_MCD43_actual_albedo_2020.csv'
 raw_df = pd.read_csv(workspace + csv_name )
 
 

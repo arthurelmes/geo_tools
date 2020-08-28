@@ -417,8 +417,8 @@ def anomalies_overall_mean_graph(ts_df, years, aoi_name, csv_path):
 
 def main():
     # Update these as needed
-    workspace = '/media/arthur/Windows/LinuxShare/actual_albedo/wgs84/fig/'
-    csv_name = '65_deg_north_ice_clip_wgs84_pts.csv_extracted_values_MCD43_actual_albedo_2020_stacked.csv'
+    workspace = '/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_merged/entire_island/wgs84/fig/'
+    csv_name = '65_deg_north_ice_clip_wgs84_pts_extracted_values_MCD43_actual_albedo_2020_stacked.csv'
     aoi_name = '65 Degree Transect 1'
     csv_path = workspace + csv_name
 

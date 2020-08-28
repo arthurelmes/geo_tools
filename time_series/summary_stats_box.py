@@ -26,10 +26,13 @@ parser.add_argument('-t', '--tile', dest='tile', help='Optional. Tile of interes
                     metavar='TILE')
 parser.add_argument('-y', '--year', dest='year', help='Optional. Year to extract data for.',
                     metavar='YEAR')
+parser.add_argument('-v', '--vector', dest='vector', help='Required. Shapefile defining AOI.')
+
 args = parser.parse_args()
 
 workspace = args.workspace
 product_name = args.product_name
+vector = args.vector
 if args.tile:
     tile = args.tile
 if args.year:
@@ -47,8 +50,8 @@ elif 'AOD' in product_name:
     with fiona.open('/lovells/data02/arthur.elmes/greenland/tile_extents/{x}_wgs84.shp'.format(x=tile), 'r') as clip_shp:
         shapes = [feature["geometry"] for feature in clip_shp]
 else:
-    with fiona.open('/lovells/data02/arthur.elmes/greenland/vector/catchments_top_level_w_coast_ekholm_polys_dissolve_sinusoidal.shp',
-                    'r') as clip_shp:
+    #todo change this to be a CLI parameter
+    with fiona.open(vector, 'r') as clip_shp:
         shapes = [feature["geometry"] for feature in clip_shp]
 
 
@@ -104,7 +107,7 @@ for tif in glob.glob(workspace + '/*.tif'):
 
 # Write stats_list to csv
 os.chdir(workspace)
-csv_name = str(product_name + '_' + year + '_' + tile[1:] + '_stats.csv')
+csv_name = str(product_name) + '_' + str(vector[:-4]) + '_stats.csv'
 #csv_name = str(product_name + '_' + '_stats.csv')
 print(csv_name)
 with open(csv_name, 'w') as csv_file:
