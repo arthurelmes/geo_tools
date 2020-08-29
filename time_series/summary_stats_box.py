@@ -104,19 +104,22 @@ for tif in glob.glob(workspace + '/*.tif'):
             count = None
 
         if mean is None:
-            pass
-        else:
             mean = ''
+        else:
+            if type(mean) == np.ma.core.MaskedConstant:
+                mean = ''
 
         if std is None:
-            pass
-        else:
             std = ''
+        else:
+            if type(std) == np.ma.core.MaskedConstant:
+                std = ''
 
         if count is None:
-            pass
-        else:
             count = ''
+        else:
+            if type(count) == np.ma.core.MaskedConstant:
+                count = ''
 
         tif_name = ntpath.basename(tif)
         date = convert_doy(tif_name[-11:-4])
