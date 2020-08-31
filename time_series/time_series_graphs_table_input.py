@@ -16,6 +16,15 @@ from scipy import stats
 import math
 np.random.seed(12412412)
 
+
+def filter_data_numobs(ts_df, filter_pctl):
+    filter = ts_df['valid_pixels_count'].quantile(filter_pctl)
+    print('Filtering out data with fewer than {x} pctl valid obs, i.e. {y} obs.'.format(x=filter_pctl, y=filter))
+    num_obs_mask = (ts_df['valid_pixels_count'] >= filter)
+    ts_df = ts_df.loc[num_obs_mask]
+    return ts_df
+
+
 def calc_anom_doy(years):
     years = years.copy()
     years = years.astype(float)
@@ -33,6 +42,7 @@ def box_plot(years, aoi_name, csv_path):
     # Quck boxplot for each year
     years = years.iloc[80:250, ].copy()
     years = years.astype(float)
+
     overall_mean = years.stack().mean()
     data_to_plot = years.to_numpy()
 
@@ -60,17 +70,10 @@ def box_plot(years, aoi_name, csv_path):
         axis='y',
         labelsize=5
                    )
-    ax_box.set_ylabel('White sky Albedo (Overall Mean)')
+    ax_box.set_ylabel('Blue Sky Albedo (Overall Mean)')
     outlier_marker = dict(markerfacecolor='black', fillstyle=None, marker='.')
 
-    # print(filtered_data[0].shape)
-    # data_years = np.empty(filtered_data[0].shape)
-    # for i in filtered_data:
-    #     np.concatenate((data_years, i))
-    # print(data_years.shape)
     data_climo = np.concatenate((filtered_data[0], filtered_data[1]))
-
-    #print(len(filtered_data))
 
     data_2019 = filtered_data[19]
     i = 0
@@ -81,11 +84,8 @@ def box_plot(years, aoi_name, csv_path):
 
     for dst in filtered_data:
         data_year = filtered_data[i]
-        #print('T test results for year {x}'.format(x=str(i+2000)))
         stats_txt.write('T test results for year {x}'.format(x=str(i+2000)) + '\n')
-        #print(stats.ttest_ind(data_year, data_2019))
         stats_txt.write(str(stats.ttest_ind(data_year, data_2019)) + '\n')
-        #print('Mean of year {x} is {y}'.format(x=str(i+2000), y=data_year.mean()))
         stats_txt.write('Mean of year {x} is {y}'.format(x=str(i+2000), y=data_year.mean()) + '\n')
         i += 1
 
@@ -100,6 +100,7 @@ def box_plot(years, aoi_name, csv_path):
     if not os.path.isdir(os.path.join(file_path, 'figs')):
         os.mkdir(os.path.join(file_path, 'figs'))
     plt.savefig(save_name, dpi=300, bbox_inches='tight')
+    plt.close()
 
 
 def box_plot_anom(years, aoi_name, csv_path):
@@ -127,26 +128,20 @@ def box_plot_anom(years, aoi_name, csv_path):
         labelsize=5,
         labelrotation=45
                        )
-    ax_box_anom.set_ylim(-0.5, 0.5)
+    ax_box_anom.set_ylim(-0.75, 0.75)
     ax_box_anom.grid(b=True, which='major', color='LightGrey', linestyle='-')
-    #ax_box_anom.set_yticks()
+    plt.axhline(y=0)
     ax_box_anom.tick_params(
         axis='y',
         labelsize=5
                    )
-    ax_box_anom.set_ylabel('White sky Albedo Anomaly')
+    ax_box_anom.set_ylabel('Blue Sky Albedo Anomaly')
     outlier_marker = dict(markerfacecolor='black', fillstyle=None, marker='.')
 
     data_climo = np.concatenate((filtered_data[0], filtered_data[1]))
 
     data_2019 = filtered_data[19]
     i = 0
-    for dst in filtered_data:
-        data_year = filtered_data[i]
-        # print('T test results for year {x}'.format(x=str(i+2000)))
-        # print(stats.ttest_ind(data_year, data_2019))
-        # print('Mean of year {x} is {y}'.format(x=str(i+2000), y=data_year.mean()))
-        i += 1
 
     # Create the boxplot
     bp = ax_box_anom.boxplot(filtered_data, flierprops=outlier_marker)
@@ -157,7 +152,7 @@ def box_plot_anom(years, aoi_name, csv_path):
     if not os.path.isdir(os.path.join(file_path, 'figs')):
         os.mkdir(os.path.join(file_path, 'figs'))
     plt.savefig(save_name, dpi=300, bbox_inches='tight')
-
+    plt.close()
 
 def vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path):
     ### Create plot with all years stacked vertically in a series of parallel time series graphs
@@ -188,7 +183,7 @@ def vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path):
             ax_stack.set_xticklabels([])
         # Add label to middle year
         if yr == round((end_year + strt_year) / 2, 0):
-            ax_stack.set_ylabel('White sky Albedo')
+            ax_stack.set_ylabel('Blue Sky Albedo')
         yr += 1
 
     # This only needs to apply to the last ax
@@ -203,6 +198,7 @@ def vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path):
     if not os.path.isdir(os.path.join(file_path, 'figs')):
         os.mkdir(os.path.join(file_path, 'figs'))
     plt.savefig(save_name, dpi=300, bbox_inches='tight')
+    plt.close()
 
 
 def vert_stack_plot_anom(years, nyears, strt_year, end_year, aoi_name, csv_path):
@@ -237,7 +233,7 @@ def vert_stack_plot_anom(years, nyears, strt_year, end_year, aoi_name, csv_path)
             ax_stack_anom.set_xticklabels([])
         # Add label to middle year
         if yr == round((end_year + strt_year) / 2, 0):
-            ax_stack_anom.set_ylabel('White sky Albedo Anomalies')
+            ax_stack_anom.set_ylabel('Blue Sky Albedo Anomalies')
         yr += 1
 
     # This only needs to apply to the last ax
@@ -252,6 +248,7 @@ def vert_stack_plot_anom(years, nyears, strt_year, end_year, aoi_name, csv_path)
     if not os.path.isdir(os.path.join(file_path, 'figs')):
         os.mkdir(os.path.join(file_path, 'figs'))
     plt.savefig(save_name, dpi=300, bbox_inches='tight')
+    plt.close()
 
 
 def overpost_all_plot(years, aoi_name, csv_path):
@@ -274,7 +271,7 @@ def overpost_all_plot(years, aoi_name, csv_path):
 
     ax_comb.plot(years.index, years['2019'], label='2019 Emphasis', color='orange')
     ax_comb.set_xlabel('DOY')
-    ax_comb.set_ylabel('White Sky Albedo')
+    ax_comb.set_ylabel('Blue Sky Albedo')
     ax_comb.set_ylim(0.0, 1.0)
     fig_comb.suptitle(aoi_name)
     plt.legend(ncol=4, loc='lower left', fontsize=10)
@@ -285,6 +282,7 @@ def overpost_all_plot(years, aoi_name, csv_path):
     if not os.path.isdir(os.path.join(file_path, 'figs')):
         os.mkdir(os.path.join(file_path, 'figs'))
     plt.savefig(save_name, dpi=300, bbox_inches='tight')
+    plt.close()
 
 
 def overpost_all_plot_anom(years, aoi_name, csv_path):
@@ -309,7 +307,7 @@ def overpost_all_plot_anom(years, aoi_name, csv_path):
 
     ax_comb_anom.plot(years.index, years['2019'], label='2019 Emphasis', color='orange')
     ax_comb_anom.set_xlabel('DOY')
-    ax_comb_anom.set_ylabel('White Sky Albedo Anomaly')
+    ax_comb_anom.set_ylabel('Blue Sky Albedo Anomaly')
     ax_comb_anom.set_ylim(-0.3, 0.3)
     fig_comb_anom.suptitle(aoi_name)
     plt.legend(ncol=4, loc='lower left', fontsize=10)
@@ -321,6 +319,7 @@ def overpost_all_plot_anom(years, aoi_name, csv_path):
     if not os.path.isdir(os.path.join(file_path, 'figs')):
         os.mkdir(os.path.join(file_path, 'figs'))
     plt.savefig(save_name, dpi=300, bbox_inches='tight')
+    plt.close()
 
 
 def year_vs_avg_plot(years, aoi_name, csv_path):
@@ -354,7 +353,7 @@ def year_vs_avg_plot(years, aoi_name, csv_path):
     # plt.fill_between(years.index[:-85], years['base_mean'][:-85] - years['base_sd'][:-85], years['base_mean'][:-85] +
     #                  years['base_sd'][:-85], color='lightgrey')
     ax_comb_mean.set_ylim(0.0, 1.0)
-    ax_comb_mean.set_ylabel('White Sky Albedo')
+    ax_comb_mean.set_ylabel('Blue Sky Albedo')
     ax_comb_mean.set_xlabel('DOY')
     plt.legend(loc='lower left')
 
@@ -366,6 +365,7 @@ def year_vs_avg_plot(years, aoi_name, csv_path):
     if not os.path.isdir(os.path.join(file_path, 'figs')):
         os.mkdir(os.path.join(file_path, 'figs'))
     plt.savefig(save_name, dpi=300, bbox_inches='tight')
+    plt.close()
 
 
 def year_vs_avg_plot_anom(years, aoi_name, csv_path):
@@ -382,8 +382,6 @@ def year_vs_avg_plot_anom(years, aoi_name, csv_path):
     # base_mean = cols.mean(axis=1)
     # base_sd = cols.std(axis=1)
 
-    #TODO wtf. why is the last value some giant leap up? SZN? or maybe the anom didn't get calculated right?
-
     fig_comb_mean_anom = plt.figure(figsize=(10, 5))
     ax_comb_mean_anom = fig_comb_mean_anom.add_subplot(111)
     ax_comb_mean_anom.plot(years.index, years['2019'], label='2019', color='orange')
@@ -393,7 +391,7 @@ def year_vs_avg_plot_anom(years, aoi_name, csv_path):
                      years['base_mean'][:] + years['base_sd'][:], color='lightgrey')
 
     ax_comb_mean_anom.set_ylim(-0.3, 0.3)
-    ax_comb_mean_anom.set_ylabel('White Sky Albedo Anomaly')
+    ax_comb_mean_anom.set_ylabel('Blue Sky Albedo Anomaly')
     ax_comb_mean_anom.set_xlabel('DOY')
     plt.legend(loc='lower left')
 
@@ -406,26 +404,34 @@ def year_vs_avg_plot_anom(years, aoi_name, csv_path):
     if not os.path.isdir(os.path.join(file_path, 'figs')):
         os.mkdir(os.path.join(file_path, 'figs'))
     plt.savefig(save_name, dpi=300, bbox_inches='tight')
-
+    plt.close()
 
 
 def main():
     # Update these as needed
-    workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/entire_island/'
-    csv_name = 'actual_albedo_stats_entire_island_filtered_by_count_q3.csv'
-    aoi_name = 'Entire Island Filtered by Q3'
+    filter_pctl = 0.75
+    workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/w_coast_catchments'
+    if workspace[:-1] != '/':
+        workspace = workspace + '/'
+    csv_name = 'actual_albedo_catchments_top_level_w_coast_ekholm_polys_dissolve_sinusoidal_stats.csv'
+    aoi_name = 'West Coast Ice Only (ValiObs filter = {x} Pctl)'.format(x=filter_pctl)
     dt_indx = pd.date_range('2000-01-01', '2020-12-31')
     csv_path = workspace + csv_name
 
+    # set this value to filter out observations with fewer than the given percentile of valid observations
+
+
     # Define the fields of interest so we can ignore the rest
-    fields = ['date', 'mean']
+    fields = ['date', 'mean', 'valid_pixels_count']
 
     # Import raw APPEARS output
     ts_df = pd.read_csv(csv_path, usecols=fields, parse_dates=[1])
 
     # Make the date index, then group by it to make monthly averages
     ts_df['date'] = pd.to_datetime(ts_df['date'])
-
+    ts_df['mean'].replace({pd.NaT: np.nan}, inplace=True)
+    ts_df = filter_data_numobs(ts_df, filter_pctl)
+    del ts_df['valid_pixels_count']
 
     # Simple masking by month due to small available pixels, so noisy even when szn-masked
     begin_month = 3
