@@ -14,7 +14,7 @@ if [ ! -d ${output_dir} ]; then
     mkdir ${output_dir}
 fi
 
-for yr in $( seq 2000 2020); do
+for yr in $( seq 2000 2014); do
     for dt in $( seq 1 366); do
 	if [ ${dt} -lt 10 ]; then
 	    dt=00${dt}

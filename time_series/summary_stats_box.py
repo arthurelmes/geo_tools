@@ -45,19 +45,9 @@ def convert_doy(doy):
     return date_complete
 
 
-#TODO this should be changed as it relies on dir structure
-if 'SZA' in product_name:
-    year = workspace[-16:-12]
-    with fiona.open('/lovells/data02/arthur.elmes/greenland/tile_extents/{x}.shp'.format(x=tile), 'r') as clip_shp:
-        shapes = [feature["geometry"] for feature in clip_shp]
-
-elif 'AOD' in product_name:
-    year = workspace[-5:-1]
-    with fiona.open('/lovells/data02/arthur.elmes/greenland/tile_extents/{x}_wgs84.shp'.format(x=tile), 'r') as clip_shp:
-        shapes = [feature["geometry"] for feature in clip_shp]
-else:
-    with fiona.open(vector, 'r') as clip_shp:
-        shapes = [feature["geometry"] for feature in clip_shp]
+# Open AOI vector
+with fiona.open(vector, 'r') as clip_shp:
+    shapes = [feature["geometry"] for feature in clip_shp]
 
 # List to hold outputs
 stats_list = []
@@ -69,7 +59,6 @@ for tif in glob.glob(workspace + '/*.tif'):
         try:
             clipped_img, clipped_transform = rio.mask.mask(src, shapes, crop=True)
             clipped_meta = src.meta
-    
             if 'mcd' in product_name or 'MCD' in product_name:
                 masked_clipped_img = np.ma.masked_array(clipped_img, clipped_img == 32767)
                 mean = masked_clipped_img.mean() * 0.001
@@ -99,6 +88,7 @@ for tif in glob.glob(workspace + '/*.tif'):
                 print("Product not recognized!")
                 sys.exit(1)
         except:
+            print("fail")
             mean = None
             std = None
             count = None
@@ -122,7 +112,9 @@ for tif in glob.glob(workspace + '/*.tif'):
                 count = ''
 
         tif_name = ntpath.basename(tif)
+        #TODO this is silly, and won't work when the file name changes. Fix it!
         date = convert_doy(tif_name[-11:-4])
+        print(date)
         stats_list.append((date, tif_name, mean, std, count))
 
 
