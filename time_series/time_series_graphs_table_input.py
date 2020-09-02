@@ -265,7 +265,7 @@ def overpost_all_plot(years, aoi_name, csv_path):
         if '20' in ycol:
             ax_comb.plot(years.index, years[ycol], label=str(ycol), alpha=0.2)
 
-    ax_comb.plot(years.index, years['2019'], label='2019 Emphasis', color='orange')
+    ax_comb.plot(years.index, years['2019'], label='2019 Emphasis', color='firebrick')
     ax_comb.set_xlabel('DOY')
     ax_comb.set_ylabel('Blue Sky Albedo')
     ax_comb.set_ylim(0.0, 1.0)
@@ -301,7 +301,7 @@ def overpost_all_plot_anom(years, aoi_name, csv_path):
         if '20' in ycol:
             ax_comb_anom.plot(years.index, years[ycol], label=str(ycol), alpha=0.2)
 
-    ax_comb_anom.plot(years.index, years['2019'], label='2019 Emphasis', color='orange')
+    ax_comb_anom.plot(years.index, years['2019'], label='2019 Emphasis', color='firebrick')
     ax_comb_anom.set_xlabel('DOY')
     ax_comb_anom.set_ylabel('Blue Sky Albedo Anomaly')
     ax_comb_anom.set_ylim(-0.3, 0.3)
@@ -337,8 +337,8 @@ def year_vs_avg_plot(years, aoi_name, csv_path):
     ax_comb_mean = fig_comb_mean.add_subplot(111)
     ax_comb_mean.plot(years.index, years['2010'], label='2010', color='chartreuse')
     ax_comb_mean.plot(years.index, years['2012'], label='2012', color='yellow')
-    ax_comb_mean.plot(years.index, years['2019'], label='2019', color='darkorange')
-    ax_comb_mean.plot(years.index, years['2020'], label='2020', color='firebrick')
+    ax_comb_mean.plot(years.index, years['2019'], label='2019', color='firebrick')
+    ax_comb_mean.plot(years.index, years['2020'], label='2020', color='orange')
     ax_comb_mean.plot(years.index[:], years['base_mean'][:], label='2000-2020 Mean +/- 1 SD', color='slateblue',
                       alpha=0.5)
     plt.fill_between(years.index[:], years['base_mean'][:] - years['base_sd'][:], years['base_mean'][:] +
@@ -379,7 +379,7 @@ def year_vs_avg_plot_anom(years, aoi_name, csv_path):
 
     fig_comb_mean_anom = plt.figure(figsize=(10, 5))
     ax_comb_mean_anom = fig_comb_mean_anom.add_subplot(111)
-    ax_comb_mean_anom.plot(years.index, years['2019'], label='2019', color='orange')
+    ax_comb_mean_anom.plot(years.index, years['2019'], label='2019', color='firebrick')
     ax_comb_mean_anom.plot(years.index[:], years['base_mean'][:], label='2000-2018 Mean +/- 1 SD',
                            color='slateblue', alpha=0.5)
     plt.fill_between(years.index[:], years['base_mean'][:] - years['base_sd'][:],
@@ -404,12 +404,12 @@ def year_vs_avg_plot_anom(years, aoi_name, csv_path):
 
 def main():
     # Update these as needed
-    filter_pctl = 0.00
-    workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/w_coast_catchments'
+    filter_pctl = 0.5
+    workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/entire_island'
     if workspace[:-1] != '/':
         workspace = workspace + '/'
-    csv_name = 'actual_albedo_catchments_with_land_top_level_w_coast_ekholm_polys_dissolve_sinusoidal_stats.csv'
-    aoi_name = 'West Coast Catchments Land Included (ValiObs filter = {x} Pctl)'.format(x=filter_pctl)
+    csv_name = 'actual_albedo_catchments_top_level_all_ekholm_polys_dissolve_sinusoidal_stats.csv'
+    aoi_name = 'Entire Island Ice Only (ValiObs filter = {x} Pctl)'.format(x=filter_pctl)
     dt_indx = pd.date_range('2000-01-01', '2020-12-31')
     csv_path = workspace + csv_name
 

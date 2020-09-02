@@ -123,7 +123,7 @@ def tenday_graphs(ts_df, years, aoi_name, csv_path):
             if '20' in str(ycol):
                 ax_comb.plot(ids_df.index * 3, ids_df[ycol], label=str(ycol)[5:10], linewidth=0.5)
 
-        ax_comb.set_ylabel('Shortwave White Sky Albedo')
+        ax_comb.set_ylabel('Shortwave Blue Sky Albedo')
         ax_comb.set_ylim(0.0, 1.0)
         ax_comb.set_xlabel('Km from Coastline')
         fig_tenday.suptitle(aoi_name + ', year ' + str(year) + ' Ten Day Averages')
@@ -192,7 +192,7 @@ def overall_mean_graph(ts_df, aoi_name, csv_path, month_labels):
         ax_comb.plot(ids_df_climo.index * 3, ids_df_climo[ycol], label=str(ycol),
                      linewidth=0.5)  # * 3 is bc each sample is 3km further inland
 
-    ax_comb.set_ylabel('Shortwave White Sky Albedo')
+    ax_comb.set_ylabel('Shortwave Blue Sky Albedo')
     ax_comb.set_ylim(0.0, 1.0)
     ax_comb.set_xlabel('Km from Coastline')
     fig_overall_mean.suptitle(aoi_name + ' 2000-2020 Mean')
@@ -292,7 +292,7 @@ def anomalies_graph(ts_df, years, aoi_name, csv_path):
                                      label=str(ycol.month), linewidth=0.5)
                 # *3 is bc each sample is 3km further inland
 
-        ax_monthly_anom.set_ylabel('Shortwave White Sky Albedo Anomaly')
+        ax_monthly_anom.set_ylabel('Shortwave Blue Sky Albedo Anomaly')
         ax_monthly_anom.set_ylim(-1.0, 1.0)
         ax_monthly_anom.set_xlabel('Km from Coastline')
         fig_monthly_anom.suptitle(aoi_name + ', year ' + str(year) + ' Monthly Anomalies')
@@ -401,7 +401,7 @@ def anomalies_overall_mean_graph(ts_df, years, aoi_name, csv_path):
                                  label=str(ycol.month), linewidth=0.5)
             # *3 is bc each sample is 3km further inland
 
-    ax_monthly_anom.set_ylabel('Shortwave White Sky Albedo Anomaly')
+    ax_monthly_anom.set_ylabel('Shortwave Blue Sky Albedo Anomaly')
     ax_monthly_anom.set_ylim(-1.0, 1.0)
     ax_monthly_anom.set_xlabel('Km from Coastline')
     fig_monthly_anom.suptitle(aoi_name + ', year ' + ' Monthly Anomalies')
