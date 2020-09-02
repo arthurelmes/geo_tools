@@ -65,15 +65,15 @@ def box_plot(years, aoi_name, csv_path):
                        )
     ax_box.set_ylim(0.0, 1.0)
     ax_box.grid(b=True, which='major', color='LightGrey', linestyle='-')
-    ax_box.set_yticks([overall_mean])
+    ax_box.set_yticks([0.0, 0.2, 0.4, 0.6, overall_mean, 0.8, 1.0])
+    plt.axhline(y=[overall_mean])
     ax_box.tick_params(
         axis='y',
         labelsize=5
                    )
     ax_box.set_ylabel('Blue Sky Albedo (Overall Mean)')
     outlier_marker = dict(markerfacecolor='black', fillstyle=None, marker='.')
-
-    data_climo = np.concatenate((filtered_data[0], filtered_data[1]))
+    ax_box.axhline(y=0)
 
     data_2019 = filtered_data[19]
     i = 0
@@ -128,7 +128,7 @@ def box_plot_anom(years, aoi_name, csv_path):
         labelsize=5,
         labelrotation=45
                        )
-    ax_box_anom.set_ylim(-0.75, 0.75)
+    ax_box_anom.set_ylim(-0.25, 0.25)
     ax_box_anom.grid(b=True, which='major', color='LightGrey', linestyle='-')
     plt.axhline(y=0)
     ax_box_anom.tick_params(
@@ -137,11 +137,6 @@ def box_plot_anom(years, aoi_name, csv_path):
                    )
     ax_box_anom.set_ylabel('Blue Sky Albedo Anomaly')
     outlier_marker = dict(markerfacecolor='black', fillstyle=None, marker='.')
-
-    data_climo = np.concatenate((filtered_data[0], filtered_data[1]))
-
-    data_2019 = filtered_data[19]
-    i = 0
 
     # Create the boxplot
     bp = ax_box_anom.boxplot(filtered_data, flierprops=outlier_marker)
@@ -153,6 +148,7 @@ def box_plot_anom(years, aoi_name, csv_path):
         os.mkdir(os.path.join(file_path, 'figs'))
     plt.savefig(save_name, dpi=300, bbox_inches='tight')
     plt.close()
+
 
 def vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path):
     ### Create plot with all years stacked vertically in a series of parallel time series graphs
@@ -341,7 +337,6 @@ def year_vs_avg_plot(years, aoi_name, csv_path):
     ax_comb_mean = fig_comb_mean.add_subplot(111)
     ax_comb_mean.plot(years.index, years['2010'], label='2010', color='chartreuse')
     ax_comb_mean.plot(years.index, years['2012'], label='2012', color='yellow')
-    ax_comb_mean.plot(years.index, years['2014'], label='2014', color='green')
     ax_comb_mean.plot(years.index, years['2019'], label='2019', color='darkorange')
     ax_comb_mean.plot(years.index, years['2020'], label='2020', color='firebrick')
     ax_comb_mean.plot(years.index[:], years['base_mean'][:], label='2000-2020 Mean +/- 1 SD', color='slateblue',
@@ -352,7 +347,7 @@ def year_vs_avg_plot(years, aoi_name, csv_path):
     #                   alpha=0.5)
     # plt.fill_between(years.index[:-85], years['base_mean'][:-85] - years['base_sd'][:-85], years['base_mean'][:-85] +
     #                  years['base_sd'][:-85], color='lightgrey')
-    ax_comb_mean.set_ylim(0.0, 1.0)
+    ax_comb_mean.set_ylim(0.5, 1.0)
     ax_comb_mean.set_ylabel('Blue Sky Albedo')
     ax_comb_mean.set_xlabel('DOY')
     plt.legend(loc='lower left')
@@ -409,12 +404,12 @@ def year_vs_avg_plot_anom(years, aoi_name, csv_path):
 
 def main():
     # Update these as needed
-    filter_pctl = 0.75
+    filter_pctl = 0.00
     workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/w_coast_catchments'
     if workspace[:-1] != '/':
         workspace = workspace + '/'
-    csv_name = 'actual_albedo_catchments_top_level_w_coast_ekholm_polys_dissolve_sinusoidal_stats.csv'
-    aoi_name = 'West Coast Ice Only (ValiObs filter = {x} Pctl)'.format(x=filter_pctl)
+    csv_name = 'actual_albedo_catchments_with_land_top_level_w_coast_ekholm_polys_dissolve_sinusoidal_stats.csv'
+    aoi_name = 'West Coast Catchments Land Included (ValiObs filter = {x} Pctl)'.format(x=filter_pctl)
     dt_indx = pd.date_range('2000-01-01', '2020-12-31')
     csv_path = workspace + csv_name
 
