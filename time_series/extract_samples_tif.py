@@ -80,7 +80,6 @@ def draw_plot(year, smpl_results_df, fig_dir, prdct, sites_dict):
 
     for site in smpl_results_df.columns.tolist():
         if site != 'doy':
-            print(site)
             # Create a seaborn scatterplot (or replot for now, small differences)
             sct = sns.scatterplot(x='doy', y=site, data=smpl_results_df)
             # sct = sns.regplot(x='doy', y=site, data=smpl_results_df, marker='o', label='sw ' ,
@@ -120,7 +119,6 @@ def check_leap(year):
 
 def convert_to_doy(doy):
     doy = int(doy)
-    print(doy)
     if doy < 10:
         return '00' + str(doy)
     elif 10 <= doy < 100:
@@ -160,7 +158,7 @@ def main():
     if not os.path.exists(fig_dir):
         os.makedirs(fig_dir)
 
-    years = [args.years]
+    #years = [args.years]
     years = [2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2010, 2011, 2012, 2013, 2014, 2015, 2016,
              2017, 2018, 2019, 2020]
     sites_csv_input = os.path.join(base_dir, args.sites_csv_fname)
@@ -214,7 +212,7 @@ def main():
                 except:
                     print('Warning! Pixel out of raster boundaries!')
                     pixel_values = [np.nan] * len(sites_dict)
-
+                #print(pixel_values)
             tif_mean.append(pixel_values)
 
         smpl_results_df = pd.DataFrame(tif_mean)

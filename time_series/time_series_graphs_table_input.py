@@ -63,16 +63,16 @@ def box_plot(years, aoi_name, csv_path):
         labelsize=5,
         labelrotation=45
                        )
-    ax_box.set_ylim(0.0, 1.0)
+    ax_box.set_ylim(0.5, 1.0)
     ax_box.grid(b=True, which='major', color='LightGrey', linestyle='-')
-    ax_box.set_yticks([0.0, 0.2, 0.4, 0.6, overall_mean, 0.8, 1.0])
+    ax_box.set_yticks([0.5, 0.6, overall_mean, 0.8, 0.9, 1.0])
     plt.axhline(y=[overall_mean])
     ax_box.tick_params(
         axis='y',
         labelsize=5
                    )
     ax_box.set_ylabel('Blue Sky Albedo (Overall Mean)')
-    outlier_marker = dict(markerfacecolor='black', fillstyle=None, marker='.')
+    outlier_marker = dict(markerfacecolor='black', fillstyle=None, marker='.', markersize=1)
     ax_box.axhline(y=0)
 
     data_2019 = filtered_data[19]
@@ -319,7 +319,7 @@ def overpost_all_plot_anom(years, aoi_name, csv_path):
 
 
 def year_vs_avg_plot(years, aoi_name, csv_path):
-    #### Now plot 2019 vs the 2000 - 2018 avg
+    #### Now plot 2019 vs the 2000 - 2020 avg
 
     years = years.copy()
     years = years.astype(float)
@@ -335,19 +335,19 @@ def year_vs_avg_plot(years, aoi_name, csv_path):
 
     fig_comb_mean = plt.figure(figsize=(10, 5))
     ax_comb_mean = fig_comb_mean.add_subplot(111)
-    ax_comb_mean.plot(years.index, years['2010'], label='2010', color='chartreuse')
-    ax_comb_mean.plot(years.index, years['2012'], label='2012', color='yellow')
+    ax_comb_mean.plot(years.index, years['2010'], label='2010', color='#66c2a5', alpha=0.5)
+    ax_comb_mean.plot(years.index, years['2012'], label='2012', color='#a6d854', alpha=0.5)
     ax_comb_mean.plot(years.index, years['2019'], label='2019', color='firebrick')
-    ax_comb_mean.plot(years.index, years['2020'], label='2020', color='orange')
-    ax_comb_mean.plot(years.index[:], years['base_mean'][:], label='2000-2020 Mean +/- 1 SD', color='slateblue',
-                      alpha=0.5)
+    ax_comb_mean.plot(years.index, years['2020'], label='2020', color='#fc8d62', alpha=0.5)
+    ax_comb_mean.plot(years.index[:], years['base_mean'][:], label='2000-2020 Mean +/- 1 SD', color='#8da0cb',
+                      alpha=0.4)
     plt.fill_between(years.index[:], years['base_mean'][:] - years['base_sd'][:], years['base_mean'][:] +
                      years['base_sd'][:], color='lightgrey')
     # ax_comb_mean.plot(years.index[:-85], years['base_mean'][:-85], label='2000-2020 Mean +/- 1 SD', color='slateblue',
     #                   alpha=0.5)
     # plt.fill_between(years.index[:-85], years['base_mean'][:-85] - years['base_sd'][:-85], years['base_mean'][:-85] +
     #                  years['base_sd'][:-85], color='lightgrey')
-    ax_comb_mean.set_ylim(0.5, 1.0)
+    ax_comb_mean.set_ylim(0.4, 1.0)
     ax_comb_mean.set_ylabel('Blue Sky Albedo')
     ax_comb_mean.set_xlabel('DOY')
     plt.legend(loc='lower left')
@@ -404,7 +404,7 @@ def year_vs_avg_plot_anom(years, aoi_name, csv_path):
 
 def main():
     # Update these as needed
-    filter_pctl = 0.5
+    filter_pctl = 0.25
     workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/entire_island'
     if workspace[:-1] != '/':
         workspace = workspace + '/'
@@ -414,7 +414,6 @@ def main():
     csv_path = workspace + csv_name
 
     # set this value to filter out observations with fewer than the given percentile of valid observations
-
 
     # Define the fields of interest so we can ignore the rest
     fields = ['date', 'mean', 'valid_pixels_count']
@@ -453,13 +452,13 @@ def main():
     years.columns = years.columns.astype(str)
 
     box_plot(years, aoi_name, csv_path)
-    box_plot_anom(years, aoi_name, csv_path)
-    vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path)
-    vert_stack_plot_anom(years, nyears, strt_year, end_year, aoi_name, csv_path)
+    # box_plot_anom(years, aoi_name, csv_path)
+    # vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path)
+    # vert_stack_plot_anom(years, nyears, strt_year, end_year, aoi_name, csv_path)
     year_vs_avg_plot(years, aoi_name, csv_path)
-    year_vs_avg_plot_anom(years, aoi_name, csv_path)
-    overpost_all_plot(years, aoi_name, csv_path)
-    overpost_all_plot_anom(years, aoi_name, csv_path)
+    # year_vs_avg_plot_anom(years, aoi_name, csv_path)
+    # overpost_all_plot(years, aoi_name, csv_path)
+    # overpost_all_plot_anom(years, aoi_name, csv_path)
 
 if __name__ == '__main__':
     main()
