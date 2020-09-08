@@ -6,6 +6,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import os
+import math
+from sklearn.metrics import mean_squared_error
+from pandas.plotting import register_matplotlib_converters
+register_matplotlib_converters()
 
 # These two datasets are for the GCNet data
 # os.chdir('/home/arthur/Dropbox/projects/greenland/station_data/appears_extraction')
@@ -127,15 +131,7 @@ mcd_df[mcd_variable].mask(mcd_df[mcd_variable] < 0.4, np.NaN, inplace=True)
 stn_df['alb'].mask(stn_df['alb'] < 0.4, np.NaN, inplace=True)
 
 
-
-
 # Plot data
-import matplotlib.pyplot as plt
-import math
-from sklearn.metrics import mean_squared_error
-from pandas.plotting import register_matplotlib_converters
-register_matplotlib_converters()
-
 mcd_df[date] = pd.to_datetime(mcd_df[date], yearfirst=True)
 mcd_df = mcd_df.set_index(mcd_df[date])
 
@@ -171,20 +167,33 @@ joined_subset_no_nans_filled_df.to_csv('final_data_test.csv')
 props = dict(boxstyle='round', facecolor='white', alpha=0.5)
 
 # Do plot
-ax = joined_subset_no_nans_filled_df.plot(kind='scatter', x='date', y='alb', color='Indigo', label='MCD43')
-ax.text(pd.Timestamp("2013-07-01"), 1.008, "RMSE: " + str(sw_wsa_rmse))
-ax.set_ylim([-0.005,1.0])
-ax.set_xlim([pd.Timestamp("2013-07-01"),pd.Timestamp("2018-01-05")])
+ax = joined_subset_no_nans_filled_df.plot(kind='scatter',
+                                          x='date',
+                                          y='alb',
+                                          color='Indigo',
+                                          label='MCD43',
+                                          s=3)
+ax.text(pd.Timestamp("2013-07-27"), 0.25, "RMSE: " + str(sw_wsa_rmse))
+ax.set_ylim([-0.005, 1.0])
+ax.set_xlim([pd.Timestamp("2013-07-01"), pd.Timestamp("2018-01-05")])
 ax.grid(b=True, which='major', color='LightGrey', linestyle='-')
 ax.minorticks_on()
 
-joined_subset_no_nans_filled_df.plot(kind='scatter', x='date', y=mcd_variable, ax=ax, color='Tomato', label='Summit',
-                                     figsize=(10,5))
+joined_subset_no_nans_filled_df.plot(kind='scatter',
+                                     x='date',
+                                     y=mcd_variable,
+                                     ax=ax,
+                                     color='Tomato',
+                                     label='Summit',
+                                     s=3,
+                                     figsize=(5, 3))
 ax.legend(loc='lower left')
 ax.set_xlabel('Date')
 ax.set_ylabel('Blue Sky Albedo')
-ax.set_title('NOAA ICECAPCS Observatory at Summit Station')
-
+ax.set_title('NOAA ICECAPS Observatory at Summit Station')
+plt.tick_params(axis='x', labelsize=6)
+plt.tick_params(axis='y', labelsize=6)
+plt.gcf().subplots_adjust(bottom=0.15)
 plt.savefig('summit_noaa_vs_mcd43_bluesky.png')
 # joined_subset_df.plot(kind='scatter', y='alb', x='date', use_index=True)
 # joined_subset_df.plot(kind='scatter', y=mcd_variable, x='date', use_index=True)

@@ -52,8 +52,8 @@ def box_plot(years, aoi_name, csv_path):
     filtered_data = [d[m] for d, m in zip(data_to_plot.T, mask.T)]
 
     # Create a figure instance
-    fig_box = plt.figure(1, figsize=(9, 6))
-    fig_box.suptitle(aoi_name)
+    fig_box = plt.figure(1, figsize=(3, 2))
+    fig_box.suptitle(aoi_name, size=5)
 
     # Create an axis instance
     ax_box = fig_box.add_subplot(111)
@@ -63,17 +63,16 @@ def box_plot(years, aoi_name, csv_path):
         labelsize=5,
         labelrotation=45
                        )
-    ax_box.set_ylim(0.5, 1.0)
+    ax_box.set_ylim(0.4, 0.9)
     ax_box.grid(b=True, which='major', color='LightGrey', linestyle='-')
-    ax_box.set_yticks([0.5, 0.6, overall_mean, 0.8, 0.9, 1.0])
-    plt.axhline(y=[overall_mean])
+    ax_box.set_yticks([0.4, 0.6, overall_mean, 0.8])
+    plt.axhline(y=[overall_mean], linewidth=0.5)
     ax_box.tick_params(
         axis='y',
         labelsize=5
                    )
-    ax_box.set_ylabel('Blue Sky Albedo (Overall Mean)')
+    ax_box.set_ylabel('Blue Sky Albedo (Overall Mean)', size=5)
     outlier_marker = dict(markerfacecolor='black', fillstyle=None, marker='.', markersize=1)
-    ax_box.axhline(y=0)
 
     data_2019 = filtered_data[19]
     i = 0
@@ -333,26 +332,33 @@ def year_vs_avg_plot(years, aoi_name, csv_path):
 
     #TODO same issue here as in the anomaly version of this plot -- why the last value jump?
 
-    fig_comb_mean = plt.figure(figsize=(10, 5))
+    fig_comb_mean = plt.figure(figsize=(3, 2))
     ax_comb_mean = fig_comb_mean.add_subplot(111)
-    ax_comb_mean.plot(years.index, years['2010'], label='2010', color='#66c2a5', alpha=0.5)
-    ax_comb_mean.plot(years.index, years['2012'], label='2012', color='#a6d854', alpha=0.5)
-    ax_comb_mean.plot(years.index, years['2019'], label='2019', color='firebrick')
-    ax_comb_mean.plot(years.index, years['2020'], label='2020', color='#fc8d62', alpha=0.5)
+    ax_comb_mean.plot(years.index, years['2003'], label='2003', color='#ffd92f', linewidth=0.75)
+    ax_comb_mean.plot(years.index, years['2010'], label='2010', color='#66c2a5', linewidth=0.75)
+    ax_comb_mean.plot(years.index, years['2012'], label='2012', color='#a6d854', linewidth=0.75)
+    ax_comb_mean.plot(years.index, years['2019'], label='2019', color='firebrick', linewidth=0.75)
+    ax_comb_mean.plot(years.index, years['2020'], label='2020', color='#fc8d62', linewidth=0.75)
     ax_comb_mean.plot(years.index[:], years['base_mean'][:], label='2000-2020 Mean +/- 1 SD', color='#8da0cb',
-                      alpha=0.4)
+                      alpha=0.4, linewidth=0.7)
     plt.fill_between(years.index[:], years['base_mean'][:] - years['base_sd'][:], years['base_mean'][:] +
                      years['base_sd'][:], color='lightgrey')
-    # ax_comb_mean.plot(years.index[:-85], years['base_mean'][:-85], label='2000-2020 Mean +/- 1 SD', color='slateblue',
-    #                   alpha=0.5)
-    # plt.fill_between(years.index[:-85], years['base_mean'][:-85] - years['base_sd'][:-85], years['base_mean'][:-85] +
-    #                  years['base_sd'][:-85], color='lightgrey')
-    ax_comb_mean.set_ylim(0.4, 1.0)
-    ax_comb_mean.set_ylabel('Blue Sky Albedo')
-    ax_comb_mean.set_xlabel('DOY')
-    plt.legend(loc='lower left')
 
-    fig_comb_mean.suptitle(aoi_name)
+    ax_comb_mean.set_ylim(0.4, 0.9)
+    ax_comb_mean.set_ylabel('Blue Sky Albedo', size=5)
+    ax_comb_mean.set_xlabel('DOY', size=5)
+    ax_comb_mean.tick_params(
+        axis='x',
+        labelsize=5,
+        labelrotation=45
+                       )
+    ax_comb_mean.tick_params(
+        axis='y',
+        labelsize=5,
+                       )
+    plt.legend(loc='lower left', prop={'size': 5})
+
+    fig_comb_mean.suptitle(aoi_name, size=5)
 
     file_path, file_name = os.path.split(csv_path)
     save_name = os.path.join(file_path, 'figs', aoi_name.replace(' ', '_') + '_2000-2020_mean_' +
@@ -405,7 +411,7 @@ def year_vs_avg_plot_anom(years, aoi_name, csv_path):
 def main():
     # Update these as needed
     filter_pctl = 0.25
-    workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/entire_island'
+    workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/entire_island/'
     if workspace[:-1] != '/':
         workspace = workspace + '/'
     csv_name = 'actual_albedo_catchments_top_level_all_ekholm_polys_dissolve_sinusoidal_stats.csv'

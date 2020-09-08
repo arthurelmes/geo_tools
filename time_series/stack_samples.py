@@ -6,9 +6,9 @@ all of the transect points are stacked vertically, with their correct doy.
 import pandas as pd
 import glob, os
 
-workspace = '/home/arthur/Dropbox/projects/greenland/transect_points/extracted/65/'
+workspace = '/home/arthur/Dropbox/projects/greenland/transect_points/extracted/72_5/'
 for year in range(2000, 2020):
-    csv_name = '65_deg_north_ice_clip_wgs84_pts_extracted_values_MCD43_actual_albedo_' + str(year) + '.csv'
+    csv_name = '72_5_deg_north_land_clip_wgs84_1km_pts_extracted_values_MCD43_actual_albedo_' + str(year) + '.csv'
     raw_df = pd.read_csv(workspace + csv_name)
     stacked_df = pd.DataFrame(columns=['Category', 'Date', 'Value'])
 
