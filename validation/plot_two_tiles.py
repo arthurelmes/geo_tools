@@ -133,22 +133,23 @@ def plot_data(cmb_data, labels, stats, workspace):
 def main():
     # CLI args
     parser = ArgumentParser()
-    parser.add_argument("-d", "--input-dir", dest="base_dir",
-                        help="Base directory containing sample and imagery data",
+    parser.add_argument("-d", "--output-dir", dest="base_dir",
+                        help="Directory to store outputs",
                         metavar="IN_DIR")
-    parser.add_argument("-f1", "--file1", dest="file1", help="First image to compare.", metavar="FILE1")
-    parser.add_argument("-f2", "--file2", dest="file2", help="Second image to compare.", metavar="FILE2")
+    parser.add_argument("-f1", "--file1", dest="file1", help="Complete path of "
+                                                             "First image to compare.", metavar="FILE1")
+    parser.add_argument("-f2", "--file2", dest="file2", help="Complete path of "
+                                                             "Second image to compare.", metavar="FILE2")
     args = parser.parse_args()
 
-    workspace = args.base_dir
+    # Set workspace IO dir
+    workspace_out = args.base_dir
 
     # Set input hdf/h5 filenames
     tile1_fname = args.file1
     tile2_fname = args.file2
 
-    # Set workspace IO dirs
-    workspace_out = workspace
-    os.chdir(workspace)
+    os.chdir(workspace_out)
 
     #TODO these shouldn't just be wsa, should be able to do
     # any band, selected as argument they should be args so
@@ -164,11 +165,11 @@ def main():
     labels = (tile1_deets[0], tile1_deets[1], tile2_deets[1], sds_name_wsa, tile1_deets[2], tile2_deets[2])
 
     # Convert both tiles' data and qa to numpy arrays for plotting
-    tile1_data_wsa = get_data(os.path.join(workspace, tile1_fname), sds_name_wsa)
-    tile1_data_qa = get_data(os.path.join(workspace, tile1_fname), sds_name_qa)
-    tile2_data_wsa = get_data(os.path.join(workspace, tile2_fname), sds_name_wsa)
-    tile2_data_qa = get_data(os.path.join(workspace, tile2_fname), sds_name_qa)
-    
+    tile1_data_wsa = get_data(os.path.join(tile1_fname), sds_name_wsa)
+    tile1_data_qa = get_data(os.path.join(tile1_fname), sds_name_qa)
+    tile2_data_wsa = get_data(os.path.join(tile2_fname), sds_name_wsa)
+    tile2_data_qa = get_data(os.path.join(tile2_fname), sds_name_qa)
+
     # Call masking function to cleanup data
     tile1_data_qa_masked = mask_qa(tile1_data_wsa, tile1_data_qa)
     tile2_data_qa_masked = mask_qa(tile2_data_wsa, tile2_data_qa)
