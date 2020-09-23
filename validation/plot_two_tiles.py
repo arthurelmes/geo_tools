@@ -71,7 +71,7 @@ def mask_qa(hdf_data, hdf_qa):
     # NOTE: Uncomment below to also mask out all zeros. They seem to be mostly water pixels.
     # nodata_masked = np.ma.masked_array(nodata_masked, nodata_masked == 0)
 
-    qa_masked = np.ma.masked_array(nodata_masked, hdf_qa > 1)
+    qa_masked = np.ma.masked_array(nodata_masked, hdf_qa > 0)
     qa_masked_float = np.multiply(qa_masked, 0.001)
 
     return qa_masked_float
