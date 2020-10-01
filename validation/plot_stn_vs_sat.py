@@ -168,25 +168,29 @@ props = dict(boxstyle='round', facecolor='white', alpha=0.5)
 
 # Do plot
 ax = joined_subset_no_nans_filled_df.plot(kind='scatter',
-                                          x='date',
-                                          y='alb',
-                                          color='Indigo',
-                                          label='MCD43',
-                                          s=3)
+                                     x='date',
+                                     y=mcd_variable,
+                                     color='Tomato',
+                                     label='Summit',
+                                     marker='+',
+                                     s=18,
+                                     figsize=(8, 3))
+
+joined_subset_no_nans_filled_df.plot(kind='scatter',
+                                     x='date',
+                                     y='alb',
+                                     ax=ax,
+                                     color='Indigo',
+                                     label='MCD43',
+                                     s=3)
+
 ax.text(pd.Timestamp("2013-07-27"), 0.25, "RMSE: " + str(sw_wsa_rmse))
-ax.set_ylim([-0.005, 1.0])
+ax.set_ylim([0.5, 1.0])
 ax.set_xlim([pd.Timestamp("2013-07-01"), pd.Timestamp("2018-01-05")])
 ax.grid(b=True, which='major', color='LightGrey', linestyle='-')
 ax.minorticks_on()
 
-joined_subset_no_nans_filled_df.plot(kind='scatter',
-                                     x='date',
-                                     y=mcd_variable,
-                                     ax=ax,
-                                     color='Tomato',
-                                     label='Summit',
-                                     s=3,
-                                     figsize=(5, 3))
+
 ax.legend(loc='lower left')
 ax.set_xlabel('Date')
 ax.set_ylabel('Blue Sky Albedo')
@@ -194,7 +198,7 @@ ax.set_title('NOAA ICECAPS Observatory at Summit Station')
 plt.tick_params(axis='x', labelsize=6)
 plt.tick_params(axis='y', labelsize=6)
 plt.gcf().subplots_adjust(bottom=0.15)
-plt.savefig('summit_noaa_vs_mcd43_bluesky.png')
+plt.savefig('summit_noaa_vs_mcd43_bluesky.png', dpi=300)
 # joined_subset_df.plot(kind='scatter', y='alb', x='date', use_index=True)
 # joined_subset_df.plot(kind='scatter', y=mcd_variable, x='date', use_index=True)
 #

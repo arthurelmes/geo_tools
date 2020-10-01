@@ -65,8 +65,8 @@ def box_plot(years, aoi_name, csv_path):
                        )
     ax_box.set_ylim(0.4, 0.9)
     ax_box.grid(b=True, which='major', color='LightGrey', linestyle='-')
-    ax_box.set_yticks([0.4, 0.6, overall_mean, 0.8])
-    plt.axhline(y=[overall_mean], linewidth=0.5)
+    ax_box.set_yticks([0.4, 0.6, 0.8])
+    plt.axhline(y=[overall_mean], linewidth=0.5, label='Overall Mean: {x}'.format(x=round(overall_mean, 2)))
     ax_box.tick_params(
         axis='y',
         labelsize=5
@@ -76,7 +76,7 @@ def box_plot(years, aoi_name, csv_path):
 
     data_2019 = filtered_data[19]
     i = 0
-
+    plt.legend(loc='lower right', prop={'size': 4})
     # Store t-test of each year vs 2019 in txt file
     stats_txt_name = csv_path[:-4] + '_t_stats_vs_2019.txt'
     stats_txt = open(stats_txt_name, 'w')
@@ -411,11 +411,11 @@ def year_vs_avg_plot_anom(years, aoi_name, csv_path):
 def main():
     # Update these as needed
     filter_pctl = 0.25
-    workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/entire_island/'
+    workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/catchments/'
     if workspace[:-1] != '/':
         workspace = workspace + '/'
-    csv_name = 'actual_albedo_catchments_top_level_all_ekholm_polys_dissolve_sinusoidal_stats.csv'
-    aoi_name = 'Entire Island Ice Only (ValiObs filter = {x} Pctl)'.format(x=filter_pctl)
+    csv_name = 'actual_albedo_catchment_6.2_ekholm_stats.csv'
+    aoi_name = 'Catchment 6.2 (ValiObs filter = {x} Pctl)'.format(x=filter_pctl)
     dt_indx = pd.date_range('2000-01-01', '2020-12-31')
     csv_path = workspace + csv_name
 
