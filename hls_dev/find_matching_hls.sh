@@ -1,7 +1,8 @@
 #!/bin/bash
 
-L2A_dir=/lovells/data02/arthur.elmes/S2/HLS_comparison/05WPM/L2A/
-HLS_dir=/lovells/data01/arthur.elmes/HLS/sample_hls/S30/2020/05/W/P/M/
+L2A_dir=/lovells/data02/arthur.elmes/S2/HLS_comparison/22WFV/L2A_HLS/
+HLS_dir=/lovells/data01/arthur.elmes/HLS/sample_hls/S30/2020/22/W/F/V/
+#/lovells/data01/arthur.elmes/HLS/sample_hls/S30/2020/05/W/P/M/
 
 hdf_to_jp2 () {
     in_file_hls=$1
@@ -13,7 +14,7 @@ hdf_to_jp2 () {
     read -ra band_part_1 <<< "$template_file_s2_base"
     band=${band_part_1[2]}
     IFS=" "
-    gdal_translate -of JP2OpenJPEG HDF4_EOS:EOS_GRID:'"'${in_file_hls}'"':Grid:${band} ${template_file_s2}
+    gdal_translate -of JP2OpenJPEG -outsize 5490 5490 HDF4_EOS:EOS_GRID:'"'${in_file_hls}'"':Grid:${band} ${template_file_s2}
 }
 
 for safe in ${L2A_dir}/* ;
@@ -32,11 +33,9 @@ do
 		tile=${file_parts[0]}
 		band=${file_parts[2]}
 		IFS=" "  
-
-		echo $band
 		
 		hls_match=`find ${HLS_dir} -type f -name "HLS.S30.${tile}.${img_date}*.hdf"`
-		echo "Converting bands from: $hls_match into: $jp2"
+		echo "Converting bands from: $hls_match into: $jp2\n"
 		hdf_to_jp2 "${hls_match}" "${jp2}" "${band}"
 		;;
 	    *)
