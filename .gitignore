@@ -11,3 +11,4 @@ products-list.csv
 rGraphicsSettings.xml
 .Rhistory
 .#download_lance.sh
+.ipynb_checkpoint*
