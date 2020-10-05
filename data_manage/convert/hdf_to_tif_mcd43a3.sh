@@ -5,6 +5,8 @@ out_dir=$2
 
 srs_str="+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m +no_defs"
 
+echo "Outdir is: $out_dir"
+
 if [ ! -d ${out_dir} ]; then
     mkdir ${out_dir}
 fi
