@@ -113,7 +113,9 @@ for tif in glob.glob(workspace + '/*.tif'):
 
         tif_name = ntpath.basename(tif)
         #TODO this is silly, and won't work when the file name changes. Fix it!
-        date = convert_doy(tif_name[-11:-4])
+        # date = convert_doy(tif_name[9:16]) # this one is for the SZA tifs
+        # date = convert_doy(tif_name[10:17]) # this one is for the AOD tifs like MOD08_D3.A2020098.061.2020099180515_wgs84.tif
+        date = convert_doy(tif_name[-11:-4]) # this is for the actual_albedo_entire_islands... sigh.
         print(date)
         stats_list.append((date, tif_name, mean, std, count))
 
