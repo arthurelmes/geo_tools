@@ -5,13 +5,12 @@
 # Author: Arthur Elmes 2020-08-01
 
 # Set these
-in_dir="/media/arthur/linux_data/compare_MCD_VNP_VJ1/MCD43/nbar/"
-qa_dir="/media/arthur/linux_data/compare_MCD_VNP_VJ1/MCD43/qa/"
-out_dir="/media/arthur/linux_data/compare_MCD_VNP_VJ1/MCD43/nbar_screened/"
-
-# in_dir=$1
-# qa_dir=$2
-# out_dir=$3
+# in_dir="/media/arthur/linux_data/compare_MCD_VNP_VJ1/MCD43/nbar/"
+# qa_dir="/media/arthur/linux_data/compare_MCD_VNP_VJ1/MCD43/qa/"
+# out_dir="/media/arthur/linux_data/compare_MCD_VNP_VJ1/MCD43/nbar_screened/"
+in_dir=$1
+qa_dir=$2
+out_dir=$3
 
 if [ ! -d ${out_dir} ]; then
     mkdir $out_dir
@@ -38,13 +37,13 @@ for tif in ${in_dir}/*.tif; do
     # This could probably be one step
     echo "Procesing:"
     echo $tif
-    echo $qa_tif
+    # echo $qa_tif
     # echo $date
     # echo $band
     # echo $qa_tif
     
-    gdal_calc.py --format GTiff -A ${tif} -B ${qa_tif} --outfile=${tmp_name} --calc="A*(B==0)" --NoDataValue=0
-    gdal_calc.py --format GTiff -A ${tmp_name} --outfile=${out_name} --calc="A*(A>0)" --NoDataValue=0
+    gdal_calc.py --format GTiff -A ${tif} -B ${qa_tif} --outfile=${tmp_name} --calc="A*(B==0)" --NoDataValue=0 --quiet
+    gdal_calc.py --format GTiff -A ${tmp_name} --outfile=${out_name} --calc="A*(A>0)" --NoDataValue=0 --quiet
     #gdal_translate -of GTiff -a_nodata 0 ${tmp_name_2} ${out_name}
     
     # For some reason the vrt format is not working, so delete the temporary tifs (this is super non-optimal)
