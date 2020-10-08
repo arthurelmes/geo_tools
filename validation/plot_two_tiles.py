@@ -186,9 +186,9 @@ def main():
     y = tile2_data_qa_masked.flatten()
     cmb_data = np.ma.column_stack((x, y))
 
-    # Calculate RMSE and Mean Bias, multiply by 0.001, which is the scale factor for MCD43/VNP43/VJ143
-    rmse = math.sqrt(mean_squared_error(x, y)) * 0.001
-    mb = np.sum(x - y) / x.size * 0.001
+    # Calculate RMSE and Mean Bias, which is the scale factor for MCD43/VNP43/VJ143
+    rmse = math.sqrt(mean_squared_error(x, y))
+    mb = np.sum(x - y) / x.size
     stats = (rmse, mb)
 
     # Call plotting function
