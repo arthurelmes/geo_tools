@@ -9,7 +9,7 @@ import numpy as np
 from pyhdf.SD import SD, SDC
 from h5py import File
 import os, matplotlib, math, sys
-
+import pandas as pd
 matplotlib.rcParams['agg.path.chunksize'] = 100000
 
 
@@ -66,8 +66,8 @@ def mask_qa(hdf_data, hdf_qa):
     # Also, mask out nodata values (32767)
     # wsa_swir_masked = np.ma.masked_array(wsa_band, wsa_band == 32767)
     # wsa_swir_masked_qa = np.ma.masked_array(wsa_swir_masked, qa_band > 1)
-    nodata_masked = np.ma.masked_array(hdf_data, hdf_data == 32767)
 
+    nodata_masked = np.ma.masked_array(hdf_data, hdf_data == 32767)
     # NOTE: Uncomment below to also mask out all zeros. They seem to be mostly water pixels.
     # nodata_masked = np.ma.masked_array(nodata_masked, nodata_masked == 0)
 
@@ -173,7 +173,7 @@ def main():
     # Call masking function to cleanup data
     tile1_data_qa_masked = mask_qa(tile1_data_wsa, tile1_data_qa)
     tile2_data_qa_masked = mask_qa(tile2_data_wsa, tile2_data_qa)
-   
+
     # Take every other pixel if comparing MCD (500m) and VNP/VJ1 (1km). If both datasets are the same, do nothing.
     #TODO This is janky because it requires that the MCD is entered first, right? Add some thing to fix this
     if ("MCD" in labels[1] and "VNP" in labels[2]) or ("MCD" in labels[1] and "VJ1" in labels[2]):
@@ -181,15 +181,20 @@ def main():
         tile1_data_qa_masked = tile1_data_qa_masked[::2, ::2]
     else:
         pass
+
     # Flatten np arrays into single column
+
     x = tile1_data_qa_masked.flatten()
     y = tile2_data_qa_masked.flatten()
     cmb_data = np.ma.column_stack((x, y))
-
-    # Calculate RMSE and Mean Bias, which is the scale factor for MCD43/VNP43/VJ143
-    rmse = math.sqrt(mean_squared_error(x, y))
-    mb = np.sum(x - y) / x.size
+    cmb_data_df = pd.DataFrame(cmb_data)
+    rmse = ((cmb_data_df[0] - cmb_data_df[1]) ** 2).mean() ** 0.5
+    mb = cmb_data_df[0].mean() - cmb_data_df[1].mean()
     stats = (rmse, mb)
+    # Calculate RMSE and Mean Bias, which is the scale factor for MCD43/VNP43/VJ143
+    #rmse = math.sqrt(mean_squared_error(cmb_data[:,0], cmb_data[:,1]))
+    #mb = np.sum(x - y) / x.size
+
 
     # Call plotting function
     plot_data(cmb_data, labels, stats, workspace_out)
