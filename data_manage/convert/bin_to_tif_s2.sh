@@ -20,26 +20,16 @@ if [ ! -d ${out_dir}/bsa/ ]; then
     mkdir ${out_dir}/bsa/
 fi
 
-
-for bin in $in_dir/*broad.bin
+for safe in $in_dir/*.SAFE
 do
-    filename=$(basename -- $bin)
+    sw_bin=`find ${safe} -type f -name "*albedo_broad.bin"`
+    qa_bin=`find ${safe} -type f -name "*albedo_broad_qa.bin"`
+
+    filename=$(basename -- ${sw_bin})
     extension="${filename##*.}"
     filename_bare="${filename%.*}"
     
-    gdal_translate -a_nodata 32767 -of GTiff -b 1 ${in_dir}/${filename} ${out_dir}/bsa/${filename}_bsa_shortwave.tif
-    gdal_translate -a_nodata 32767 -of GTiff -b 2 ${in_dir}/${filename} ${out_dir}/wsa/${filename}_wsa_shortwave.tif
-
+    gdal_translate -a_nodata 32767 -of GTiff -b 1 ${sw_bin} ${out_dir}/bsa/${filename}_bsa_shortwave.tif
+    gdal_translate -a_nodata 32767 -of GTiff -b 2 ${sw_bin} ${out_dir}/wsa/${filename}_wsa_shortwave.tif
+    gdal_translate -a_nodata 32767 -of GTiff ${qa_bin} ${out_dir}/qa/${filename}_qa_shortwave.tif
 done
-
-
-for bin in $in_dir/*broad_qa.bin
-do
-    filename=$(basename -- $bin)
-    extension="${filename##*.}"
-    filename_bare="${filename%.*}"
-
-    gdal_translate -a_nodata 32767 -of GTiff ${in_dir}/${filename} ${out_dir}/qa/${filename}_qa_shortwave.tif
-
-done
-
