@@ -11,21 +11,24 @@ def update_date(xml_file):
     root = tree.getroot()
     print("updating: {x}".format(x=xml_file))
     for item in root.findall('*'):
+        print(item.tag)
         for child in item:
             if child.tag == 'L1C_TILE_ID':
-                correct_date = child.text.split("_")[6]
-            elif child.tag == 'TILE_ID':
-                incorrect_date = str(child.text.split("_")[6])
-                id_beginning = '_'.join(child.text.split("_")[:6])
-                id_end = '_'.join(child.text.split("_")[7:])
-                print(incorrect_date)
+                correct_date = child.text.split("_")[7]
                 print(correct_date)
 
-                child.text = id_beginning + "_" + correct_date + "_" + id_end
+            if child.tag == 'TILE_ID':
+                incorrect_date = str(child.text.split("_")[7])
+                print(incorrect_date)
+                id_beginning = '_'.join(child.text.split("_")[:7])
+                id_end = '_'.join(child.text.split("_")[8:])
+                correct_name = id_beginning + "_" + correct_date + "_" + id_end
+                child.text = correct_name
 
-                print(id_beginning + "_" + correct_date + "_" + id_end)
+            if child.tag == 'DATASTRIP_ID':
+                child.text = correct_name
+
     tree.write(xml_file)
-    print()
 
 
 if __name__ == '__main__':
