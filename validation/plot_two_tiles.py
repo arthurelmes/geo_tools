@@ -102,8 +102,8 @@ def plot_data(cmb_data, labels, stats, workspace):
 
     # # Add text box with RMSE and mean bias
     textstr = '\n'.join((
-        r'$\mathrm{RMSE}=%.2f$' % (stats[0], ),
-        r'$\mathrm{MeanBias}=%.2f$' % (stats[1], )))
+        r'$\mathrm{RMSE}=%.4f$' % (stats[0], ),
+        r'$\mathrm{MeanBias}=%.4f$' % (stats[1], )))
 
     props = dict(boxstyle='round', facecolor='white', alpha=0.5)
     plt.text(0.05, 0.95, textstr, fontsize=14, verticalalignment='top', bbox=props)
