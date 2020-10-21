@@ -37,7 +37,7 @@ def update_date(xml_file):
 
 
 if __name__ == '__main__':
-    wk_dir = sys.argv[1]
+    wk_dir = '/lovells/data02/arthur.elmes/S2/HLS_comparison/22WFV/S2_albedo_test_new_name' #sys.argv[1]
     for root, dirs, files in os.walk(wk_dir):
         for file in files:
             if file == 'MTD_TL.xml':
