@@ -40,7 +40,7 @@ def parse_date(file_name):
                 date_part_int = int(date_part)
             except ValueError:
                 pass
-    return date_part_int
+    return str(date_part_int)
 
 if __name__ == '__main__':
 
@@ -134,12 +134,8 @@ if __name__ == '__main__':
                     count = ''
 
             tif_name = ntpath.basename(tif)
-            #TODO this is silly, and won't work when the file name changes. Fix it!
-            # date = convert_doy(tif_name[9:16]) # this one is for the SZA tifs
-            # date = convert_doy(tif_name[10:17]) # this one is for the AOD tifs like MOD08_D3.A2020098.061.2020099180515_wgs84.tif
             date_part = parse_date(tif_name)
             date = convert_doy(date_part)
-            #print(date)
             stats_list.append((date, tif_name, mean, std, count))
 
 
