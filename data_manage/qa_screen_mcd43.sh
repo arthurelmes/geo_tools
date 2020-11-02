@@ -1,22 +1,22 @@
 #!/bin/bash
 
-# This masks input TIF mcd43 files with the TIF version of the mandatory qa, max value only
-# Should be improved in many ways, e.g. specify more than qa=0, intake the HDFs, etc
+# This masks input TIF mcd43 files with the TIF version of the mandatory qa, max value only (qa==0).
+# Should be improved in many ways, e.g. specify more than qa==0, intake the HDFs, etc
 # Author: Arthur Elmes 2020-08-01
 
 tile=$1
 start_year=$2
 end_year=$3
-
-# Set these
-in_dir="/ipswich/data01/arthur.elmes/bsky/tif/${tile}_2020/"
-qa_dir="/lovells/data02/arthur.elmes/greenland/MCD43A1/tif/${tile}"
-sza_dir="/ipswich/data01/arthur.elmes/MCD43A2/all/${tile}"
-out_dir="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened/"
+in_dir=$4 #"/ipswich/data01/arthur.elmes/bsky/tif/${tile}_2020/"
+qa_dir=$5 #"/lovells/data02/arthur.elmes/greenland/MCD43A1/tif/${tile}"
+sza_dir=$6 #"/ipswich/data01/arthur.elmes/MCD43A2/all/${tile}"
+out_dir=$7 #"/ipswich/data01/arthur.elmes/bsky/tif/qa_screened/"
 
 if [ ! -d ${out_dir} ]; then
     mkdir $out_dir
 fi
+
+rm ${in_dir}*temp*
 
 for year in $(seq ${start_year} ${end_year}); do    
     for tif in ${in_dir}/*A${year}*.tif; do 
@@ -40,9 +40,9 @@ for year in $(seq ${start_year} ${end_year}); do
 	echo $tif
 	echo $qa_tif
 	echo $sza_tif
-	
-	gdal_calc.py --format GTiff -A ${tif} -B ${qa_tif} --outfile=${tmp_name} --calc="A*(B==0)" --NoDataValue=0 --quiet
-	gdal_calc.py --format GTiff -A ${tmp_name} --outfile=${tmp_name_2} --calc="A*(A>0)" --NoDataValue=32767 --quiet
+
+	gdal_calc.py --format GTiff -A ${tif} -B ${qa_tif} --outfile=${tmp_name} --calc="A*(B==0)" --NoDataValue=0 --quiet 
+	gdal_calc.py --format GTiff -A ${tmp_name} --outfile=${tmp_name_2} --calc="A*(A>0)" --NoDataValue=32767 --quiet 
 	gdal_calc.py --format GTiff -A ${tmp_name_2} -B ${sza_tif} --outfile=${tmp_name_3} --calc="A*(B<72.0)" --NoDataValue=0 --quiet
 	gdal_calc.py --format GTiff -A ${tmp_name_3} --outfile=${out_name} --calc="A*(A>0)" --NoDataValue=32767 --quiet
 

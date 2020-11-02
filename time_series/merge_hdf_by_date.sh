@@ -25,7 +25,7 @@ for yr in $( seq 2020 2020); do
 	hdf_list=`find $workspace -type f -name "*${yr}${dt}*"`
 	if [ ${#hdf_list} -gt 0 ]; then
 	    #change the output name to draw from the input name
-	    gdal_merge.py -o "${output_dir}MCD43_actual_albedo_greenland_entire_island_${yr}${dt}.tif" -of GTiff -n 32767 -a_nodata 32767  ${hdf_list}
+	    gdal_merge.py -o "${output_dir}MCD43_actual_albedo_greenland_entire_island_A${yr}${dt}.tif" -of GTiff -n 32767 -a_nodata 32767  ${hdf_list}
 	fi
     done
 done
