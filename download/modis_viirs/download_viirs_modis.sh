@@ -20,6 +20,11 @@ while getopts ":s:e:n:t:d:" arg; do
     esac
 done
 
+if [ "${tile}" = "h00v00" ];
+then
+    tile=""
+fi
+
 url_base=https://e4ftl01.cr.usgs.gov/
 
 if [ -z $start_date ] || [ -z $end_date ] || [ -z $short_name ] || [ -z $tile ] || \

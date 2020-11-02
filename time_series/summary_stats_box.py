@@ -74,8 +74,11 @@ if __name__ == '__main__':
     # List to hold outputs
     stats_list = []
     csv_header = ['date', 'product', 'mean', 'sd_dev', 'valid_pixels_count']
-
-    for tif in glob.glob(workspace + '/*.tif'):
+    if 'AOD' in product_name:
+        search_string = str(workspace + '/*.tif')
+    else:
+        search_string = str(workspace + '/*' + tile + '*' + '*.tif')
+    for tif in glob.glob(search_string):
         # Loop over all tifs in indir, clip each using clip_shp, and then calculate mean an sd, append to list
         with rio.open(tif) as src:
             try:
@@ -110,7 +113,6 @@ if __name__ == '__main__':
                     print("Product not recognized!")
                     sys.exit(1)
             except:
-                print("fail")
                 mean = None
                 std = None
                 count = None
