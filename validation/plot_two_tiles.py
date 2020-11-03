@@ -190,6 +190,9 @@ def main():
     cmb_data_df = pd.DataFrame(cmb_data)
     rmse = ((cmb_data_df[0] - cmb_data_df[1]) ** 2).mean() ** 0.5
     mb = cmb_data_df[0].mean() - cmb_data_df[1].mean()
+    print(cmb_data_df[0].mean())
+    print(cmb_data_df[1].mean())
+    print(mb)
     stats = (rmse, mb)
     # Calculate RMSE and Mean Bias, which is the scale factor for MCD43/VNP43/VJ143
     #rmse = math.sqrt(mean_squared_error(cmb_data[:,0], cmb_data[:,1]))
