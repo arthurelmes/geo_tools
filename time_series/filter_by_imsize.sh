@@ -1,7 +1,7 @@
 #!/bin/bash
 
-in_dir="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_merged/test/"
-out_dir="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_merged/test/samesize/"
+in_dir="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_0_and_1_noszn_merged/"
+out_dir="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_0_and_1_noszn_merged/samesize/"
 
 if [ ! -d "${out_dir}" ];
 then
