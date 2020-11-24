@@ -5,7 +5,7 @@
 in_dir="/ipswich/data02/arthur.elmes/"
 out_dir="/ipswich/data02/arthur.elmes/comparo_results/"
 
-tiles="h08v05 h11v09 h12v04"
+tiles="16v02 h26v04 h30v11"
 
 if [ ! -d "${out_dir}" ];
 then
