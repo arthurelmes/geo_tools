@@ -339,6 +339,7 @@ def main():
         for site in sites_dict.items():
             tile = site[1][2]
             in_dir = os.path.join(base_dir, prdct, year, tile)
+            print(in_dir)
             fig_dir = os.path.join(base_dir, 'figs')
             if not os.path.isdir(fig_dir):
                os.makedirs(fig_dir)
