@@ -1,20 +1,20 @@
 #!/bin/bash
 
 ### The purpose of this script is to merge all hdf files with the same date into a single geotiff for that date.
-### Currently set up specifically for the output hdf from actual_albedo_hdf.exe, but can be easily modified.
+### Currently set up specifically for the output hdf from actual_albedo_hdf.exe (converted to tif), but can be easily modified.
 ### Author: Arthur Elmes 2020-07-29
 
 # Currently these must be tifs
 workspace=$1
 output_dir=$2
-#workspace="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened/"
-#output_dir="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_merged/entire_island/"
+start_year=$3
+end_year=$4
 
 if [ ! -d ${output_dir} ]; then
     mkdir ${output_dir}
 fi
 
-for yr in $( seq 2020 2020); do
+for yr in $( seq "${start_year}" "${end_year}" ); do
     for dt in $( seq 1 366); do
 	if [ ${dt} -lt 10 ]; then
 	    dt=00${dt}

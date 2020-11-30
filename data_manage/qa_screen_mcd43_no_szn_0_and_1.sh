@@ -9,9 +9,9 @@ start_year=$2
 end_year=$3
 
 # Set these
-in_dir="/ipswich/data01/arthur.elmes/bsky/tif/${tile}/"
-qa_dir="/lovells/data02/arthur.elmes/greenland/MCD43A1/tif/${tile}"
-out_dir="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_0_and_1_noszn/"
+in_dir="/lovells/data02/arthur.elmes/greenland/VNP43MA3/2019/tif/wsa/${tile}/"
+qa_dir="/lovells/data02/arthur.elmes/greenland/VNP43MA3/2019/tif/qa/${tile}"
+out_dir="/lovells/data02/arthur.elmes/greenland/VNP43MA3/2019/tif/wsa_qa_lite_screened/"
 
 if [ ! -d ${out_dir} ]; then
     mkdir $out_dir

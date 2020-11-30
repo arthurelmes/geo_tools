@@ -64,7 +64,7 @@ def box_plot(years, aoi_name, csv_path):
     # print(data_years.shape)
     data_climo = np.concatenate((filtered_data[0], filtered_data[1]))
 
-    #print(len(filtered_data))
+    print(len(filtered_data))
 
     data_2019 = filtered_data[19]
     i = 0
@@ -412,15 +412,16 @@ def calc_sza(lat, doy):
 
 def main():
     # Update these as needed
-    workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/catchments/'
-    csv_name = 'actual_albedo_catchment_4.1_ekholm_stats.csv'
-    aoi_name = 'Catchment 4.1'
-    dt_indx = pd.date_range('2000-01-01', '2020-12-31')
+    workspace = '/home/arthur/Dropbox/projects/greenland/station_data/appears_extraction/noaa_summit/vnp43/'
+    csv_name = 'noaa-summit-vnp43-VNP43MA3-001-results.csv'
+    aoi_name = 'NOAA Summit VNP43MA3'
+    dt_indx = pd.date_range('2013-01-01', '2020-12-31')
     csv_path = workspace + csv_name
 
-    # Define the fields of interest so we can ignore the rest
-    fields = ['Date', 'Latitude', 'MCD43A3_006_Albedo_WSA_shortwave',
-              'MCD43A3_006_BRDF_Albedo_Band_Mandatory_Quality_shortwave']
+    data_field_name = "VNP43MA3_001_Albedo_WSA_shortwave"
+    qa_field_name = "VNP43MA3_001_BRDF_Albedo_Band_Mandatory_Quality_shortwave"
+
+    fields = ['Date', 'Latitude', data_field_name, qa_field_name]
 
     # Import raw APPEARS output
     ts_df = pd.read_csv(csv_path, usecols=fields, parse_dates=[1])
@@ -439,6 +440,7 @@ def main():
     del ts_df['sza']
     del ts_df['Latitude']
 
+
     # Add missing dates to beginning of modis time series
     start_date = dt.datetime(2000, 1, 1)
     end_date = dt.datetime(2000, 2, 23)
@@ -447,26 +449,28 @@ def main():
     empty_wsa = np.full([54, ], 32767, dtype=float)
     empty_qa = np.full([54, ], 255, dtype=int)
 
-    pad_df = pd.DataFrame({'Date': daterange, 'MCD43A3_006_Albedo_WSA_shortwave': empty_wsa,
-                           'MCD43A3_006_BRDF_Albedo_Band_Mandatory_Quality_shortwave': empty_qa})
+    pad_df = pd.DataFrame({'Date': daterange, data_field_name: empty_wsa,
+                           qa_field_name: empty_qa})
 
     pad_df.set_index('Date', inplace=True)
 
     # Add to beginning of data series
     ts_df = pd.concat([pad_df, ts_df])
 
+
     # Mask out fill values (and could optionally also mask out mag inversions by adding another condition == 1
-    ts_df['MCD43A3_006_Albedo_WSA_shortwave'].mask(
-        ts_df['MCD43A3_006_BRDF_Albedo_Band_Mandatory_Quality_shortwave'] == 255,
+    ts_df[data_field_name].mask(
+        ts_df[qa_field_name] == 255,
         np.NaN, inplace=True)
 
-    ts_df['MCD43A3_006_Albedo_WSA_shortwave'].mask(
-        ts_df['MCD43A3_006_BRDF_Albedo_Band_Mandatory_Quality_shortwave'] == 1,
+    ts_df[data_field_name].mask(
+        ts_df[qa_field_name] == 1,
         np.NaN, inplace=True)
 
-    ts_df['SW_WSA'] = ts_df['MCD43A3_006_Albedo_WSA_shortwave']
-    del ts_df['MCD43A3_006_BRDF_Albedo_Band_Mandatory_Quality_shortwave']
-    del ts_df['MCD43A3_006_Albedo_WSA_shortwave']
+    ts_df['SW_WSA'] = ts_df[data_field_name]
+    del ts_df[qa_field_name]
+    del ts_df[data_field_name]
+
 
     # Here we mask out days where the local solar zenith angle is too steep (what is cutoff?)
     # Note this will be different for each AOI (actually every pixel, but this is a simpler approach for small AOIs)
@@ -493,7 +497,7 @@ def main():
     for name, group in groups:
         years[name.year] = group.values[:364]
         print(name, group)
-    sys.exit()
+
 
     # make columns into strings for easier plot labeling
     years.columns = years.columns.astype(str)

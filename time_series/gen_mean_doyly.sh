@@ -1,8 +1,8 @@
 #!/bin/bash
 
-img_dir="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_merged/test/samesize/"
-out_dir="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_merged/entire_island_mean/"
-template_img="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_merged/greenland_entire_island_zeros.tif"
+img_dir="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_0_and_1_noszn_merged/samesize/"
+out_dir="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_0_and_1_noszn_merged/mean/"
+#template_img="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_merged/greenland_entire_island_zeros.tif"
 
 tmp_dir=${out_dir}/tmp/
 if [ ! -d "${tmp_dir}" ];
@@ -90,7 +90,8 @@ do
     	gdal_cmd2=`echo gdal_calc.py -A ${imga_num} -B ${imga_den} --outfile ${img_avg} --overwrite --quiet --type=Float32 --calc=\"A/B\"`
     	echo $gdal_cmd2
     	eval $gdal_cmd2
-	
+	rm ${tmp_dir}/*tif_to_add.tif
+	rm ${tmp_dir}/*tif_valid_pix.tif
+	mv ${tmp_dir}/*average*.tif ${out_dir}		
     fi
-    
 done
