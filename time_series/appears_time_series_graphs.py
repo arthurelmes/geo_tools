@@ -412,9 +412,9 @@ def calc_sza(lat, doy):
 
 def main():
     # Update these as needed
-    workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/appears/'
-    csv_name = 'west-coast-combined-MCD43A3-006-results-2000-2020.csv'
-    aoi_name = 'West Coast 100 km Buffer'
+    workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/catchments/'
+    csv_name = 'actual_albedo_catchment_4.1_ekholm_stats.csv'
+    aoi_name = 'Catchment 4.1'
     dt_indx = pd.date_range('2000-01-01', '2020-12-31')
     csv_path = workspace + csv_name
 

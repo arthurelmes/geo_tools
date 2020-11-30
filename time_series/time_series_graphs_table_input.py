@@ -66,7 +66,7 @@ def box_plot(years, aoi_name, csv_path):
     ax_box.set_ylim(0.4, 0.9)
     ax_box.grid(b=True, which='major', color='LightGrey', linestyle='-')
     ax_box.set_yticks([0.4, 0.6, 0.8])
-    plt.axhline(y=[overall_mean], linewidth=0.5, label='Overall Mean: {x}'.format(x=round(overall_mean, 2)))
+    plt.axhline(y=[overall_mean], linewidth=1.0, label='Overall Mean: {x}'.format(x=round(overall_mean, 2)))
     ax_box.tick_params(
         axis='y',
         labelsize=5
@@ -77,6 +77,7 @@ def box_plot(years, aoi_name, csv_path):
     data_2019 = filtered_data[19]
     i = 0
     plt.legend(loc='lower right', prop={'size': 4})
+
     # Store t-test of each year vs 2019 in txt file
     stats_txt_name = csv_path[:-4] + '_t_stats_vs_2019.txt'
     stats_txt = open(stats_txt_name, 'w')
@@ -345,6 +346,11 @@ def year_vs_avg_plot(years, aoi_name, csv_path):
                      years['base_sd'][:], color='lightgrey')
 
     ax_comb_mean.set_ylim(0.4, 0.9)
+
+    # these vertical lines are for the 2019 GrIS melt event, per https://nsidc.org/greenland-today/2019/07/
+    ax_comb_mean.axvline(x=162, linewidth=0.75, label=None, linestyle="--", color="darkgrey")
+    ax_comb_mean.axvline(x=170, linewidth=0.75, label=None, linestyle="--", color="darkgrey")
+
     ax_comb_mean.set_ylabel('Blue Sky Albedo', size=5)
     ax_comb_mean.set_xlabel('DOY', size=5)
     ax_comb_mean.tick_params(
@@ -411,11 +417,11 @@ def year_vs_avg_plot_anom(years, aoi_name, csv_path):
 def main():
     # Update these as needed
     filter_pctl = 0.25
-    workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/catchments/'
+    workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/w_coast_catchments/'
     if workspace[:-1] != '/':
         workspace = workspace + '/'
-    csv_name = 'actual_albedo_catchment_6.2_ekholm_stats.csv'
-    aoi_name = 'Catchment 6.2 (ValiObs filter = {x} Pctl)'.format(x=filter_pctl)
+    csv_name = 'actual_albedo_catchments_top_level_w_coast_ekholm_polys_dissolve_sinusoidal_stats.csv'
+    aoi_name = 'West Coast Catchments AOI (ValiObs filter = {x} Pctl)'.format(x=filter_pctl)
     dt_indx = pd.date_range('2000-01-01', '2020-12-31')
     csv_path = workspace + csv_name
 
