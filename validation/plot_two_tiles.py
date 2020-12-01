@@ -11,6 +11,7 @@ from h5py import File
 import os, matplotlib, math, sys
 import pandas as pd
 matplotlib.rcParams['agg.path.chunksize'] = 100000
+from csv import writer
 
 
 def determine_sensor(fname):
@@ -183,13 +184,33 @@ def main():
         pass
 
     # Flatten np arrays into single column
-
     x = tile1_data_qa_masked.flatten()
     y = tile2_data_qa_masked.flatten()
     cmb_data = np.ma.column_stack((x, y))
     cmb_data_df = pd.DataFrame(cmb_data)
     rmse = ((cmb_data_df[0] - cmb_data_df[1]) ** 2).mean() ** 0.5
     mb = cmb_data_df[0].mean() - cmb_data_df[1].mean()
+    stats_csv_name = (os.path.join(workspace_out,"stats_test.txt"))
+
+    try:
+        f = open(stats_csv_name)
+        # Do something with the file
+        with open(stats_csv_name, 'a+', newline='') as write_obj:
+            # Create a writer object from csv module
+            csv_writer = writer(write_obj)
+            # Add contents of list as last row in the csv file
+            csv_writer.writerow(rmse)
+            csv_writer.writerow(mb)
+    except IOError:
+        with open(stats_csv_name, 'w', newline='') as write_obj:
+            # Create a writer object from csv module
+            csv_writer = writer(write_obj)
+            # Add contents of list as last row in the csv file
+            csv_writer.writerow(rmse)
+            csv_writer.writerow(mb)
+    finally:
+        f.close()
+
     print(cmb_data_df[0].mean())
     print(cmb_data_df[1].mean())
     print(mb)

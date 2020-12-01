@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/schaaf_lab_random_tools.iml" filepath="$PROJECT_DIR$/.idea/schaaf_lab_random_tools.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/geo_tools.iml" filepath="$PROJECT_DIR$/.idea/geo_tools.iml" />
     </modules>
   </component>
 </project>
