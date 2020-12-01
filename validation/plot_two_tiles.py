@@ -11,7 +11,7 @@ from h5py import File
 import os, matplotlib, math, sys
 import pandas as pd
 matplotlib.rcParams['agg.path.chunksize'] = 100000
-from csv import writer
+import csv
 
 
 def determine_sensor(fname):
@@ -174,7 +174,7 @@ def main():
     # Call masking function to cleanup data
     tile1_data_qa_masked = mask_qa(tile1_data_wsa, tile1_data_qa)
     tile2_data_qa_masked = mask_qa(tile2_data_wsa, tile2_data_qa)
-
+   
     # Take every other pixel if comparing MCD (500m) and VNP/VJ1 (1km). If both datasets are the same, do nothing.
     #TODO This is janky because it requires that the MCD is entered first, right? Add some thing to fix this
     if ("MCD" in labels[1] and "VNP" in labels[2]) or ("MCD" in labels[1] and "VJ1" in labels[2]):
@@ -190,36 +190,34 @@ def main():
     cmb_data_df = pd.DataFrame(cmb_data)
     rmse = ((cmb_data_df[0] - cmb_data_df[1]) ** 2).mean() ** 0.5
     mb = cmb_data_df[0].mean() - cmb_data_df[1].mean()
-    stats_csv_name = (os.path.join(workspace_out,"stats_test.txt"))
+    stats_csv_name = (os.path.join(workspace_out, tile1_deets[0] + "_stats.csv"))
+    stats = (rmse, mb)
+    header = ['RMSE', 'Mean Bias F1 - F2', 'F1', 'F2']
 
-    try:
-        f = open(stats_csv_name)
-        # Do something with the file
+    if os.path.isfile(stats_csv_name):       
         with open(stats_csv_name, 'a+', newline='') as write_obj:
             # Create a writer object from csv module
-            csv_writer = writer(write_obj)
+            csv_writer = csv.DictWriter(write_obj, fieldnames=header)
+
             # Add contents of list as last row in the csv file
-            csv_writer.writerow(rmse)
-            csv_writer.writerow(mb)
-    except IOError:
+            csv_writer.writerow({'RMSE': stats[0],
+                                 'Mean Bias F1 - F2': stats[1],
+                                 'F1': os.path.basename(tile1_fname),
+                                 'F2': os.path.basename(tile2_fname)})
+    else:
         with open(stats_csv_name, 'w', newline='') as write_obj:
             # Create a writer object from csv module
-            csv_writer = writer(write_obj)
+            csv_writer = csv.DictWriter(write_obj, fieldnames=header)
+
+            # Initialize the new file with headers
+            csv_writer.writeheader()
+            
             # Add contents of list as last row in the csv file
-            csv_writer.writerow(rmse)
-            csv_writer.writerow(mb)
-    finally:
-        f.close()
-
-    print(cmb_data_df[0].mean())
-    print(cmb_data_df[1].mean())
-    print(mb)
-    stats = (rmse, mb)
-    # Calculate RMSE and Mean Bias, which is the scale factor for MCD43/VNP43/VJ143
-    #rmse = math.sqrt(mean_squared_error(cmb_data[:,0], cmb_data[:,1]))
-    #mb = np.sum(x - y) / x.size
-
-
+            csv_writer.writerow({'RMSE': stats[0],
+                                 'Mean Bias F1 - F2': stats[1],
+                                 'F1': os.path.basename(tile1_fname),
+                                 'F2': os.path.basename(tile2_fname)})
+        
     # Call plotting function
     plot_data(cmb_data, labels, stats, workspace_out)
 
