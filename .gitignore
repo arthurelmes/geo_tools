@@ -12,3 +12,4 @@ rGraphicsSettings.xml
 .Rhistory
 .#download_lance.sh
 .ipynb_checkpoint*
+*/.idea/*.xml
