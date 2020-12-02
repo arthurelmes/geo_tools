@@ -101,7 +101,7 @@ def plot_data(cmb_data, labels, stats, workspace):
     plt.xlabel(labels[1] + " " + labels[4] + ' ' + labels[3].replace('_', ' '))
     plt.ylabel(labels[2] + " " + labels[5] + ' ' + labels[3].replace('_', ' '))
 
-    # # Add text box with RMSE and mean bias
+    # Add text box with RMSE and mean bias
     textstr = '\n'.join((
         r'$\mathrm{RMSE}=%.4f$' % (stats[0], ),
         r'$\mathrm{MeanBias}=%.4f$' % (stats[1], )))
@@ -125,7 +125,7 @@ def plot_data(cmb_data, labels, stats, workspace):
     csv_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[2] + "_" + labels[3] + "_data.csv")
     np.savetxt(csv_name, cmb_data_nans, delimiter=",", header=hdrs)
 
-    plt_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[4] + "_vs_" \
+    plt_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[4] + "_vs_"\
                             + labels[2] + "_" + labels[5] + "_" + labels[3])
     print('Saving plot to: ' + '{plt_name}.png'.format(plt_name=plt_name))
     plt.savefig('{plt_name}.png'.format(plt_name=plt_name))
