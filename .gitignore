@@ -7,10 +7,8 @@
 OSquery-result.xml
 product_list
 products-list.csv
-.idea/rSettings.xml
 rGraphicsSettings.xml
 .Rhistory
 .#download_lance.sh
 .ipynb_checkpoint*
-*/.idea/*.xml
 .idea*
