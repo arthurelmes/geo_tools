@@ -187,7 +187,7 @@ joined_subset_mcd_no_nans_filled_df.to_csv('final_data_mcd_test.csv')
 joined_subset_vnp_no_nans_filled_df = joined_subset_vnp_no_nans_df.asfreq('D')
 joined_subset_vnp_no_nans_filled_df.to_csv('final_data_mcd_test.csv')
 
-props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+#props = dict(boxstyle='round', facecolor='white', alpha=0.5)
 
 fig_scatter = plt.figure(figsize=(8, 3))
 ax_scatter = fig_scatter.add_subplot(111)
@@ -214,8 +214,8 @@ plt.scatter(joined_subset_mcd_no_nans_filled_df['date'],
             alpha=0.5,
             label='MCD43')
 
-ax_scatter.text(pd.Timestamp("2013-07-27"), 0.95, "Stn vs MCD RMSE: " + str(mcd_sw_wsa_rmse))
-ax_scatter.text(pd.Timestamp("2013-07-27"), 0.91, "Stn vs VNP RMSE: " + str(vnp_sw_wsa_rmse))
+#ax_scatter.text(pd.Timestamp("2013-07-27"), 0.95, "Stn vs MCD RMSE: " + str(mcd_sw_wsa_rmse))
+#ax_scatter.text(pd.Timestamp("2013-07-27"), 0.91, "Stn vs VNP RMSE: " + str(vnp_sw_wsa_rmse))
 ax_scatter.set_ylim([0.5, 1.0])
 ax_scatter.set_xlim([pd.Timestamp("2013-07-01"), pd.Timestamp("2018-01-05")])
 ax_scatter.grid(b=True, which='major', color='LightGrey', linestyle='-')
@@ -235,7 +235,12 @@ plt.show()
 # joined_subset_df.plot(kind='scatter', y=mcd_variable, x='date', use_index=True)
 #
 # # Export csv if needed
-joined_subset_mcd_no_nans_filled_df.to_csv('test_high_qa_only.csv')
+output_df = joined_subset_mcd_no_nans_filled_df.join(joined_subset_vnp_no_nans_filled_df,
+                                                     how='left',
+                                                     lsuffix='_mcd',
+                                                     rsuffix='_vnp'
+                                                     )
+output_df.to_csv('mcd_and_vnp_and_stn.csv')
 
 
 
