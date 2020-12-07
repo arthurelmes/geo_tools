@@ -6,29 +6,17 @@ Great tips here:
 https://lpdaac.usgs.gov/resources/e-learning/working-daily-nasa-viirs-surface-reflectance-data/"""
 
 import h5py
-import pyhdf
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from osgeo import gdal, gdal_array
+from matplotlib.font_manager import FontProperties
 import datetime as dt
-import pandas as pd
 from skimage import exposure
 import sys
 from pyhdf.SD import SD, SDC
 import pprint
-
-# set up workspace
-workspace = '/home/arthur/Dropbox/projects/modis_viirs_continuity/sensor_intercompare/'
-out_dir = os.path.join(workspace, 'output')
-os.chdir(workspace)
-
-if not os.path.isdir(out_dir):
-    os.mkdir(out_dir)
-
-# vnp_file = 'VNP43MA4.A2019150.h08v05.002.2020296231330.h5'
-# mcd_file = 'MCD43A4.A2019150.h08v05.061.2020298033853.hdf'
-img_file = 'MCD43A4.A2019150.h08v05.061.2020298033853.hdf'
+from glob import glob
+import argparse
 
 
 def vnp(vnp_file):
@@ -67,19 +55,26 @@ def vnp(vnp_file):
     b_q = h5['HDFEOS']['GRIDS']['VIIRS_Grid_BRDF']['Data Fields']['BRDF_Albedo_Band_Mandatory_Quality_M3']
     n_q = h5['HDFEOS']['GRIDS']['VIIRS_Grid_BRDF']['Data Fields']['BRDF_Albedo_Band_Mandatory_Quality_M7']
 
-    bits = 8                          # Define number of bits
-    vals = list(range(0, (2**bits)))  # Generate a list of all possible bit values
-    goodQF = []                       # Create an empty list used to store bit values where bits 4-7 = 0
+    # Define number of bits
+    bits = 8
+    # Generate a list of all possible bit values
+    vals = list(range(0, (2**bits)))
+    # Create an empty list used to store bit values where bits 1-7 = 0
+    goodQF = []
 
     for v in vals:
-        bitVal = format(vals[v], 'b').zfill(bits)  # Convert to binary based on values and # of bits defined above:
-        if bitVal[0:8] == '00000000':  # Keep if all bits = 0
-            goodQF.append(vals[v])     # Append to list
-            print('\n' + str(vals[v]) + ' = ' + str(bitVal))  # print good quality values
+        # Convert to binary based on values and # of bits defined above:
+        bitVal = format(vals[v], 'b').zfill(bits)
+        # Keep if all bits = 0
+        if bitVal[0:8] == '00000000':
+            # Append to list
+            goodQF.append(vals[v])
+            # DEV: print good quality values
+            # print('\n' + str(vals[v]) + ' = ' + str(bitVal))
 
     # List attributes
     # print(list(r.attrs))
-    # For some reason, there is no scale_factor stored in the H5 files
+    # For some reason, there is no scale_factor stored in the VNP43MA4 files
     scale_factor = 0.0001 #r.attrs['scaleFactor'][0]
     fill_value = r.attrs['_FillValue'][0]
 
@@ -108,6 +103,7 @@ def mcd(mcd_file):
     hdf_ds = SD(mcd_file, SDC.READ)
     # print(hdf_ds.info())
 
+    # DEV: check attr
     # datasets_dict = hdf_ds.datasets()
     # for idx, sds in enumerate(datasets_dict.keys()):
     #     print(idx, sds)
@@ -143,17 +139,22 @@ def mcd(mcd_file):
         if key == '_FillValue':
             fill_value = value
 
-
-    bits = 8                          # Define number of bits
-    vals = list(range(0, (2**bits)))  # Generate a list of all possible bit values
-    goodQF = []                       # Create an empty list used to store bit values where bits 4-7 = 0
+    # Define number of bits
+    bits = 8
+    # Generate a list of all possible bit values
+    vals = list(range(0, (2**bits)))
+    # Create an empty list used to store bit values where bits 1-7 = 0
+    goodQF = []
 
     for v in vals:
-        bitVal = format(vals[v], 'b').zfill(bits)  # Convert to binary based on values and # of bits defined above:
-        if bitVal[0:8] == '00000000':  # Keep if all bits = 0
-            goodQF.append(vals[v])     # Append to list
-            print('\n' + str(vals[v]) + ' = ' + str(bitVal))  # print good quality values
-
+        # Convert to binary based on values and # of bits defined above:
+        bitVal = format(vals[v], 'b').zfill(bits)
+        # Keep if all bits = 0
+        if bitVal[0:8] == '00000000':
+            # Append to list
+            goodQF.append(vals[v])
+            # DEV: print good quality values
+            # print('\n' + str(vals[v]) + ' = ' + str(bitVal))
 
     red = r * scale_factor
     green = g * scale_factor
@@ -181,21 +182,67 @@ def img_2_numpy(img):
         print("This file isn't MCD or VNP or VJ1! Exiting.")
         sys.exit(1)
 
-    return rgb
+    return rgb, img
 
 
-rgb = img_2_numpy(img_file)
+def do_plot(rgb, img_file, out_dir, contrast_stretch):
+    # Calculate 2nd,98th percentile for updating min/max vals
+    p2, p98 = np.percentile(rgb, (2, 98))
 
-p2, p98 = np.percentile(rgb, (2, 98))  # Calculate 2nd,98th percentile for updating min/max vals
-rgbStretched = exposure.rescale_intensity(rgb, in_range=(p2, p98))  # Perform contrast stretch on RGB range
-rgbStretched = exposure.adjust_gamma(rgbStretched, 0.5)  # Perform Gamma Correction
+    # Perform contrast stretch on RGB range
+    if contrast_stretch == True:
+        rgb_stretched = exposure.rescale_intensity(rgb, in_range=(p2, p98))
 
-fig = plt.figure(figsize=(10, 10))  # Set the figure size
-ax = plt.Axes(fig, [0, 0, 1, 1])
-ax.set_axis_off()  # Turn off axes
-fig.add_axes(ax)
-ax.imshow(rgbStretched, interpolation='bilinear', alpha=0.9)  # Plot a natural color RGB
-plt.show()
-fig.savefig('{}{}_RGB.png'.format(out_dir, img_file[:-3] + '_RGB.png'))  # Export natural color RGB as png
+    # Perform Gamma Correction
+    # rgb_stretched = exposure.adjust_gamma(rgb_stretched, 0.5)
+    rgb_stretched = exposure.adjust_gamma(rgb, 0.5)
+
+    # Set the figure size
+    fig = plt.figure(figsize=(10, 10))
+    ax = plt.Axes(fig, [0, 0, 1, 1])
+
+    # Turn off axes
+    #ax.set_axis_off()
+    fig.add_axes(ax)
+
+    fp = FontProperties(family='DejaVu Sans', size=16, weight='bold')
+    fig.suptitle(os.path.basename(img_file), fontproperties=fp, color='white')
+
+    # Plot a natural color RGB
+    ax.imshow(rgb_stretched, interpolation='bilinear', alpha=0.9)
+
+    plt.show()
+    # Export natural color RGB as png
+    fig.savefig('{}{}_RGB.png'.format(out_dir + '/', os.path.basename(img_file[:-3])))
 
 
+def main():
+    parser = argparse.ArgumentParser(description='Make NBAR pngs from directory '
+                                                 'of hdf or h5 files for V**43MA4 '
+                                                 'or MCD43A4')
+    parser.add_argument('-w', metavar='workspace', type=str, dest="workspace",
+                        help='Enter a workspace containing one or more VNP43MA4, VJ143MA4, or MCD43A4 files.')
+    parser.add_argument('-p', metavar='product', type=str, dest="product",
+                        help='Specify MCD, VNP, or VJ1')
+    parser.add_argument('-c', metavar='contrast_stretch', type=bool, default=False, dest="contrast_stretch",
+                        help='Enter True to perform a contrast stretch using 2nd - 98th percentile.')
+    args = parser.parse_args()
+
+    workspace = args.workspace
+    product = args.product
+    contrast_strech = args.contrast_stretch
+
+    os.chdir(workspace)
+    out_dir = os.path.join(workspace, 'output')
+    if not os.path.isdir(out_dir):
+        os.mkdir(out_dir)
+
+    h_file_list = glob(workspace + '/' + product + '*A4*.h*')
+    for h_file in h_file_list:
+        print(h_file)
+        rgb, img = img_2_numpy(h_file)
+        do_plot(rgb, img, out_dir, contrast_strech)
+
+
+if __name__ == '__main__':
+    main()
