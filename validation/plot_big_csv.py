@@ -6,6 +6,7 @@ import os, sys
 from csv import reader
 from glob import glob
 
+
 def make_ax(x, y, ax):
     # This is a density scatterplot; maybe tweak bins to get the look right
     hist = ax.hist2d(x, y, bins=200, norm=LogNorm(), range=[[0, 1.0], [0, 1.0]], cmap=plt.cm.YlGn)
@@ -54,15 +55,16 @@ tiles = ['h08v05', 'h09v04', 'h11v04', 'h12v04', 'h26v04', 'h30v11']
 
 workspace = '/ipswich/data02/arthur.elmes/comparo_results/csv/'
 
+# TODO define the number of rows based on length of csv_names
+fig, ax = plt.subplots(len(tiles), 3, figsize=(7, 3))
+fig.tight_layout(pad=3)
+
 for tile in tiles:
     csv_names = glob(os.path.join(workspace, tile) + '/*all.csv')
     # Maybe experiment with this?
     chunksize = 10 ** 6
 
     # Set up the figure first, then fill with axes
-    # TODO define the number of rows based on length of csv_names
-    fig, ax = plt.subplots(1, 3, figsize=(7, 3))
-    fig.tight_layout(pad=3)
 
     # ax counter
     i = 0
@@ -102,5 +104,5 @@ for tile in tiles:
         except:
             print("File could not be opened!")
             
-    fname = os.path.join(workspace, tile) + '/' + tile + '_2019_scatterplots.png'
-    fig.savefig(fname)
+fname = os.path.join(workspace, tile) + '/' + tile + '_2019_scatterplots.png'
+fig.savefig(fname)
