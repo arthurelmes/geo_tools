@@ -12,3 +12,4 @@ rGraphicsSettings.xml
 .#download_lance.sh
 .ipynb_checkpoint*
 .idea*
+./venv/*
