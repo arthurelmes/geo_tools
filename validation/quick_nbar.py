@@ -21,8 +21,8 @@ import argparse
 
 def vnp(vnp_file):
     # get date in a nice print-able format
-    yeardoy = vnp_file.split('.')[1][1:]
-    date = dt.datetime.strptime(yeardoy, '%Y%j').strftime('%m/%d/%Y')
+    #yeardoy = vnp_file.split('.')[1][1:]
+    #date = dt.datetime.strptime(yeardoy, '%Y%j').strftime('%m/%d/%Y')
 
     h5 = h5py.File(vnp_file)
     # print(list(h5.keys()))
@@ -97,8 +97,8 @@ def vnp(vnp_file):
 
 def mcd(mcd_file):
     # get date in a nice print-able format
-    yeardoy = mcd_file.split('.')[1][1:]
-    date = dt.datetime.strptime(yeardoy, '%Y%j').strftime('%m/%d/%Y')
+    #yeardoy = mcd_file.split('.')[1][1:]
+    #date = dt.datetime.strptime(yeardoy, '%Y%j').strftime('%m/%d/%Y')
 
     hdf_ds = SD(mcd_file, SDC.READ)
     # print(hdf_ds.info())
@@ -211,9 +211,14 @@ def do_plot(rgb, img_file, out_dir, contrast_stretch):
     # Plot a natural color RGB
     ax.imshow(rgb_stretched, interpolation='bilinear', alpha=0.9)
 
-    plt.show()
     # Export natural color RGB as png
-    fig.savefig('{}{}_RGB.png'.format(out_dir + '/', os.path.basename(img_file[:-3])))
+    if "MCD" in img_file:
+        fig.savefig('{}{}_RGB.png'.format(out_dir + '/', os.path.basename(img_file[:-4])))
+    else:
+        fig.savefig('{}{}_RGB.png'.format(out_dir + '/', os.path.basename(img_file[:-3])))
+
+    # Tidy up
+    plt.close('all')
 
 
 def main():

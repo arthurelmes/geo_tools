@@ -1,10 +1,21 @@
-# simple script to delete duplicated LC8 scenes based on scene id
+# simple script to delete duplicated files based on scene id (NOTE MUST MANUALLY ADJUST
+# file_name SLCING DEPENDING ON PRODUCT!!!)
 # Author: Arthur Elmes, 2020-02-25
 
 import os, glob, sys
 
-def main(wkdir):
-    print("Deleting duplicates in: " + str(wkdir))
+def main(wkdir, product):
+    print("Deleting duplicates in: " + str(wkdir) +  " for product: " + str(product))
+    if product == "LC8":
+        index = 29
+    elif product == "VNP" or product == "VJ1":
+        index = 22
+    elif product == "MCD":
+        index = 21
+    else:
+        print("Please enter a valid product from list: LC8, MCD, VNP, VJ1.")
+        sys.exit(1)
+        
     while True:
         num_files = 0
         num_dupes = 0
@@ -33,4 +44,4 @@ def main(wkdir):
             break
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    main(sys.argv[1], sys.argv[2])
