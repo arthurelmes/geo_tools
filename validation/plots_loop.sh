@@ -5,7 +5,7 @@
 in_dir="/ipswich/data02/arthur.elmes/"
 out_dir="/ipswich/data02/arthur.elmes/comparo_results/"
 
-tiles="h08v05 h11v09 h12v04"
+tiles="h09v04"
 
 if [ ! -d "${out_dir}" ];
 then
@@ -21,7 +21,7 @@ do
 	read -ra ARR <<< "${h_file}"
 	dt=`echo "${ARR[2]}"`
 	IFS=' '
-	mcd_mate=`find ${in_dir}/MCD43A3/${tile}/ -maxdepth 1 -type f -name MCD43A3*${dt}*`
+	mcd_mate=`find ${in_dir}/MCD43A3/2019/${tile}/ -maxdepth 1 -type f -name MCD43A3*${dt}*`
 	if [ ! -z "${mcd_mate}" ] && [ ! -z "${h_file}" ];
 	then
 	    python plot_two_tiles.py -d ${out_dir}/ -f1 ${mcd_mate} -f2 ${h_file}
@@ -34,7 +34,7 @@ do
 	read -ra ARR <<< "${h_file}"
 	dt=`echo "${ARR[2]}"`
 	IFS=' '
-	vj1_mate=`find ${in_dir}/VJ143MA3/${tile}/ -maxdepth 1 -type f -name VJ143MA3*${dt}*`
+	vj1_mate=`find ${in_dir}/VJ143MA3/2019/${tile}/ -maxdepth 1 -type f -name VJ143MA3*${dt}*`
 	if [ ! -z "${vj1_mate}" ] && [ ! -z "${h_file}" ];
 	then
 	    python plot_two_tiles.py -d ${out_dir}/ -f1 ${vj1_mate} -f2 ${h_file}
@@ -48,7 +48,7 @@ do
 	read -ra ARR <<< "${h_file}"
 	dt=`echo "${ARR[2]}"`
 	IFS=' '
-	vnp_mate=`find ${in_dir}/VJ143MA3/${tile}/ -maxdepth 1 -type f -name VJ143MA3*${dt}*`
+	vnp_mate=`find ${in_dir}/VJ143MA3/2019/${tile}/ -maxdepth 1 -type f -name VJ143MA3*${dt}*`
 	if [ ! -z "${vnp_mate}" ]  && [ ! -z "${h_file}" ];
 	then
 	    python plot_two_tiles.py -d ${out_dir}/ -f1 ${h_file} -f2 ${vnp_mate}
