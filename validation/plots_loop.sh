@@ -15,13 +15,14 @@ fi
 for tile in ${tiles};
 do
     # MCD43 vs VJ143
-    for h_file in ${in_dir}/VNP43MA3/${tile}/VNP43MA3*.h5; do
+    for h_file in ${in_dir}/VNP43MA3/2019/${tile}/VNP43MA3*.h5; do
 	# first grab the date portion to find matching file
 	IFS='.'
 	read -ra ARR <<< "${h_file}"
 	dt=`echo "${ARR[2]}"`
 	IFS=' '
 	mcd_mate=`find ${in_dir}/MCD43A3/2019/${tile}/ -maxdepth 1 -type f -name MCD43A3*${dt}*`
+	echo $out_dir $mcd_mate $h_file
 	if [ ! -z "${mcd_mate}" ] && [ ! -z "${h_file}" ];
 	then
 	    python plot_two_tiles.py -d ${out_dir}/ -f1 ${mcd_mate} -f2 ${h_file}
@@ -29,7 +30,7 @@ do
     done
 
     # VNP43 vs VJ143
-    for h_file in ${in_dir}/VNP43MA3/${tile}/VNP43MA3*.h5; do
+    for h_file in ${in_dir}/VNP43MA3/2019/${tile}/VNP43MA3*.h5; do
 	IFS='.'
 	read -ra ARR <<< "${h_file}"
 	dt=`echo "${ARR[2]}"`
@@ -43,7 +44,7 @@ do
     done
 
     # MCD43 vs VNP43
-    for h_file in ${in_dir}/MCD43A3/${tile}/MCD43A3*.hdf; do
+    for h_file in ${in_dir}/MCD43A3/2019/${tile}/MCD43A3*.hdf; do
 	IFS='.'
 	read -ra ARR <<< "${h_file}"
 	dt=`echo "${ARR[2]}"`
