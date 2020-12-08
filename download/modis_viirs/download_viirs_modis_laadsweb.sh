@@ -6,7 +6,7 @@ year=2019
 start_day=250
 end_day=365
 #tiles="h08v05 h09v04 h11v04 h11v09 h12v04 h16v02 h26v04 h30v11"
-tiles="h09v04 h11v04"
+tiles="h11v04"
 
 for product in ${products};
 do
