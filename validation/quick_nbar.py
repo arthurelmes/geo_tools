@@ -211,8 +211,6 @@ def do_plot(rgb, img_file, out_dir, contrast_stretch, low, high):
     # Plot a natural color RGB
     ax.imshow(rgb_stretched, interpolation='bilinear', alpha=0.9)
 
-    plt.show()
-
     # Export natural color RGB as png
     if "MCD" in img_file:
         fig.savefig('{}{}_RGB.png'.format(out_dir + '/', os.path.basename(img_file[:-4])))
