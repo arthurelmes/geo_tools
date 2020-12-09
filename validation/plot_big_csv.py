@@ -11,7 +11,6 @@ def make_ax(x, y, ax):
     # This is a density scatterplot; maybe tweak bins to get the look right
     hist = ax.hist2d(x, y, bins=200, norm=LogNorm(), range=[[0, 1.0], [0, 1.0]], cmap=plt.cm.YlGn)
 
-    fig.set_facecolor('black')
     ax.set_facecolor('black')
     ax.tick_params(colors='white')
     ax.spines['bottom'].set_color('white')
@@ -20,8 +19,8 @@ def make_ax(x, y, ax):
     ax.set_ylabel(sample.columns[1])
     ax.xaxis.label.set_color('white')
     ax.yaxis.label.set_color('white')
-    ax.set_title(tile)
-    ax.title.set_color('white')
+    # ax.set_title(tile)
+    # ax.title.set_color('white')
 
     # Add x=y line
     lims = [
@@ -56,8 +55,11 @@ tiles = ['h08v05', 'h09v04', 'h11v04', 'h12v04', 'h26v04', 'h30v11']
 workspace = '/ipswich/data02/arthur.elmes/comparo_results/csv/'
 
 # TODO define the number of rows based on length of csv_names
-fig, ax = plt.subplots(len(tiles), 3, figsize=(7, 3))
+fig, ax = plt.subplots(len(tiles), 3, figsize=(7, len(tiles)*2))
 fig.tight_layout(pad=3)
+fig.set_facecolor('black')
+i = 0
+j = 0
 
 for tile in tiles:
     csv_names = glob(os.path.join(workspace, tile) + '/*all.csv')
@@ -65,9 +67,7 @@ for tile in tiles:
     chunksize = 10 ** 6
 
     # Set up the figure first, then fill with axes
-
     # ax counter
-    i = 0
     year = ''
     tile = ''
     for csv_name in csv_names:
@@ -79,30 +79,39 @@ for tile in tiles:
                 csv_reader = reader(read_object)
                 header = next(csv_reader)
 
-            # Pull the tile and year from filename
-            tile = os.path.basename(csv_name)[:6]
-            year = os.path.basename(csv_name)[7:11]
+                # Pull the tile and year from filename
+                tile = os.path.basename(csv_name)[:6]
+                year = os.path.basename(csv_name)[7:11]
 
-            # Create an empty df to add to
-            sample = pd.DataFrame(columns=header)
+                # Create an empty df to add to
+                sample = pd.DataFrame(columns=header)
 
-            # The csvs are so huge we have to step through them in chunks
-            for chunk in pd.read_csv(csv_name, chunksize=chunksize):
-                subset = chunk.loc[np.random.choice(chunk.index, 30, replace=False)]
-                sample = sample.append(subset)
+                # The csvs are so huge we have to step through them in chunks
+                for chunk in pd.read_csv(csv_name, chunksize=chunksize):
+                    subset = chunk.loc[np.random.choice(chunk.index, 1, replace=False)]
+                    sample = sample.append(subset)
 
-            # Mask out 32.767 values which should have already been removed!!
-            nodata_masked = np.ma.masked_array(sample, sample == 32.767)
-            sample_masked = np.ma.filled(nodata_masked, np.nan)
+                # Mask out 32.767 values which should have already been removed!!
+                nodata_masked = np.ma.masked_array(sample, sample == 32.767)
+                sample_masked = np.ma.filled(nodata_masked, np.nan)
 
-            # Set the x and y from the masked data
-            x = sample_masked[:, 0]
-            y = sample_masked[:, 1]
+                # Set the x and y from the masked data
+                x = sample_masked[:, 0]
+                y = sample_masked[:, 1]
+                print(j, i)
+                try:
+                    make_ax(x, y, ax[j, i])
+                except:
+                    print("Error making graph for {}".format(x=ax[j, i]))
 
-            make_ax(x, y, ax[i])
-            i += 1
+                if i < 2:
+                    i += 1
+                else:
+                    i = 0
+                    j += 1
         except:
-            print("File could not be opened!")
+            print("File could not be opened: {x}".format(x=csv_name))
             
-fname = os.path.join(workspace, tile) + '/' + tile + '_2019_scatterplots.png'
+fname = os.path.join(workspace) + '/' + '2019_scatterplots.png'
+print("Saving file as: {x}".format(x=fname))
 fig.savefig(fname)
