@@ -9,7 +9,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-import os
+import os, sys, csv
 
 
 #TODO change to CLI arg
@@ -20,9 +20,21 @@ workspace = '/home/arthur/Dropbox/projects/modis_viirs_continuity/in_situ/'
 # These should be the the SURFRAD standard abbreviations
 stn_list = ['drk', 'tbl', 'ftp', 'sxf']
 
-for stn_wsa in stn_list:
+# make csv to hold stats
+stats_fields = ['stn', 'rmse_mcd_sfrd', 'mb_mcd_sfrd', 'rmse_vnp_sfrd', 'mb_vnp_sfrd', 'rmse_vj1_sfrd', 'mb_vj1_sfrd']
+csv_fname = workspace + '/sfrd_stats.csv'
+
+with open(csv_fname, 'w') as csvfile:
+    # creating a csv writer object
+    csvwriter = csv.writer(csvfile)
+
+    # writing the fields
+    csvwriter.writerow(stats_fields)
+
+
+for stn in stn_list:
     os.chdir(os.path.join(workspace, 'surfrad'))
-    sfrd = pd.read_csv(stn_wsa + '_2019.csv')
+    sfrd = pd.read_csv(stn + '_2019.csv')
 
     # Extracted data from MODIS/VIIRS
     mcd = pd.read_csv(os.path.join(workspace, 'extracted', 'mcd')
@@ -34,14 +46,14 @@ for stn_wsa in stn_list:
     vj1 = pd.read_csv(os.path.join(workspace, 'extracted', 'vj1')
                       + '/surfrad_sites_subset_formatted_extracted_values_VJ143MA3.csv',
                       index_col=0)
-    wsa = stn_wsa + '_wsa'
-    bsa = stn_wsa + '_bsa'
-    wsa_mcd = stn_wsa + '_wsa_mcd'
-    bsa_mcd = stn_wsa + '_bsa_mcd'
-    wsa_vnp = stn_wsa + '_wsa_vnp'
-    bsa_vnp = stn_wsa + '_bsa_vnp'
-    wsa_vj1 = stn_wsa + '_wsa_vj1'
-    bsa_vj1 = stn_wsa + '_bsa_vj1'
+    wsa = stn + '_wsa'
+    bsa = stn + '_bsa'
+    wsa_mcd = stn + '_wsa_mcd'
+    bsa_mcd = stn + '_bsa_mcd'
+    wsa_vnp = stn + '_wsa_vnp'
+    bsa_vnp = stn + '_bsa_vnp'
+    wsa_vj1 = stn + '_wsa_vj1'
+    bsa_vj1 = stn + '_bsa_vj1'
 
     # Make the WSA variables distinguishable
     mcd.rename(columns={wsa: wsa_mcd,
@@ -66,13 +78,10 @@ for stn_wsa in stn_list:
     sfrd = sfrd.join(vnp,  lsuffix='_sfrd', rsuffix='_snsr')
     sfrd = sfrd.join(vj1,  lsuffix='_sfrd', rsuffix='_snsr')
 
-    print(sfrd.info())
-
     stn_wsa_col = sfrd['gnd_mean']
-    mcd = sfrd[stn_wsa + '_wsa_mcd']
-    vnp = sfrd[stn_wsa + '_wsa_vnp']
-    vj1 = sfrd[stn_wsa + '_wsa_vj1']
-
+    mcd = sfrd[stn + '_wsa_mcd']
+    vnp = sfrd[stn + '_wsa_vnp']
+    vj1 = sfrd[stn + '_wsa_vj1']
 
     #TODO this should obviously be a function
     # Calculate RMSE and Mean Bias
@@ -83,12 +92,10 @@ for stn_wsa in stn_list:
     rmse_vj1_sfrd = ((stn_wsa_col - vj1) ** 2).mean() ** 0.5
     mb_vj1_sfrd = stn_wsa_col.mean() - vj1.mean()
 
-    print(rmse_mcd_sfrd)
-    print(mb_mcd_sfrd)
-    print(rmse_vnp_sfrd)
-    print(mb_vnp_sfrd)
-    print(rmse_vj1_sfrd)
-    print(mb_vj1_sfrd)
+    stats_row = [stn, rmse_mcd_sfrd, mb_mcd_sfrd, rmse_vnp_sfrd, mb_vnp_sfrd, rmse_vj1_sfrd, mb_vj1_sfrd]
+    with open(csv_fname, 'a+', newline='') as write_obj:
+        csv_writer = csv.writer(write_obj)
+        csv_writer.writerow(stats_row)
 
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(10,3))
     ax1.set_facecolor('k')
@@ -103,16 +110,33 @@ for stn_wsa in stn_list:
     fig.text(0.5, 0.0, 'SURFRAD Albedo', ha='center')
 
     fig.legend(loc='lower right', bbox_to_anchor=(0.21, 0.68))
-
     fig.tight_layout()
-    plt.savefig(workspace + 'test_scatters.png')
+    plt.savefig(workspace + stn + '_sat_vs_surfrad_scatters.png')
     plt.show()
 
     # This plots the satellite and SURFRAD data against DOY, so a time series
     sfrd.reset_index(inplace=True)
     doy = sfrd['doy']
 
+    # Slapdash conversion between stn abbr and full namm
+    #TODO this should be done with a dictionary instead, way above, that is iterated over
+
+    ['drk', 'tbl', 'ftp', 'sxf']
+    if stn == 'drk':
+        stn_full = 'Desert Rock, NV'
+    elif stn == 'tbl':
+        stn_full = 'Table Mountain, CO'
+    elif stn == 'ftp':
+        stn_full = 'Fort Peck, MT'
+    elif stn == 'sxf':
+        stn_full = 'Sioux Falls, SD'
+    else:
+        print('Station name error!')
+        sys.exit(1)
+
     fig2, ax = plt.subplots(figsize=(8, 6))
+
+    ax.set_title(stn_full)
     ax.set_facecolor('k')
 
     ax.scatter(doy, stn_wsa_col, color='#1b9e77', marker='o', s=5, label='SURFRAD')
@@ -124,5 +148,8 @@ for stn_wsa in stn_list:
     ax.set_ylabel('Albedo')
 
     ax.legend()
-    plt.savefig(workspace + 'test_timeseries.png')
+    # txt_rmse = 'RMSE=' + str(round(rmse_mcd_sfrd, 4))
+    # txt_mb = 'MB = ' + str(round(mb_mcd_sfrd, 4))
+    # fig2.text(0.8, 0.85, txt_rmse, color='white')
+    plt.savefig(workspace + stn + '_timeseries.png')
     plt.show()
