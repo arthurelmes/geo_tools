@@ -83,6 +83,8 @@ def plot_data(cmb_data, labels, stats, workspace):
 
     fig = plt.figure(figsize=(7, 5))
     ax = fig.add_subplot(111)
+    fig.tight_layout(pad=3)
+    fig.set_facecolor('black')
     
     # Get rid of all the masked data by filling with nans and then removing them
     cmb_data_nans = np.ma.filled(cmb_data, np.nan)
@@ -93,13 +95,24 @@ def plot_data(cmb_data, labels, stats, workspace):
     y = cmb_data_nans[:, 1]
 
     hist = plt.hist2d(cmb_data_nans[:, 0], cmb_data_nans[:, 1], bins=200, norm=LogNorm(),
-                      range=[[0, 1.0], [0, 1.0]], cmap=plt.cm.YlOrRd)
+                      range=[[0, 1.0], [0, 1.0]], cmap=plt.cm.YlGn)
+    ax.set_facecolor('black')
+    ax.tick_params(colors='white')
+    ax.spines['bottom'].set_color('white')
+    ax.spines['left'].set_color('white')
+    ax.xaxis.label.set_color('white')
+    ax.yaxis.label.set_color('white')
+    
+    cb = fig.colorbar(hist[3])
+    cb.ax.yaxis.set_tick_params(color='white')
+    cb.outline.set_edgecolor('white')
+    plt.setp(plt.getp(cb.ax.axes, 'yticklabels'), color='white')
+    
+    ax.set_title(labels[0] + "_"+ labels[3])
+    ax.title.set_color('white')
 
-    plt.colorbar(hist[3])
-    plt.title(labels[0] + '_' + labels[1] + "_"+ labels[3])
-
-    plt.xlabel(labels[1] + " " + labels[4] + ' ' + labels[3].replace('_', ' '))
-    plt.ylabel(labels[2] + " " + labels[5] + ' ' + labels[3].replace('_', ' '))
+    ax.set_xlabel(labels[1] + " " + labels[4] + ' ' + labels[3].replace('_', ' '))
+    ax.set_ylabel(labels[2] + " " + labels[5] + ' ' + labels[3].replace('_', ' '))
 
     # Add text box with RMSE and mean bias
     textstr = '\n'.join((
@@ -107,7 +120,7 @@ def plot_data(cmb_data, labels, stats, workspace):
         r'$\mathrm{MeanBias}=%.4f$' % (stats[1], )))
 
     props = dict(boxstyle='round', facecolor='white', alpha=0.5)
-    plt.text(0.05, 0.95, textstr, fontsize=14, verticalalignment='top', bbox=props)
+    ax.text(0.05, 0.95, textstr, fontsize=14, verticalalignment='top', bbox=props)
 
     # Add x=y line
     lims = [
@@ -116,20 +129,19 @@ def plot_data(cmb_data, labels, stats, workspace):
     ]
 
     # Plot limits against each other for 1:1 line
-    plt.plot(lims, lims, 'k-', alpha=0.75, zorder=1)
-    plt.xlim(lims)
-    plt.ylim(lims)
+    ax.plot(lims, lims, 'y-', alpha=0.75, zorder=1)
+    ax.set_xlim(lims)
+    ax.set_ylim(lims)
 
     # Export data as CSV in case needed
     hdrs = str(labels[1] + "." + labels[4] + "," + labels[2] + "." + labels[5])
-    print(hdrs)
     csv_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[2] + "_" + labels[3] + "_data.csv")
     np.savetxt(csv_name, cmb_data_nans, delimiter=",", header=hdrs, comments='')
 
     plt_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[4] + "_vs_"\
                             + labels[2] + "_" + labels[5] + "_" + labels[3])
     print('Saving plot to: ' + '{plt_name}.png'.format(plt_name=plt_name))
-    plt.savefig('{plt_name}.png'.format(plt_name=plt_name))
+    fig.savefig('{plt_name}.png'.format(plt_name=plt_name))
 
 
 def main():
