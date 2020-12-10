@@ -195,7 +195,7 @@ def do_plot(rgb, img_file, out_dir, contrast_stretch, low, high):
 
     # Perform Gamma Correction
     # rgb_stretched = exposure.adjust_gamma(rgb_stretched, 0.5)
-    rgb_stretched = exposure.adjust_gamma(rgb, 0.5)
+    rgb_stretched = exposure.adjust_gamma(rgb, 0.75)
 
     # Set the figure size
     fig = plt.figure(figsize=(10, 10))
