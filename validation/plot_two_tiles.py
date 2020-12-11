@@ -108,7 +108,7 @@ def plot_data(cmb_data, labels, stats, workspace):
     cb.outline.set_edgecolor('white')
     plt.setp(plt.getp(cb.ax.axes, 'yticklabels'), color='white')
     
-    ax.set_title(labels[0] + "_" + labels[3][0] + labels[3][1])
+    ax.set_title(labels[0] + "_" + labels[3][0] + " " + labels[3][1])
     ax.title.set_color('white')
 
     ax.set_xlabel(labels[1] + " " + labels[4] + ' ' + labels[3][0].replace('_', ' '))
