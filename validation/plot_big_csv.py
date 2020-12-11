@@ -92,7 +92,7 @@ for tile in tiles:
 
             # The csvs are so huge we have to step through them in chunks
             for chunk in pd.read_csv(csv_name, chunksize=chunksize):
-                subset = chunk.loc[np.random.choice(chunk.index, 30, replace=False)]
+                subset = chunk.loc[np.random.choice(chunk.index, 100, replace=False)]
                 sample = sample.append(subset)
 
             # Mask out 32.767 values which should have already been removed!!
