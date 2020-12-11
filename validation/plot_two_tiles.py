@@ -142,7 +142,7 @@ def plot_data(cmb_data, labels, stats, workspace):
     plt_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[4] + "_vs_"
                             + labels[2] + "_" + labels[5] + "_" + labels[3][0] + "_vs_" + labels[3][1])
     print('Saving plot to: ' + '{plt_name}.png'.format(plt_name=plt_name))
-    fig.savefig('{plt_name}.png'.format(plt_name=plt_name))
+    fig.savefig('{plt_name}.png'.format(plt_name=plt_name), facecolor='black')
 
 
 def main():
@@ -174,10 +174,13 @@ def main():
     band2 = args.band2
     product = args.product
 
-    os.chdir(workspace_out)
+    # Check that MCD is the f1 if f2 is VIIRS, because of silly way of handling resolution mismatch currently
+    if "MCD" in tile2_fname:
+        if "VNP" in tile1_fname or "VJ1" in tile1_fname:
+            print("MCD file must be file1 if a MODIS/VIIRS comparison is being made!")
+            sys.exit(1)
 
-    #sds_name = "Albedo_WSA_shortwave"
-    #qa_name = "BRDF_Albedo_Band_Mandatory_Quality_shortwave"
+    os.chdir(workspace_out)
 
     # Will need different style sds names for modis vs viirs
     sds1_name = "Albedo_{}_{}".format(product, band1)
@@ -190,6 +193,7 @@ def main():
     tile2_deets = determine_sensor(tile2_fname.split("/")[-1])
     labels = (tile1_deets[0], tile1_deets[1], tile2_deets[1], (sds1_name, sds2_name), tile1_deets[2], tile2_deets[2])
 
+
     # Convert both tiles' data and qa to numpy arrays for plotting
     tile1_data = get_data(os.path.join(tile1_fname), sds1_name)
     tile1_qa = get_data(os.path.join(tile1_fname), qa1_name)
@@ -199,10 +203,12 @@ def main():
     # Call masking function to cleanup data
     tile1_qa_masked = mask_qa(tile1_data, tile1_qa)
     tile2_qa_masked = mask_qa(tile2_data, tile2_qa)
-   
+
+
     # Take every other pixel if comparing MCD (500m) and VNP/VJ1 (1km). If both datasets are the same, do nothing.
     #TODO This is janky because it requires that the MCD is entered first, right? Add some thing to fix this
-    if ("MCD" in labels[1] and "VNP" in labels[2]) or ("MCD" in labels[1] and "VJ1" in labels[2]):
+    if ("MCD" in labels[1] and "VNP" in labels[2] and "MA" in labels[2]) or \
+            ("MCD" in labels[1] and "VJ1" in labels[2] and "MA" in labels[2]):
         print('Subsampling every other pixel in MCD because of resolution mismatch.')
         tile1_qa_masked = tile1_qa_masked[::2, ::2]
     else:
