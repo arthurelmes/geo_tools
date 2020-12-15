@@ -222,6 +222,7 @@ def main():
     rmse = ((cmb_data_df[0] - cmb_data_df[1]) ** 2).mean() ** 0.5
     mb = cmb_data_df[0].mean() - cmb_data_df[1].mean()
     stats_csv_name = (os.path.join(workspace_out, tile1_deets[0] + "_stats.csv"))
+    print('Writing stats to: {}'.format(stats_csv_name))
     stats = (rmse, mb)
     header = ['RMSE', 'Mean Bias F1 - F2', 'F1', 'F2', 'B1', 'B2']
 

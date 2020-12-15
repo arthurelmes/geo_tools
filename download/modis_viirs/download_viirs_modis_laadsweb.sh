@@ -1,9 +1,9 @@
 #!/bin/bash
 
 AS="3339"
-products="VNP43MA3 VJ143MA3"
+products="VNP43IA3 VJ143IA3"
 year=2019
-start_day=250
+start_day=1
 end_day=365
 #tiles="h08v05 h09v04 h11v04 h11v09 h12v04 h16v02 h26v04 h30v11"
 tiles="h11v04 h09v04"

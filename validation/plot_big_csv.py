@@ -19,8 +19,8 @@ def make_ax(x, y, ax):
     ax.set_ylabel(sample.columns[1])
     ax.xaxis.label.set_color('white')
     ax.yaxis.label.set_color('white')
-    # ax.set_title(tile)
-    # ax.title.set_color('white')
+    ax.set_title('{} {} vs {} {}'.format(tile, prod1, prod2, band))
+    ax.title.set_color('white')
 
     # Add x=y line
     lims = [
@@ -29,7 +29,7 @@ def make_ax(x, y, ax):
     ]
 
     # Plot limits against each other for 1:1 line
-    ax.plot(lims, lims, 'y-', alpha=0.75, zorder=1)
+    ax.plot(lims, lims, 'deeppink', alpha=0.75, zorder=1)
     ax.set_xlim(lims)
     ax.set_ylim(lims)
 
@@ -52,71 +52,80 @@ def make_ax(x, y, ax):
 # Here, loop over all pairs of x,y from the different tiles, which are in
 # different CSV files
 #tiles = ['h08v05', 'h09v04', 'h11v04', 'h11v09', 'h12v04', 'h16v02', 'h26v04', 'h30v11']
-tiles = [sys.argv[1]]
+#tiles = [sys.argv[1]]
+tile = sys.argv[1]
+band = sys.argv[2]
+prod1 = sys.argv[3]
+prod2 = sys.argv[4]
 workspace = '/ipswich/data02/arthur.elmes/comparo_results/csv/'
 
 # TODO define the number of rows based on length of csv_names
 # fig, ax = plt.subplots(len(tiles), 3, figsize=(7, len(tiles)*2))
-fig, ax = plt.subplots(len(tiles), 3, figsize=(12, 4))
+#fig, ax = plt.subplots(len(tiles), 3, figsize=(12, 4))
+fig, ax = plt.subplots(1, 1, figsize=(4, 4))
 fig.tight_layout(pad=3)
 fig.set_facecolor('black')
-fig.text(0.5, 0.95, tiles[0], color='white')
+#fig.text(0.5, 0.95, tiles[0] + ' ' + band, color='white')
 
 i = 0
 j = 0
 
-for tile in tiles:
-    csv_names = glob(os.path.join(workspace, tile) + '/*all.csv')
-    # Maybe experiment with this?
-    chunksize = 10 ** 6
+#for tile in tiles:
+#csv_names = glob(os.path.join(workspace, tile) + '/*all*{}.csv'.format(band))
+print(os.path.join(workspace, tile) + '/{}*{}_{}*all*{}.csv'.format(tile, prod1, prod2, band))
+csv_name = glob(os.path.join(workspace, tile) + '/{}*{}_{}*all*{}.csv'.format(tile, prod1, prod2, band))
+csv_name = csv_name[0]
+print(csv_name)
 
-    # Set up the figure first, then fill with axes
-    # ax counter
-    year = ''
-    tile = ''
-    for csv_name in csv_names:
-        print(csv_name)
-        # Get the header names
-        header = []
-        # try
-        with open(csv_name, 'r') as read_object:
-            csv_reader = reader(read_object)
-            header = next(csv_reader)
+# Maybe experiment with this?
+chunksize = 10 ** 6
 
-            # Pull the tile and year from filename
-            tile = os.path.basename(csv_name)[:6]
-            year = os.path.basename(csv_name)[7:11]
+# Set up the figure first, then fill with axes
+# ax counter
+year = ''
+tile = ''
+#for csv_name in csv_names:
 
-            # Create an empty df to add to
-            sample = pd.DataFrame(columns=header)
+print(csv_name)
+# Get the header names
+header = []
+# try
+with open(csv_name, 'r') as read_object:
+    csv_reader = reader(read_object)
+    header = next(csv_reader)
 
-            # The csvs are so huge we have to step through them in chunks
-            for chunk in pd.read_csv(csv_name, chunksize=chunksize):
-                subset = chunk.loc[np.random.choice(chunk.index, 100, replace=False)]
-                sample = sample.append(subset)
+    # Pull the tile and year from filename
+    tile = os.path.basename(csv_name)[:6]
+    year = os.path.basename(csv_name)[7:11]
 
-            # Mask out 32.767 values which should have already been removed!!
-            nodata_masked = np.ma.masked_array(sample, sample == 32.767)
-            sample_masked = np.ma.filled(nodata_masked, np.nan)
+    # Create an empty df to add to
+    sample = pd.DataFrame(columns=header)
 
-            # Set the x and y from the masked data
-            x = sample_masked[:, 0]
-            y = sample_masked[:, 1]
-            try:
-                # make_ax(x, y, ax[j, i])
-                make_ax(x, y, ax[i])
-            except:
-                # print("Error making graph for {}".format(x=ax[j, i]))
-                print("Error making graph for {}".format(x=ax[j, i]))
+    # The csvs are so huge we have to step through them in chunks
+    for chunk in pd.read_csv(csv_name, chunksize=chunksize):
+        subset = chunk.loc[np.random.choice(chunk.index, 100, replace=False)]
+        sample = sample.append(subset)
 
-            if i < 2:
-                i += 1
-            else:
-                i = 0
-                j += 1
-        # except:
-        #     print("File could not be opened: {x}".format(x=csv_name))
-            
-fname = os.path.join(workspace) + '/' + tiles[0] + '_2019_scatterplots.png'
+    # Mask out 32.767 values which should have already been removed!!
+    nodata_masked = np.ma.masked_array(sample, sample == 32.767)
+    sample_masked = np.ma.filled(nodata_masked, np.nan)
+
+    # Set the x and y from the masked data
+    x = sample_masked[:, 0]
+    y = sample_masked[:, 1]
+    try:
+        # make_ax(x, y, ax[j, i])
+        make_ax(x, y, ax)
+    except:
+        # print("Error making graph for {}".format(x=ax[j, i]))
+        print("Error making graph for {}".format(x=ax))
+
+    if i < 2:
+        i += 1
+    else:
+        i = 0
+        j += 1
+
+fname = os.path.join(workspace) + '/{}_{}_vs_{}_{}_2019_scatterplots.png'.format(tile, prod1, prod2, band)
 print("Saving file as: {x}".format(x=fname))
 fig.savefig(fname)
