@@ -5,7 +5,7 @@ Author: Arthur Elmes
 Date: 2020-12-11"""
 
 import pandas as pd
-import os
+import os, sys
 import matplotlib.pyplot as plt
 import numpy as np
 from glob import glob
@@ -50,12 +50,35 @@ def plot_stats(df_list, out_name):
 
         ax[0].plot(x, y, c='orange')
         ax[1].plot(x, z, c='turquoise')
+        ax[1].axhline(0, c='white', ls='--')
 
-        fig.suptitle(out_name, color='white')
+        fig.suptitle(' '.join(out_name.split('_')), color='white')
         fig.savefig(workspace + "{}_{}.png".format(out_name, df.name), facecolor='k')
+        plt.close()
 
 
-def split_by_products(df):
+def modis_viirs_band(modis_band):
+    bands = {'Band1': 'M5',
+             'Band2': 'M7',
+             'Band3': 'M3',
+             'Band4': 'M4',
+             'Band5': 'M8',
+             'Band6': 'M10',
+             'Band7': 'M11',
+             'nir': 'nir',
+             'shortwave': 'shortwave',
+             'vis': 'vis'}
+    viirs_band = bands[modis_band]
+    return viirs_band
+
+
+def split_by_products(stats, band):
+    # Subset by band
+    v_band = modis_viirs_band(band_name)
+    m_band = band
+
+    stats = stats.loc[(stats['B1'] == m_band) | (stats['B1'] == v_band)].copy()
+
     # Clean up df and add date index
     stats['doy'] = stats['F2'].apply(lambda x: x[14:17])
     stats['year'] = stats['F2'].apply(lambda x: x[10:14])
@@ -90,11 +113,14 @@ def split_by_products(df):
 workspace = '/home/arthur/Dropbox/projects/modis_viirs_continuity/sensor_intercompare/stats/'
 os.chdir(workspace)
 
+bands = ['Band1', 'Band2', 'Band3', 'Band4', 'Band5', 'Band6', 'Band7', 'nir', 'shortwave', 'vis']
 csvs = glob(workspace + "*stats.csv")
 
-for csv in csvs:
-    stats = pd.read_csv(csv)
+for band_name in bands:
+    for csv in csvs:
+        stats_csv = pd.read_csv(csv)
 
-    # Run everything
-    dfs = split_by_products(stats)
-    plot_stats(dfs, os.path.basename(csv)[:6])
+        v_band = modis_viirs_band(band_name)
+        # Run everything
+        dfs = split_by_products(stats_csv, band_name)
+        plot_stats(dfs, os.path.basename(csv)[:6] + "_" + band_name + "_" + v_band)
