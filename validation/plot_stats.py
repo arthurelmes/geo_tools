@@ -9,6 +9,41 @@ import os, sys
 import matplotlib.pyplot as plt
 import numpy as np
 from glob import glob
+import csv
+
+
+def write_csv(tile_n, m, v, rmse, mb):
+    # if no csv exists, create it, otherwise append stats
+    stats_csv_name = (os.path.join(workspace, "summary_stats.csv"))
+    print('Writing stats to: {}'.format(stats_csv_name))
+    stats_write = (rmse, mb)
+    header = ['Tile', 'RMSE grand mean', 'Mean Bias F1 - F2 _grand_mean', 'Band 1', 'Band 2']
+
+    if os.path.isfile(stats_csv_name):
+        with open(stats_csv_name, 'a+', newline='') as write_obj:
+            # Create a writer object from csv module
+            csv_writer = csv.DictWriter(write_obj, fieldnames=header)
+
+            # Add contents of list as last row in the csv file
+            csv_writer.writerow({'Tile': tile_n,
+                                 'RMSE grand mean': stats_write[0],
+                                 'Mean Bias F1 - F2 _grand_mean': stats_write[1],
+                                 'Band 1': m,
+                                 'Band 2': v})
+    else:
+        with open(stats_csv_name, 'w', newline='') as write_obj:
+            # Create a writer object from csv module
+            csv_writer = csv.DictWriter(write_obj, fieldnames=header)
+
+            # Initialize the new file with headers
+            csv_writer.writeheader()
+
+            # Add contents of list as last row in the csv file
+            csv_writer.writerow({'Tile': tile_n,
+                                 'RMSE grand mean': stats_write[0],
+                                 'Mean Bias F1 - F2 _grand_mean': stats_write[1],
+                                 'Band 1': m,
+                                 'Band 2': v})
 
 
 def compose_date(years, months=1, days=1, weeks=None, hours=None, minutes=None,
@@ -53,7 +88,7 @@ def plot_stats(df_list, out_name):
         ax[1].axhline(0, c='white', ls='--')
 
         fig.suptitle(' '.join(out_name.split('_')), color='white')
-        fig.savefig(workspace + "{}_{}.png".format(out_name, df.name), facecolor='k')
+        fig.savefig(workspace + "/png/{}_{}.png".format(out_name, df.name), facecolor='k')
         plt.close()
 
 
@@ -72,7 +107,7 @@ def modis_viirs_band(modis_band):
     return viirs_band
 
 
-def split_by_products(stats, band):
+def split_by_products(stats, band, tile_n):
     # Subset by band
     v_band = modis_viirs_band(band_name)
     m_band = band
@@ -106,21 +141,27 @@ def split_by_products(stats, band):
     stats_vj1_vnp.name = 'VJ1_vs_VNP'
     # print(stats_vj1_vnp.head())
 
+    # Append results to an aggregate csv
+    write_csv(tile_n, m_band, v_band, stats_vj1_vnp['RMSE'].mean(), stats_vj1_vnp['MB'].mean())
+
     dfs = [stats_mcd_vnp, stats_mcd_vj1, stats_vj1_vnp]
     return dfs
 
 
 workspace = '/home/arthur/Dropbox/projects/modis_viirs_continuity/sensor_intercompare/stats/'
 os.chdir(workspace)
-
 bands = ['Band1', 'Band2', 'Band3', 'Band4', 'Band5', 'Band6', 'Band7', 'nir', 'shortwave', 'vis']
-csvs = glob(workspace + "*stats.csv")
+csvs = glob(workspace + "h*stats.csv")
+
+if os.path.isfile((os.path.join(workspace, "summary_stats.csv"))):
+    os.remove((os.path.join(workspace, "summary_stats.csv")))
 
 for band_name in bands:
-    for csv in csvs:
-        stats_csv = pd.read_csv(csv)
-
+    for csv_n in csvs:
+        stats_csv = pd.read_csv(csv_n)
         v_band = modis_viirs_band(band_name)
+        tile = csv_n.split('/')[-1][:6]
+
         # Run everything
-        dfs = split_by_products(stats_csv, band_name)
-        plot_stats(dfs, os.path.basename(csv)[:6] + "_" + band_name + "_" + v_band)
+        dfs = split_by_products(stats_csv, band_name, tile)
+        plot_stats(dfs, os.path.basename(csv_n)[:6] + "_" + band_name + "_" + v_band)
