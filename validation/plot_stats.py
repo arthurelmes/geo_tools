@@ -12,12 +12,12 @@ from glob import glob
 import csv
 
 
-def write_csv(tile_n, m, v, rmse, mb):
+def write_csv(tile_n, m, v, rmse, mb, sns):
     # if no csv exists, create it, otherwise append stats
     stats_csv_name = (os.path.join(workspace, "summary_stats.csv"))
     print('Writing stats to: {}'.format(stats_csv_name))
     stats_write = (rmse, mb)
-    header = ['Tile', 'RMSE grand mean', 'Mean Bias F1 - F2 _grand_mean', 'Band 1', 'Band 2']
+    header = ['Tile', 'RMSE grand mean', 'Mean Bias F1 - F2 _grand_mean', 'Band 1', 'Band 2', 'Sensor vs Sensor']
 
     if os.path.isfile(stats_csv_name):
         with open(stats_csv_name, 'a+', newline='') as write_obj:
@@ -29,7 +29,8 @@ def write_csv(tile_n, m, v, rmse, mb):
                                  'RMSE grand mean': stats_write[0],
                                  'Mean Bias F1 - F2 _grand_mean': stats_write[1],
                                  'Band 1': m,
-                                 'Band 2': v})
+                                 'Band 2': v,
+                                 'Sensor vs Sensor': sns})
     else:
         with open(stats_csv_name, 'w', newline='') as write_obj:
             # Create a writer object from csv module
@@ -43,7 +44,8 @@ def write_csv(tile_n, m, v, rmse, mb):
                                  'RMSE grand mean': stats_write[0],
                                  'Mean Bias F1 - F2 _grand_mean': stats_write[1],
                                  'Band 1': m,
-                                 'Band 2': v})
+                                 'Band 2': v,
+                                 'Sensor vs Sensor': sns})
 
 
 def compose_date(years, months=1, days=1, weeks=None, hours=None, minutes=None,
@@ -142,7 +144,9 @@ def split_by_products(stats, band, tile_n):
     # print(stats_vj1_vnp.head())
 
     # Append results to an aggregate csv
-    write_csv(tile_n, m_band, v_band, stats_vj1_vnp['RMSE'].mean(), stats_vj1_vnp['MB'].mean())
+    write_csv(tile_n, m_band, v_band, stats_mcd_vnp['RMSE'].mean(), stats_mcd_vnp['MB'].mean(), stats_mcd_vnp.name)
+    write_csv(tile_n, m_band, v_band, stats_mcd_vj1['RMSE'].mean(), stats_mcd_vj1['MB'].mean(), stats_mcd_vj1.name)
+    write_csv(tile_n, m_band, v_band, stats_vj1_vnp['RMSE'].mean(), stats_vj1_vnp['MB'].mean(), stats_vj1_vnp.name)
 
     dfs = [stats_mcd_vnp, stats_mcd_vj1, stats_vj1_vnp]
     return dfs
