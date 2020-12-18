@@ -1,19 +1,23 @@
 #!/bin/bash
 
-AS="3339"
-products="VNP43IA3 VJ143IA3"
-year=2019
-start_day=1
-end_day=365
-#tiles="h08v05 h09v04 h11v04 h11v09 h12v04 h16v02 h26v04 h30v11"
-tiles="h11v04 h09v04"
+products=$1
+AS=$2
+year=$3
+start_day=$4
+end_day=$5
+tiles=$6
+dl_root_dir=$7
 
 for product in ${products};
 do
     for tile in ${tiles};
     do
-	out_dir="/ipswich/data02/arthur.elmes/${product}/${tile}/"
-
+	out_dir=${dl_root_dir}/${product}/${tile}/
+	if [ ! -d "${out_dir}" ];
+	then
+	    mkdir -p ${out_dir}
+	fi
+		
 	for doy in $(seq ${start_day} ${end_day});
 	do
 	    if [ "$doy" -le 9 ];
