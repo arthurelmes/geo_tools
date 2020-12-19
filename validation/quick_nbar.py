@@ -185,17 +185,17 @@ def img_2_numpy(img):
     return rgb, img
 
 
-def do_plot(rgb, img_file, out_dir, contrast_stretch):
+def do_plot(rgb, img_file, out_dir, contrast_stretch, low, high):
     # Calculate 2nd,98th percentile for updating min/max vals
-    p2, p98 = np.percentile(rgb, (2, 98))
+    #p2, p98 = np.percentile(rgb, (2, 98))
 
     # Perform contrast stretch on RGB range
-    if contrast_stretch == True:
-        rgb_stretched = exposure.rescale_intensity(rgb, in_range=(p2, p98))
+    if contrast_stretch:
+        rgb = exposure.rescale_intensity(rgb, in_range=(low, high))
 
     # Perform Gamma Correction
     # rgb_stretched = exposure.adjust_gamma(rgb_stretched, 0.5)
-    rgb_stretched = exposure.adjust_gamma(rgb, 0.5)
+    rgb_stretched = exposure.adjust_gamma(rgb, 0.75)
 
     # Set the figure size
     fig = plt.figure(figsize=(10, 10))
@@ -231,11 +231,17 @@ def main():
                         help='Specify MCD, VNP, or VJ1')
     parser.add_argument('-c', metavar='contrast_stretch', type=bool, default=False, dest="contrast_stretch",
                         help='Enter True to perform a contrast stretch using 2nd - 98th percentile.')
+    parser.add_argument('-mi', metavar='contrast_low', type=float, default=0.0, dest="low",
+                        help='Enter the min value to use during contrast stretching')
+    parser.add_argument('-ma', metavar='contrast_high', type=float, default=0.0, dest="high",
+                        help='Enter the max value to use during contrast stretching')
     args = parser.parse_args()
 
     workspace = args.workspace
     product = args.product
     contrast_strech = args.contrast_stretch
+    low = args.low
+    high = args.high
 
     os.chdir(workspace)
     out_dir = os.path.join(workspace, 'output')
@@ -246,7 +252,7 @@ def main():
     for h_file in h_file_list:
         print(h_file)
         rgb, img = img_2_numpy(h_file)
-        do_plot(rgb, img, out_dir, contrast_strech)
+        do_plot(rgb, img, out_dir, contrast_strech, low, high)
 
 
 if __name__ == '__main__':

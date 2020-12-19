@@ -83,6 +83,8 @@ def plot_data(cmb_data, labels, stats, workspace):
 
     fig = plt.figure(figsize=(7, 5))
     ax = fig.add_subplot(111)
+    fig.tight_layout(pad=3)
+    fig.set_facecolor('black')
     
     # Get rid of all the masked data by filling with nans and then removing them
     cmb_data_nans = np.ma.filled(cmb_data, np.nan)
@@ -93,13 +95,24 @@ def plot_data(cmb_data, labels, stats, workspace):
     y = cmb_data_nans[:, 1]
 
     hist = plt.hist2d(cmb_data_nans[:, 0], cmb_data_nans[:, 1], bins=200, norm=LogNorm(),
-                      range=[[0, 1.0], [0, 1.0]], cmap=plt.cm.YlOrRd)
+                      range=[[0, 1.0], [0, 1.0]], cmap=plt.cm.YlGn)
+    ax.set_facecolor('black')
+    ax.tick_params(colors='white')
+    ax.spines['bottom'].set_color('white')
+    ax.spines['left'].set_color('white')
+    ax.xaxis.label.set_color('white')
+    ax.yaxis.label.set_color('white')
+    
+    cb = fig.colorbar(hist[3])
+    cb.ax.yaxis.set_tick_params(color='white')
+    cb.outline.set_edgecolor('white')
+    plt.setp(plt.getp(cb.ax.axes, 'yticklabels'), color='white')
+    
+    ax.set_title(labels[0] + "_" + labels[3][0] + " " + labels[3][1])
+    ax.title.set_color('white')
 
-    plt.colorbar(hist[3])
-    plt.title(labels[0] + '_' + labels[1] + "_"+ labels[3])
-
-    plt.xlabel(labels[1] + " " + labels[4] + ' ' + labels[3].replace('_', ' '))
-    plt.ylabel(labels[2] + " " + labels[5] + ' ' + labels[3].replace('_', ' '))
+    ax.set_xlabel(labels[1] + " " + labels[4] + ' ' + labels[3][0].replace('_', ' '))
+    ax.set_ylabel(labels[2] + " " + labels[5] + ' ' + labels[3][1].replace('_', ' '))
 
     # Add text box with RMSE and mean bias
     textstr = '\n'.join((
@@ -107,7 +120,7 @@ def plot_data(cmb_data, labels, stats, workspace):
         r'$\mathrm{MeanBias}=%.4f$' % (stats[1], )))
 
     props = dict(boxstyle='round', facecolor='white', alpha=0.5)
-    plt.text(0.05, 0.95, textstr, fontsize=14, verticalalignment='top', bbox=props)
+    ax.text(0.05, 0.95, textstr, fontsize=14, verticalalignment='top', bbox=props)
 
     # Add x=y line
     lims = [
@@ -116,20 +129,20 @@ def plot_data(cmb_data, labels, stats, workspace):
     ]
 
     # Plot limits against each other for 1:1 line
-    plt.plot(lims, lims, 'k-', alpha=0.75, zorder=1)
-    plt.xlim(lims)
-    plt.ylim(lims)
+    ax.plot(lims, lims, 'y-', alpha=0.75, zorder=1)
+    ax.set_xlim(lims)
+    ax.set_ylim(lims)
 
     # Export data as CSV in case needed
     hdrs = str(labels[1] + "." + labels[4] + "," + labels[2] + "." + labels[5])
-    print(hdrs)
-    csv_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[2] + "_" + labels[3] + "_data.csv")
+    csv_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[2] + "_" + labels[3][0] + "_" +
+                            labels[3][1] + "_data.csv")
     np.savetxt(csv_name, cmb_data_nans, delimiter=",", header=hdrs, comments='')
 
-    plt_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[4] + "_vs_"\
-                            + labels[2] + "_" + labels[5] + "_" + labels[3])
+    plt_name = os.path.join(workspace, labels[0] + "_" + labels[1] + "_" + labels[4] + "_vs_"
+                            + labels[2] + "_" + labels[5] + "_" + labels[3][0] + "_vs_" + labels[3][1])
     print('Saving plot to: ' + '{plt_name}.png'.format(plt_name=plt_name))
-    plt.savefig('{plt_name}.png'.format(plt_name=plt_name))
+    fig.savefig('{plt_name}.png'.format(plt_name=plt_name), facecolor='black')
 
 
 def main():
@@ -142,6 +155,13 @@ def main():
                                                              "First image to compare.", metavar="FILE1")
     parser.add_argument("-f2", "--file2", dest="file2", help="Complete path of "
                                                              "Second image to compare.", metavar="FILE2")
+    parser.add_argument("-b1", "--band1", dest="band1", default="sw",
+                        help="Specify the band from the first file to compare, e.g. shortwave, nir, Band3, M4,")
+    parser.add_argument("-b2", "--band2", dest="band2", default="shortwave",
+                        help="Specify the band from the second file to compare, e.g. shortwave, nir, 3, M3,")
+    parser.add_argument("-p", "--product", dest="product", default="WSA",
+                        help="Specify the product to compare, i.e. WSA or BSA.")
+
     args = parser.parse_args()
 
     # Set workspace IO dir
@@ -150,50 +170,61 @@ def main():
     # Set input hdf/h5 filenames
     tile1_fname = args.file1
     tile2_fname = args.file2
+    band1 = args.band1
+    band2 = args.band2
+    product = args.product
+
+    # Check that MCD is the f1 if f2 is VIIRS, because of silly way of handling resolution mismatch currently
+    if "MCD" in tile2_fname:
+        if "VNP" in tile1_fname or "VJ1" in tile1_fname:
+            print("MCD file must be file1 if a MODIS/VIIRS comparison is being made!")
+            sys.exit(1)
 
     os.chdir(workspace_out)
 
-    #TODO these shouldn't just be wsa, should be able to do
-    # any band, selected as argument they should be args so
-    # that different bands can be selected. Right now these are manually set
-    # to reflect the band of interest
-    sds_name_wsa = "Albedo_WSA_shortwave"
-    sds_name_qa = "BRDF_Albedo_Band_Mandatory_Quality_shortwave"
-    # sds_name_wsa = "Albedo_WSA_nir"
-    # sds_name_qa = "BRDF_Albedo_Band_Mandatory_Quality_nir"
+    # Will need different style sds names for modis vs viirs
+    sds1_name = "Albedo_{}_{}".format(product, band1)
+    qa1_name = "BRDF_Albedo_Band_Mandatory_Quality_{}".format(band1)
+    sds2_name = "Albedo_{}_{}".format(product, band2)
+    qa2_name = "BRDF_Albedo_Band_Mandatory_Quality_{}".format(band2)
+
     # Extract identifying information from filenames
     tile1_deets = determine_sensor(tile1_fname.split("/")[-1])
     tile2_deets = determine_sensor(tile2_fname.split("/")[-1])
-    labels = (tile1_deets[0], tile1_deets[1], tile2_deets[1], sds_name_wsa, tile1_deets[2], tile2_deets[2])
+    labels = (tile1_deets[0], tile1_deets[1], tile2_deets[1], (sds1_name, sds2_name), tile1_deets[2], tile2_deets[2])
+
 
     # Convert both tiles' data and qa to numpy arrays for plotting
-    tile1_data_wsa = get_data(os.path.join(tile1_fname), sds_name_wsa)
-    tile1_data_qa = get_data(os.path.join(tile1_fname), sds_name_qa)
-    tile2_data_wsa = get_data(os.path.join(tile2_fname), sds_name_wsa)
-    tile2_data_qa = get_data(os.path.join(tile2_fname), sds_name_qa)
+    tile1_data = get_data(os.path.join(tile1_fname), sds1_name)
+    tile1_qa = get_data(os.path.join(tile1_fname), qa1_name)
+    tile2_data = get_data(os.path.join(tile2_fname), sds2_name)
+    tile2_qa = get_data(os.path.join(tile2_fname), qa2_name)
 
     # Call masking function to cleanup data
-    tile1_data_qa_masked = mask_qa(tile1_data_wsa, tile1_data_qa)
-    tile2_data_qa_masked = mask_qa(tile2_data_wsa, tile2_data_qa)
-   
+    tile1_qa_masked = mask_qa(tile1_data, tile1_qa)
+    tile2_qa_masked = mask_qa(tile2_data, tile2_qa)
+
+
     # Take every other pixel if comparing MCD (500m) and VNP/VJ1 (1km). If both datasets are the same, do nothing.
     #TODO This is janky because it requires that the MCD is entered first, right? Add some thing to fix this
-    if ("MCD" in labels[1] and "VNP" in labels[2]) or ("MCD" in labels[1] and "VJ1" in labels[2]):
+    if ("MCD" in labels[1] and "VNP" in labels[2] and "MA" in labels[2]) or \
+            ("MCD" in labels[1] and "VJ1" in labels[2] and "MA" in labels[2]):
         print('Subsampling every other pixel in MCD because of resolution mismatch.')
-        tile1_data_qa_masked = tile1_data_qa_masked[::2, ::2]
+        tile1_qa_masked = tile1_qa_masked[::2, ::2]
     else:
         pass
 
     # Flatten np arrays into single column
-    x = tile1_data_qa_masked.flatten()
-    y = tile2_data_qa_masked.flatten()
+    x = tile1_qa_masked.flatten()
+    y = tile2_qa_masked.flatten()
     cmb_data = np.ma.column_stack((x, y))
     cmb_data_df = pd.DataFrame(cmb_data)
     rmse = ((cmb_data_df[0] - cmb_data_df[1]) ** 2).mean() ** 0.5
     mb = cmb_data_df[0].mean() - cmb_data_df[1].mean()
     stats_csv_name = (os.path.join(workspace_out, tile1_deets[0] + "_stats.csv"))
+    print('Writing stats to: {}'.format(stats_csv_name))
     stats = (rmse, mb)
-    header = ['RMSE', 'Mean Bias F1 - F2', 'F1', 'F2']
+    header = ['RMSE', 'Mean Bias F1 - F2', 'F1', 'F2', 'B1', 'B2']
 
     if os.path.isfile(stats_csv_name):       
         with open(stats_csv_name, 'a+', newline='') as write_obj:
@@ -204,7 +235,9 @@ def main():
             csv_writer.writerow({'RMSE': stats[0],
                                  'Mean Bias F1 - F2': stats[1],
                                  'F1': os.path.basename(tile1_fname),
-                                 'F2': os.path.basename(tile2_fname)})
+                                 'F2': os.path.basename(tile2_fname),
+                                 'B1': band1,
+                                 'B2': band2})
     else:
         with open(stats_csv_name, 'w', newline='') as write_obj:
             # Create a writer object from csv module
@@ -217,7 +250,9 @@ def main():
             csv_writer.writerow({'RMSE': stats[0],
                                  'Mean Bias F1 - F2': stats[1],
                                  'F1': os.path.basename(tile1_fname),
-                                 'F2': os.path.basename(tile2_fname)})
+                                 'F2': os.path.basename(tile2_fname),
+                                 'B1': band1,
+                                 'B2': band2})
         
     # Call plotting function
     plot_data(cmb_data, labels, stats, workspace_out)
