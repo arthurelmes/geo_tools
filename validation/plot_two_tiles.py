@@ -102,11 +102,12 @@ def plot_data(cmb_data, labels, stats, workspace):
     ax.spines['left'].set_color('white')
     ax.xaxis.label.set_color('white')
     ax.yaxis.label.set_color('white')
-    
-    cb = fig.colorbar(hist[3])
-    cb.ax.yaxis.set_tick_params(color='white')
-    cb.outline.set_edgecolor('white')
-    plt.setp(plt.getp(cb.ax.axes, 'yticklabels'), color='white')
+
+    # To add or remove the colorbar showing density (log scaled)
+    # cb = fig.colorbar(hist[3])
+    # cb.ax.yaxis.set_tick_params(color='white')
+    # cb.outline.set_edgecolor('white')
+    # plt.setp(plt.getp(cb.ax.axes, 'yticklabels'), color='white')
     
     ax.set_title(labels[0] + "_" + labels[3][0] + " " + labels[3][1])
     ax.title.set_color('white')
@@ -129,7 +130,7 @@ def plot_data(cmb_data, labels, stats, workspace):
     ]
 
     # Plot limits against each other for 1:1 line
-    ax.plot(lims, lims, 'y-', alpha=0.75, zorder=1)
+    ax.plot(lims, lims, 'deeppink', alpha=0.75, zorder=1)
     ax.set_xlim(lims)
     ax.set_ylim(lims)
 
