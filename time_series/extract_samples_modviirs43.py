@@ -211,9 +211,9 @@ def extract_pixel_value(in_dir, site, prdct, h_file_day, sds_names, base_dir):
 
     # Mask out nodata values
     wsa_swir_masked = np.ma.masked_array(wsa_band, wsa_band == 32767)
-    wsa_swir_masked_qa = np.ma.masked_array(wsa_swir_masked, qa_band > 1)
+    wsa_swir_masked_qa = np.ma.masked_array(wsa_swir_masked, qa_band > 0)
     bsa_swir_masked = np.ma.masked_array(bsa_band, bsa_band == 32767)
-    bsa_swir_masked_qa = np.ma.masked_array(bsa_swir_masked, qa_band > 1)
+    bsa_swir_masked_qa = np.ma.masked_array(bsa_swir_masked, qa_band > 0)
 
     #TODO is the plotting in this script appropriately ignoring values masked here?
 

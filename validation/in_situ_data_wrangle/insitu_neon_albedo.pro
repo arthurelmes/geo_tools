@@ -1,7 +1,7 @@
 pro insitu_NEON_albedo
 
   ;indir='C:\Users\Angela.Erb\Dropbox\ValidationData\NEON-30-extract\Tminus7\*.csv'
-  indir='C:\Users\Angela.Erb\Dropbox\ValidationData\NEON\rad-net\rn-minus9\m9-2019\*Z.csv'
+  indir='/ipswich/data02/arthur.elmes/in_situ/neon/test2/30_min/*.csv'
 
 
   print, indir
