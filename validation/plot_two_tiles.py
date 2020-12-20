@@ -159,8 +159,8 @@ def main():
                         help="Specify the band from the first file to compare, e.g. shortwave, nir, Band3, M4,")
     parser.add_argument("-b2", "--band2", dest="band2", default="shortwave",
                         help="Specify the band from the second file to compare, e.g. shortwave, nir, 3, M3,")
-    parser.add_argument("-p", "--product", dest="product", default="WSA",
-                        help="Specify the product to compare, i.e. WSA or BSA.")
+    parser.add_argument("-p", "--product", dest="product", default="Albedo_WSA",
+                        help="Specify the product to compare, i.e. Albedo_WSA, Nadir_Reflectance.")
 
     args = parser.parse_args()
 
@@ -183,9 +183,9 @@ def main():
     os.chdir(workspace_out)
 
     # Will need different style sds names for modis vs viirs
-    sds1_name = "Albedo_{}_{}".format(product, band1)
+    sds1_name = "{}_{}".format(product, band1)
     qa1_name = "BRDF_Albedo_Band_Mandatory_Quality_{}".format(band1)
-    sds2_name = "Albedo_{}_{}".format(product, band2)
+    sds2_name = "{}_{}".format(product, band2)
     qa2_name = "BRDF_Albedo_Band_Mandatory_Quality_{}".format(band2)
 
     # Extract identifying information from filenames
