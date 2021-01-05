@@ -25,6 +25,7 @@ def determine_sensor(fname):
 
 
 def get_data(fname, sds):
+    print(fname, sds)
     if "MCD" in fname:
         np_data = hdf_to_np(fname, sds)
     elif "VNP" in fname or "VJ1" in fname:
@@ -120,7 +121,7 @@ def plot_data(cmb_data, labels, stats, workspace):
         r'$\mathrm{RMSE}=%.4f$' % (stats[0], ),
         r'$\mathrm{MeanBias}=%.4f$' % (stats[1], )))
 
-    props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+    props = dict(boxstyle='round', facecolor='white', alpha=0.75)
     ax.text(0.05, 0.95, textstr, fontsize=14, verticalalignment='top', bbox=props)
 
     # Add x=y line

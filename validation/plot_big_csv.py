@@ -72,8 +72,8 @@ j = 0
 
 #for tile in tiles:
 #csv_names = glob(os.path.join(workspace, tile) + '/*all*{}.csv'.format(band))
-print(os.path.join(workspace, tile) + '/{}*{}_{}*all*{}.csv'.format(tile, prod1, prod2, band))
-csv_name = glob(os.path.join(workspace, tile) + '/{}*{}_{}*all*{}.csv'.format(tile, prod1, prod2, band))
+print(os.path.join(workspace, tile) + '/{}*{}_{}*all_with_nbar*{}.csv'.format(tile, prod1, prod2, band))
+csv_name = glob(os.path.join(workspace, tile) + '/{}*{}_{}*all_with_Nbar*{}.csv'.format(tile, prod1, prod2, band))
 csv_name = csv_name[0]
 print(csv_name)
 

@@ -124,10 +124,20 @@ do
     extension="${filename##*.}"
     filename_bare="${filename%.*}"
 
-    # for wsa, bsa, qa
+    # for wsa, bsa, qa sw
     gdal_translate -a_nodata 32767 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:"${in_dir}/${filename}"://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/Albedo_WSA_shortwave ${out_dir}/wsa/${filename}_wsa_shortwave.tif
     gdal_translate -a_nodata 32767 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:"${in_dir}/${filename}"://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/Albedo_BSA_shortwave ${out_dir}/bsa/${filename}_bsa_shortwave.tif    
     gdal_translate -a_nodata 255 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:"${in_dir}/${filename}"://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/BRDF_Albedo_Band_Mandatory_Quality_shortwave ${out_dir}/qa/${filename}_qa_shortwave.tif    
+
+    # nir
+    gdal_translate -a_nodata 32767 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:"${in_dir}/${filename}"://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/Albedo_WSA_nir ${out_dir}/wsa/${filename}_wsa_nir.tif
+    gdal_translate -a_nodata 32767 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:"${in_dir}/${filename}"://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/Albedo_BSA_nir ${out_dir}/bsa/${filename}_bsa_nir.tif    
+    gdal_translate -a_nodata 255 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:"${in_dir}/${filename}"://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/BRDF_Albedo_Band_Mandatory_Quality_nir ${out_dir}/qa/${filename}_qa_nir.tif    
+
+    # vis
+    gdal_translate -a_nodata 32767 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:"${in_dir}/${filename}"://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/Albedo_WSA_vis ${out_dir}/wsa/${filename}_wsa_vis.tif
+    gdal_translate -a_nodata 32767 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:"${in_dir}/${filename}"://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/Albedo_BSA_vis ${out_dir}/bsa/${filename}_bsa_vis.tif    
+    gdal_translate -a_nodata 255 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:"${in_dir}/${filename}"://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/BRDF_Albedo_Band_Mandatory_Quality_vis ${out_dir}/qa/${filename}_qa_vis.tif    
 
 
     # for VNP43IA3Albedo_WSA_I2

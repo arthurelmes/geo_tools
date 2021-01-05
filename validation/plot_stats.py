@@ -109,13 +109,14 @@ def modis_viirs_band(modis_band):
     return viirs_band
 
 
-def split_by_products(stats, band, tile_n):
+def split_by_products(stats, band, tile_n, product):
     # Subset by band
     v_band = modis_viirs_band(band_name)
     m_band = band
 
     stats = stats.loc[(stats['B1'] == m_band) | (stats['B1'] == v_band)].copy()
-
+    stats = stats[stats['F1'].str.contains(product)].copy()
+    
     # Clean up df and add date index
     stats['doy'] = stats['F2'].apply(lambda x: x[14:17])
     stats['year'] = stats['F2'].apply(lambda x: x[10:14])
@@ -152,20 +153,22 @@ def split_by_products(stats, band, tile_n):
     return dfs
 
 
-workspace = '/home/arthur/Dropbox/projects/modis_viirs_continuity/sensor_intercompare/stats/'
+workspace = '/ipswich/data02/arthur.elmes/comparo_results/'
 os.chdir(workspace)
 bands = ['Band1', 'Band2', 'Band3', 'Band4', 'Band5', 'Band6', 'Band7', 'nir', 'shortwave', 'vis']
 csvs = glob(workspace + "h*stats.csv")
+products = ['A3', 'A4']
 
 if os.path.isfile((os.path.join(workspace, "summary_stats.csv"))):
     os.remove((os.path.join(workspace, "summary_stats.csv")))
 
-for band_name in bands:
-    for csv_n in csvs:
-        stats_csv = pd.read_csv(csv_n)
-        v_band = modis_viirs_band(band_name)
-        tile = csv_n.split('/')[-1][:6]
+for product in products:
+    for band_name in bands:
+        for csv_n in csvs:
+            stats_csv = pd.read_csv(csv_n)
+            v_band = modis_viirs_band(band_name)
+            tile = csv_n.split('/')[-1][:6]
 
-        # Run everything
-        dfs = split_by_products(stats_csv, band_name, tile)
-        plot_stats(dfs, os.path.basename(csv_n)[:6] + "_" + band_name + "_" + v_band)
+            # Run everything
+            dfs = split_by_products(stats_csv, band_name, tile, product)
+            plot_stats(dfs, os.path.basename(csv_n)[:6] + "_" + product + '_' + band_name + "_" + v_band)
