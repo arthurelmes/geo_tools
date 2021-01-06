@@ -52,15 +52,15 @@ def box_plot(years, aoi_name, csv_path):
     filtered_data = [d[m] for d, m in zip(data_to_plot.T, mask.T)]
 
     # Create a figure instance
-    fig_box = plt.figure(1, figsize=(3, 2))
-    fig_box.suptitle(aoi_name, size=5)
+    fig_box = plt.figure(1, figsize=(3, 2.5))
+    fig_box.suptitle(aoi_name, size=8)
 
     # Create an axis instance
     ax_box = fig_box.add_subplot(111)
     ax_box.set_xticklabels(list(years.columns))
     ax_box.tick_params(
         axis='x',
-        labelsize=5,
+        labelsize=6,
         labelrotation=45
                        )
     ax_box.set_ylim(0.4, 0.9)
@@ -69,14 +69,14 @@ def box_plot(years, aoi_name, csv_path):
     plt.axhline(y=[overall_mean], linewidth=1.0, label='Overall Mean: {x}'.format(x=round(overall_mean, 2)))
     ax_box.tick_params(
         axis='y',
-        labelsize=5
+        labelsize=6
                    )
-    ax_box.set_ylabel('Blue Sky Albedo (Overall Mean)', size=5)
+    ax_box.set_ylabel('Blue Sky Albedo (Overall Mean)', size=8)
     outlier_marker = dict(markerfacecolor='black', fillstyle=None, marker='.', markersize=1)
 
     data_2019 = filtered_data[19]
     i = 0
-    plt.legend(loc='lower right', prop={'size': 4})
+    plt.legend(loc='lower right', prop={'size': 5})
 
     # Store t-test of each year vs 2019 in txt file
     stats_txt_name = csv_path[:-4] + '_t_stats_vs_2019.txt'
@@ -99,6 +99,7 @@ def box_plot(years, aoi_name, csv_path):
     save_name = os.path.join(file_path, 'figs', aoi_name.replace(' ', '_') + '_boxplot.png')
     if not os.path.isdir(os.path.join(file_path, 'figs')):
         os.mkdir(os.path.join(file_path, 'figs'))
+    plt.tight_layout(pad=1)
     plt.savefig(save_name, dpi=300, bbox_inches='tight')
     plt.close()
 
@@ -266,11 +267,12 @@ def overpost_all_plot(years, aoi_name, csv_path):
             ax_comb.plot(years.index, years[ycol], label=str(ycol), alpha=0.2)
 
     ax_comb.plot(years.index, years['2019'], label='2019 Emphasis', color='firebrick')
-    ax_comb.set_xlabel('DOY')
+    #ax_comb.set_xlabel('DOY')
     ax_comb.set_ylabel('Blue Sky Albedo')
     ax_comb.set_ylim(0.0, 1.0)
     fig_comb.suptitle(aoi_name)
     plt.legend(ncol=4, loc='lower left', fontsize=10)
+    plt.tight_layout(pad=1)
 
     # Save fig in figs subdir, making the subdir if needed
     file_path, file_name = os.path.split(csv_path)
@@ -333,7 +335,7 @@ def year_vs_avg_plot(years, aoi_name, csv_path):
 
     #TODO same issue here as in the anomaly version of this plot -- why the last value jump?
 
-    fig_comb_mean = plt.figure(figsize=(3, 2))
+    fig_comb_mean = plt.figure(figsize=(3, 2.5))
     ax_comb_mean = fig_comb_mean.add_subplot(111)
     ax_comb_mean.plot(years.index, years['2003'], label='2003', color='#ffd92f', linewidth=0.75)
     ax_comb_mean.plot(years.index, years['2010'], label='2010', color='#66c2a5', linewidth=0.75)
@@ -351,20 +353,21 @@ def year_vs_avg_plot(years, aoi_name, csv_path):
     ax_comb_mean.axvline(x=162, linewidth=0.75, label=None, linestyle="--", color="darkgrey")
     ax_comb_mean.axvline(x=170, linewidth=0.75, label=None, linestyle="--", color="darkgrey")
 
-    ax_comb_mean.set_ylabel('Blue Sky Albedo', size=5)
-    ax_comb_mean.set_xlabel('DOY', size=5)
+    ax_comb_mean.set_ylabel('Blue Sky Albedo', fontsize=8)
+    # ax_comb_mean.set_xlabel('DOY', fontsize=8)
     ax_comb_mean.tick_params(
         axis='x',
-        labelsize=5,
+        labelsize=6,
         labelrotation=45
                        )
     ax_comb_mean.tick_params(
         axis='y',
-        labelsize=5,
+        labelsize=6,
                        )
     plt.legend(loc='lower left', prop={'size': 5})
+    plt.tight_layout(pad=2)
 
-    fig_comb_mean.suptitle(aoi_name, size=5)
+    fig_comb_mean.suptitle(aoi_name, size=8)
 
     file_path, file_name = os.path.split(csv_path)
     save_name = os.path.join(file_path, 'figs', aoi_name.replace(' ', '_') + '_2000-2020_mean_' +
@@ -390,7 +393,7 @@ def year_vs_avg_plot_anom(years, aoi_name, csv_path):
     # base_sd = cols.std(axis=1)
 
     fig_comb_mean_anom = plt.figure(figsize=(10, 5))
-    ax_comb_mean_anom = fig_comb_mean_anom.add_subplot(111)
+    ax_comb_mean_anom = fig_comb_mean_anom.add_subplotas(111)
     ax_comb_mean_anom.plot(years.index, years['2019'], label='2019', color='firebrick')
     ax_comb_mean_anom.plot(years.index[:], years['base_mean'][:], label='2000-2018 Mean +/- 1 SD',
                            color='slateblue', alpha=0.5)
@@ -398,8 +401,8 @@ def year_vs_avg_plot_anom(years, aoi_name, csv_path):
                      years['base_mean'][:] + years['base_sd'][:], color='lightgrey')
 
     ax_comb_mean_anom.set_ylim(-0.3, 0.3)
-    ax_comb_mean_anom.set_ylabel('Blue Sky Albedo Anomaly')
-    ax_comb_mean_anom.set_xlabel('DOY')
+    ax_comb_mean_anom.set_ylabel('Blue Sky Albedo Anomaly', fontsize=8)
+    #ax_comb_mean_anom.set_xlabel('DOY', fontsize=8)
     plt.legend(loc='lower left')
 
     fig_comb_mean_anom.suptitle(aoi_name)
@@ -417,11 +420,11 @@ def year_vs_avg_plot_anom(years, aoi_name, csv_path):
 def main():
     # Update these as needed
     filter_pctl = 0.25
-    workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/w_coast_catchments/'
+    workspace = '/home/arthur/Dropbox/projects/greenland/aoi_albedo_time_series/catchments/'
     if workspace[:-1] != '/':
         workspace = workspace + '/'
-    csv_name = 'actual_albedo_catchments_top_level_w_coast_ekholm_polys_dissolve_sinusoidal_stats.csv'
-    aoi_name = 'West Coast Catchments AOI (ValiObs filter = {x} Pctl)'.format(x=filter_pctl)
+    csv_name = 'actual_albedo_catchment_6.2_ekholm_stats.csv'
+    aoi_name = 'Russell Glacier Catchment (ValiObs filter = {x} Pctl)'.format(x=filter_pctl)
     dt_indx = pd.date_range('2000-01-01', '2020-12-31')
     csv_path = workspace + csv_name
 

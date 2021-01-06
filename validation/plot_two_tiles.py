@@ -194,7 +194,6 @@ def main():
     tile2_deets = determine_sensor(tile2_fname.split("/")[-1])
     labels = (tile1_deets[0], tile1_deets[1], tile2_deets[1], (sds1_name, sds2_name), tile1_deets[2], tile2_deets[2])
 
-
     # Convert both tiles' data and qa to numpy arrays for plotting
     tile1_data = get_data(os.path.join(tile1_fname), sds1_name)
     tile1_qa = get_data(os.path.join(tile1_fname), qa1_name)
@@ -204,7 +203,6 @@ def main():
     # Call masking function to cleanup data
     tile1_qa_masked = mask_qa(tile1_data, tile1_qa)
     tile2_qa_masked = mask_qa(tile2_data, tile2_qa)
-
 
     # Take every other pixel if comparing MCD (500m) and VNP/VJ1 (1km). If both datasets are the same, do nothing.
     #TODO This is janky because it requires that the MCD is entered first, right? Add some thing to fix this
