@@ -1,5 +1,10 @@
 #!/bin/bash
 
+## Script to download MODIS/VIIRS products from LADSWEB, a good backup for when LPDAAC is offline
+## Inputs are as below -- note that the tiles var is designed to intake a list in "" double quotes
+## Also note that for CMG products, enter h00v00 for the tiles arguemnt, since these products have no tiles
+## Author: Arthur Elmes, Dec 2020
+
 products=$1
 AS=$2
 year=$3
@@ -27,9 +32,12 @@ do
 	    then
 		doy=0${doy}
 	    fi
-	    
-	    wget -e robots=off -m -np -A "*${tile}*" -R "*.html" -R "*.tmp" -nH --cut-dirs=6 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/${AS}/${product}/${year}/${doy}/ --header "Authorization: Bearer A5041508-D88A-11E8-858A-7C099B439298"  -P ${out_dir}
-
+	    if [ "$tile" == "h00v00" ];
+	    then
+		wget -e robots=off -m -np -R "*.html" -R "*.tmp" -nH --cut-dirs=6 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/${AS}/${product}/${year}/${doy}/ --header "Authorization: Bearer A5041508-D88A-11E8-858A-7C099B439298"  -P ${out_dir}
+	    else
+		wget -e robots=off -m -np -A "*${tile}*" -R "*.html" -R "*.tmp" -nH --cut-dirs=6 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/${AS}/${product}/${year}/${doy}/ --header "Authorization: Bearer A5041508-D88A-11E8-858A-7C099B439298"  -P ${out_dir}
+	    fi
 	done
     done
 done
