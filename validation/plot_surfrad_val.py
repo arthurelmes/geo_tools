@@ -97,20 +97,40 @@ for stn in stn_list:
         csv_writer = csv.writer(write_obj)
         csv_writer.writerow(stats_row)
 
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(10,3))
-    ax1.set_facecolor('k')
-    ax2.set_facecolor('k')
-    ax3.set_facecolor('k')
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(10, 3))
+    fig.tight_layout(pad=3)
+    fig.set_facecolor('black')
 
-    ax1.scatter(stn_wsa_col, mcd, color='#d95f02', marker='^', s=5, label='MCD43A3')
-    ax2.scatter(stn_wsa_col, vnp, color='#7570b3', marker='+', s=5, label='VNP43MA3')
-    ax3.scatter(stn_wsa_col, vj1, color='#e7298a', marker='d', s=5, label='VJ143MA3')
+    # Add x=y line
+    lims = [
+        np.min([plt.xlim(), plt.ylim()]),  # min of both axes
+        np.max([plt.xlim(), plt.ylim()]),  # max of both axes
+    ]
 
-    ax1.set_ylabel('Satellite Albedo')
-    fig.text(0.5, 0.0, 'SURFRAD Albedo', ha='center')
+    for i in (ax1, ax2, ax3):
+        i.set_facecolor('k')
+        i.set_facecolor('k')
+        i.set_facecolor('k')
+        i.xaxis.label.set_color('white')
+        i.yaxis.label.set_color('white')
+        i.spines['bottom'].set_color('white')
+        i.spines['left'].set_color('white')
+        i.tick_params(colors='white')
+
+        # Plot limits against each other for 1:1 line
+        i.plot(lims, lims, 'deeppink', alpha=0.5, zorder=1)
+        i.set_xlim(lims)
+        i.set_ylim(lims)
+
+    ax1.scatter(stn_wsa_col, mcd, color='#e6ab02', marker='^', s=5, label='MCD43A3', facecolors='none')
+    ax2.scatter(stn_wsa_col, vnp, color='#d95f02', marker='s', s=5, label='VNP43MA3', facecolors='none')
+    ax3.scatter(stn_wsa_col, vj1, color='#66a61e', marker='d', s=5, label='VJ143MA3', facecolors='none')
+
+    ax1.set_ylabel('Satellite Albedo', color='white')
+    fig.text(0.5, 0.05, 'SURFRAD Albedo', ha='center', color='white')
 
     fig.legend(loc='lower right', bbox_to_anchor=(0.21, 0.68))
-    fig.tight_layout()
+
     plt.savefig(workspace + stn + '_sat_vs_surfrad_scatters.png')
     plt.show()
 
@@ -135,15 +155,21 @@ for stn in stn_list:
         sys.exit(1)
 
     fig2, ax = plt.subplots(figsize=(8, 6))
+    fig2.tight_layout(pad=3)
+    fig2.set_facecolor('black')
 
-    ax.set_title(stn_full, fontsize=16)
-    ax.set_facecolor('k')
+    ax.set_title(stn_full, fontsize=16, color='white')
+    ax.set_facecolor('black')
 
-    ax.scatter(doy, stn_wsa_col, color='#1b9e77', marker='+', s=20, label='SURFRAD')
-    ax.scatter(doy, mcd, color='#d95f02', marker='^', s=20, label='MCD43A3')
-    ax.scatter(doy, vnp, color='#7570b3', marker='x', s=20, label='VNP43MA3')
-    ax.scatter(doy, vj1, color='#e7298a', marker='d', s=20, label='VJ143MA3')
-
+    ax.scatter(doy, stn_wsa_col, color='#7570b3', marker='o', s=20, label='SURFRAD', facecolors='none')
+    ax.scatter(doy, mcd, color='#e6ab02', marker='^', s=20, label='MCD43A3', facecolors='none')
+    ax.scatter(doy, vnp, color='#d95f02', marker='s', s=20, label='VNP43MA3', facecolors='none')
+    ax.scatter(doy, vj1, color='#66a61e', marker='d', s=20, label='VJ143MA3', facecolors='none')
+    ax.xaxis.label.set_color('white')
+    ax.yaxis.label.set_color('white')
+    ax.spines['bottom'].set_color('white')
+    ax.spines['left'].set_color('white')
+    ax.tick_params(colors='white')
     ax.set_xlabel('DOY 2019', size=14)
     ax.set_ylabel('Albedo', size=14)
 
