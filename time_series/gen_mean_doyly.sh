@@ -1,7 +1,7 @@
 #!/bin/bash
 
-img_dir="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_0_and_1_noszn_merged/samesize/"
-out_dir="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_0_and_1_noszn_merged/mean/"
+img_dir="/home/arthur/Dropbox/projects/climo_mcd43d61/MCD43D61/tif/"
+out_dir="/home/arthur/Dropbox/projects/climo_mcd43d61/MCD43D61/tif/out"
 #template_img="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_merged/greenland_entire_island_zeros.tif"
 
 tmp_dir=${out_dir}/tmp/
@@ -10,7 +10,7 @@ then
     mkdir -p ${tmp_dir}
 fi
 
-for doy in $(seq 1 366);
+for doy in {55..56};
 do
     if [ $doy -le 9 ];
     then
@@ -20,7 +20,7 @@ do
 	doy=0$doy
     fi
     #echo find ${img_dir} -maxdepth 1 -type f -name "*${doy}.tif"
-    img_list=(`find ${img_dir} -maxdepth 1 -type f -name "*${doy}.tif"`)
+    img_list=(`find ${img_dir} -maxdepth 1 -type f -name "*${doy}.006*.tif"`)
 
     # create the temporary processing files that will be added to get average
     # this is necessary because otherwise NoData turns the whole pixel stack into null
@@ -30,7 +30,7 @@ do
 	
     	for tif in ${img_list[@]};
     	do
-    	    echo $tif
+    	    echo "Finding valid pixels to average for: ${tif}"
     	    gdal_translate -q -of VRT ${tif} ${tif}_nodata_is_zero.vrt -a_nodata 0
     	    gdal_calc.py --quiet --overwrite -A ${tif}_nodata_is_zero.vrt --outfile=${tif}_valid_pix.tif \
     			 --calc="1*(A<=1000)+0*(A==32767)"
@@ -44,10 +44,10 @@ do
 
     fi
 
-    img_list_num=(`find ${tmp_dir} -maxdepth 1 -type f -name "*${doy}.tif*_to_add.tif"`)
-    img_list_den=(`find ${tmp_dir} -maxdepth 1 -type f -name "*${doy}.tif*_valid_pix.tif"`)
-    echo $img_list_num
-    echo $img_list_den
+    img_list_num=(`find ${tmp_dir} -maxdepth 1 -type f -name "*${doy}.006*.tif*_to_add.tif"`)
+    img_list_den=(`find ${tmp_dir} -maxdepth 1 -type f -name "*${doy}.006*.tif*_valid_pix.tif"`)
+    echo "Image list for numerator: ${img_list_num}"
+    echo "Image list for demonimator ${img_list_den}"
     
     if [ ! -z "${img_list_num}" ];
     then
@@ -57,6 +57,7 @@ do
     	cp ${img_list_num[0]} ${tmp_dir}/numerator_${doy}.tif
 	cp ${img_list_den[0]} ${tmp_dir}/denominator_${doy}.tif
 
+	echo "Creating blank numerator and denominator rasters to start with."
 	gdal_calc.py --quiet --overwrite -A ${tmp_dir}/numerator_${doy}.tif \
 		     --outfile=${tmp_dir}/numerator_${doy}.tif --calc="A*0"
 
@@ -82,13 +83,14 @@ do
     	    gdal_cmd1_den=`echo gdal_calc.py -A ${imga_den} -B ${imgb_den} --outfile ${imga_den} --overwrite --quiet --calc=\"A+B\"`
 
 	    #echo $gdal_cmd1
+	    echo "Calculating numerator and denominator rasters"
     	    eval $gdal_cmd1_num
 	    eval $gdal_cmd1_den
     	done
 
     	# then divide by the numerator by the denominator for that day to get the mean
     	gdal_cmd2=`echo gdal_calc.py -A ${imga_num} -B ${imga_den} --outfile ${img_avg} --overwrite --quiet --type=Float32 --calc=\"A/B\"`
-    	echo $gdal_cmd2
+    	echo "Calculating average per pixel for given doy: ${gdal_cmd2}"
     	eval $gdal_cmd2
 	rm ${tmp_dir}/*tif_to_add.tif
 	rm ${tmp_dir}/*tif_valid_pix.tif
