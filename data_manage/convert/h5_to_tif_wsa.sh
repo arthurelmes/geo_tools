@@ -3,7 +3,9 @@
 ## WARNING: Currently only works with manual tile bounding coords (in meters from origin, I think?), which must be passed in manually. Get by looking at extent in QGIS or similar.
 ## TODO convert bounding coordinates from ll to meters so this is automated. Shortcut/hurry mode, just write them down in file for all tiles.
 
+## h08v04 UL: -11119505.1966670006513596 5559752.5983330002054572 LR: -10007554.6769999992102385 4447802.0786669999361038
 ## h08v05 UL: -11119505.1966670006513596 4447802.0786669999361038 LR: -10007554.6769999992102385 3335851.5589999998919666
+## h09v04 UL: -10007554.6769999992102385 5559752.5983330002054572 LR: -8895604.1573329996317625 4447802.0786669999361038
 ## h10v04 UL: -8895604.1573329996317625 5559752.5983330002054572  LR: -7783653.6376670002937317 4447802.0786669999361038
 ## h11v04 UL: -7783653.6376670002937317 5559752.5983330002054572  LR: -6671703.1179999997839332 4447802.0786669999361038
 ## h11v09 UL: -7783653.6376670002937317 0.0000000000000000        LR:-6671703.1179999997839332 -1111950.5196670000441372  
@@ -48,10 +50,20 @@ fi
 for h5 in $in_dir/*.h5
 do
     case $h5 in
+	*h08v04*)
+	    echo "Tile h08v05 detected."
+	    ul_coord='-11119505.1966670006513596 5559752.5983330002054572'
+	    lr_coord='-10007554.6769999992102385 4447802.0786669999361038'
+	    ;;
 	*h08v05*)
 	    echo "Tile h08v05 detected."
 	    ul_coord='-11119505.1966670006513596 4447802.0786669999361038'
 	    lr_coord='-10007554.6769999992102385 3335851.5589999998919666'
+	    ;;
+	*h09v04*)
+	    echo "Tile h08v05 detected."
+	    ul_coord='-10007554.6769999992102385 5559752.5983330002054572'
+	    lr_coord='-8895604.1573329996317625 4447802.0786669999361038'
 	    ;;
 	*h11v09*)
 	    echo "Tile h11v09 detected."
@@ -124,10 +136,20 @@ do
     extension="${filename##*.}"
     filename_bare="${filename%.*}"
 
-    # for wsa, bsa, qa
+    # for wsa, bsa, qa sw
     gdal_translate -a_nodata 32767 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:"${in_dir}/${filename}"://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/Albedo_WSA_shortwave ${out_dir}/wsa/${filename}_wsa_shortwave.tif
     gdal_translate -a_nodata 32767 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:"${in_dir}/${filename}"://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/Albedo_BSA_shortwave ${out_dir}/bsa/${filename}_bsa_shortwave.tif    
     gdal_translate -a_nodata 255 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:"${in_dir}/${filename}"://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/BRDF_Albedo_Band_Mandatory_Quality_shortwave ${out_dir}/qa/${filename}_qa_shortwave.tif    
+
+    # nir
+    gdal_translate -a_nodata 32767 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:"${in_dir}/${filename}"://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/Albedo_WSA_nir ${out_dir}/wsa/${filename}_wsa_nir.tif
+    gdal_translate -a_nodata 32767 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:"${in_dir}/${filename}"://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/Albedo_BSA_nir ${out_dir}/bsa/${filename}_bsa_nir.tif    
+    gdal_translate -a_nodata 255 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:"${in_dir}/${filename}"://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/BRDF_Albedo_Band_Mandatory_Quality_nir ${out_dir}/qa/${filename}_qa_nir.tif    
+
+    # vis
+    gdal_translate -a_nodata 32767 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:"${in_dir}/${filename}"://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/Albedo_WSA_vis ${out_dir}/wsa/${filename}_wsa_vis.tif
+    gdal_translate -a_nodata 32767 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:"${in_dir}/${filename}"://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/Albedo_BSA_vis ${out_dir}/bsa/${filename}_bsa_vis.tif    
+    gdal_translate -a_nodata 255 -a_srs "${srs_str}" -a_ullr $ul_coord $lr_coord -of GTiff HDF5:"${in_dir}/${filename}"://HDFEOS/GRIDS/VIIRS_Grid_BRDF/Data_Fields/BRDF_Albedo_Band_Mandatory_Quality_vis ${out_dir}/qa/${filename}_qa_vis.tif    
 
 
     # for VNP43IA3Albedo_WSA_I2

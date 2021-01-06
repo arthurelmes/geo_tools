@@ -12,12 +12,12 @@ from glob import glob
 import csv
 
 
-def write_csv(tile_n, m, v, rmse, mb, sns):
+def write_csv(tile_n, m, v, rmse, mb, sns, product):
     # if no csv exists, create it, otherwise append stats
     stats_csv_name = (os.path.join(workspace, "summary_stats.csv"))
     print('Writing stats to: {}'.format(stats_csv_name))
     stats_write = (rmse, mb)
-    header = ['Tile', 'RMSE grand mean', 'Mean Bias F1 - F2 _grand_mean', 'Band 1', 'Band 2', 'Sensor vs Sensor']
+    header = ['Product', 'Tile', 'RMSE grand mean', 'Mean Bias F1 - F2 _grand_mean', 'Band 1', 'Band 2', 'Sensor vs Sensor']
 
     if os.path.isfile(stats_csv_name):
         with open(stats_csv_name, 'a+', newline='') as write_obj:
@@ -25,7 +25,8 @@ def write_csv(tile_n, m, v, rmse, mb, sns):
             csv_writer = csv.DictWriter(write_obj, fieldnames=header)
 
             # Add contents of list as last row in the csv file
-            csv_writer.writerow({'Tile': tile_n,
+            csv_writer.writerow({'Product': product,
+                                 'Tile': tile_n,
                                  'RMSE grand mean': stats_write[0],
                                  'Mean Bias F1 - F2 _grand_mean': stats_write[1],
                                  'Band 1': m,
@@ -40,7 +41,8 @@ def write_csv(tile_n, m, v, rmse, mb, sns):
             csv_writer.writeheader()
 
             # Add contents of list as last row in the csv file
-            csv_writer.writerow({'Tile': tile_n,
+            csv_writer.writerow({'Product': product,
+                                 'Tile': tile_n,
                                  'RMSE grand mean': stats_write[0],
                                  'Mean Bias F1 - F2 _grand_mean': stats_write[1],
                                  'Band 1': m,
@@ -109,13 +111,14 @@ def modis_viirs_band(modis_band):
     return viirs_band
 
 
-def split_by_products(stats, band, tile_n):
+def split_by_products(stats, band, tile_n, product):
     # Subset by band
     v_band = modis_viirs_band(band_name)
     m_band = band
 
     stats = stats.loc[(stats['B1'] == m_band) | (stats['B1'] == v_band)].copy()
-
+    stats = stats[stats['F1'].str.contains(product)].copy()
+    
     # Clean up df and add date index
     stats['doy'] = stats['F2'].apply(lambda x: x[14:17])
     stats['year'] = stats['F2'].apply(lambda x: x[10:14])
@@ -144,28 +147,30 @@ def split_by_products(stats, band, tile_n):
     # print(stats_vj1_vnp.head())
 
     # Append results to an aggregate csv
-    write_csv(tile_n, m_band, v_band, stats_mcd_vnp['RMSE'].mean(), stats_mcd_vnp['MB'].mean(), stats_mcd_vnp.name)
-    write_csv(tile_n, m_band, v_band, stats_mcd_vj1['RMSE'].mean(), stats_mcd_vj1['MB'].mean(), stats_mcd_vj1.name)
-    write_csv(tile_n, m_band, v_band, stats_vj1_vnp['RMSE'].mean(), stats_vj1_vnp['MB'].mean(), stats_vj1_vnp.name)
+    write_csv(tile_n, m_band, v_band, stats_mcd_vnp['RMSE'].mean(), stats_mcd_vnp['MB'].mean(), stats_mcd_vnp.name, product)
+    write_csv(tile_n, m_band, v_band, stats_mcd_vj1['RMSE'].mean(), stats_mcd_vj1['MB'].mean(), stats_mcd_vj1.name, product)
+    write_csv(tile_n, m_band, v_band, stats_vj1_vnp['RMSE'].mean(), stats_vj1_vnp['MB'].mean(), stats_vj1_vnp.name, product)
 
     dfs = [stats_mcd_vnp, stats_mcd_vj1, stats_vj1_vnp]
     return dfs
 
 
-workspace = '/home/arthur/Dropbox/projects/modis_viirs_continuity/sensor_intercompare/stats/'
+workspace = '/ipswich/data02/arthur.elmes/comparo_results/'
 os.chdir(workspace)
 bands = ['Band1', 'Band2', 'Band3', 'Band4', 'Band5', 'Band6', 'Band7', 'nir', 'shortwave', 'vis']
 csvs = glob(workspace + "h*stats.csv")
+products = ['A3', 'A4']
 
 if os.path.isfile((os.path.join(workspace, "summary_stats.csv"))):
     os.remove((os.path.join(workspace, "summary_stats.csv")))
 
-for band_name in bands:
-    for csv_n in csvs:
-        stats_csv = pd.read_csv(csv_n)
-        v_band = modis_viirs_band(band_name)
-        tile = csv_n.split('/')[-1][:6]
+for product in products:
+    for band_name in bands:
+        for csv_n in csvs:
+            stats_csv = pd.read_csv(csv_n)
+            v_band = modis_viirs_band(band_name)
+            tile = csv_n.split('/')[-1][:6]
 
-        # Run everything
-        dfs = split_by_products(stats_csv, band_name, tile)
-        plot_stats(dfs, os.path.basename(csv_n)[:6] + "_" + band_name + "_" + v_band)
+            # Run everything
+            dfs = split_by_products(stats_csv, band_name, tile, product)
+            plot_stats(dfs, os.path.basename(csv_n)[:6] + "_" + product + '_' + band_name + "_" + v_band)
