@@ -1,7 +1,7 @@
 #!/bin/bash
 
-img_dir="/home/arthur/Dropbox/projects/climo_mcd43d61/MCD43D61/tif/"
-out_dir="/home/arthur/Dropbox/projects/climo_mcd43d61/MCD43D61/tif/out_directoryly"
+img_dir="/data/MCD43D61/tif/"
+out_dir="/data/MCD43D61/tif/out_directoryly"
 #template_img="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_merged/greenland_entire_island_zeros.tif"
 
 tmp_dir=${out_dir}/tmp/
