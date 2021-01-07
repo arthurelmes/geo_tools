@@ -20,13 +20,19 @@ if [ ! -z "${img_list}" ];
 then    
     for tif in ${img_list[@]};
     do
-    	echo "Finding valid pixels to average for: ${tif}"
+	# The point of this odd section is to unset 32767 as the nodata value
+	# so that these nodata pixels can be added as 0 to the acumulated
+	# valid pixels (valid_pix) and running total (to_add) rasters,
+	# instead of just being nodata, which messes up the calculation
+
+	echo "Finding valid pixels to average for: ${tif}"
     	gdal_translate -q -of VRT ${tif} ${tif}_nodata_is_zero.vrt -a_nodata 0
     	gdal_calc.py --quiet --overwrite -A ${tif}_nodata_is_zero.vrt --outfile=${tif}_valid_pix.tif \
     		     --calc="1*(A<=1000)+0*(A==32767)"
     	gdal_calc.py --quiet --overwrite -A ${tif}_nodata_is_zero.vrt --outfile=${tif}_to_add.tif \
-    		     --calc="A*(A<=1000.0)+0*(A==32767)" --NoDataValue=-999
+    		     --calc="A*(A<=1000.0)+0*(A==32767)" --NoDataValue=32767
 
+	exit
     	mv ${img_dir}*_to_add.tif ${tmp_dir}
     	mv ${img_dir}*_valid_pix.tif ${tmp_dir}
     	rm ${img_dir}*.vrt
@@ -84,8 +90,8 @@ then
     gdal_cmd2=`echo gdal_calc.py -A ${imga_num} -B ${imga_den} --outfile ${img_avg} --overwrite --quiet --type=Float32 --calc=\"A/B\"`
     echo "Calculating average per pixel: ${gdal_cmd2} at " `date`
     eval $gdal_cmd2
-    rm ${tmp_dir}/*tif_to_add.tif
-    rm ${tmp_dir}/*tif_valid_pix.tif
+    # rm ${tmp_dir}/*tif_to_add.tif
+    # rm ${tmp_dir}/*tif_valid_pix.tif
     mv ${tmp_dir}/*average*.tif ${out_dir}
     echo "Processing finished at " `date`
 fi
