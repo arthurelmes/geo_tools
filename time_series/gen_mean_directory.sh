@@ -1,7 +1,9 @@
 #!/bin/bash
 
-img_dir="/data/MCD43D61/tif/"
-out_dir="/data/MCD43D61/tif/out_directoryly"
+echo "Starting processing at: "`date`
+
+img_dir="/data/MCD43D61/subset/"
+out_dir="/data/MCD43D61/subset/out/"
 #template_img="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_merged/greenland_entire_island_zeros.tif"
 
 tmp_dir=${out_dir}/tmp/
@@ -32,6 +34,8 @@ then
     done
 
 fi
+
+echo "Valid pixels found at " `date`
 
 img_list_num=(`find ${tmp_dir} -maxdepth 1 -type f -name "*.tif*_to_add.tif"`)
 img_list_den=(`find ${tmp_dir} -maxdepth 1 -type f -name "*.tif*_valid_pix.tif"`)
@@ -72,16 +76,17 @@ then
     	gdal_cmd1_den=`echo gdal_calc.py -A ${imga_den} -B ${imgb_den} --outfile ${imga_den} --overwrite --quiet --calc=\"A+B\"`
 
 	#echo $gdal_cmd1
-	echo "Calculating numerator and denominator rasters"
+	echo "Calculating numerator and denominator rasters at " `date`
     	eval $gdal_cmd1_num
 	eval $gdal_cmd1_den
     done
 
     # then divide by the numerator by the denominator for that day to get the mean
     gdal_cmd2=`echo gdal_calc.py -A ${imga_num} -B ${imga_den} --outfile ${img_avg} --overwrite --quiet --type=Float32 --calc=\"A/B\"`
-    echo "Calculating average per pixel: ${gdal_cmd2}"
+    echo "Calculating average per pixel: ${gdal_cmd2} at " `date`
     eval $gdal_cmd2
     rm ${tmp_dir}/*tif_to_add.tif
     rm ${tmp_dir}/*tif_valid_pix.tif
-    mv ${tmp_dir}/*average*.tif ${out_dir}		
+    mv ${tmp_dir}/*average*.tif ${out_dir}
+    echo "Processing finished at " `date`
 fi
