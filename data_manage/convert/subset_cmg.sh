@@ -1,7 +1,7 @@
 #!/bin/bash
 
-in_dir="/data/MCD43D61/"
-out_dir="/data/MCD43D61/subset"
+in_dir="/ipswich/data02/arthur.elmes/MCD43D61/h00v00"
+out_dir="/ipswich/data02/arthur.elmes/MCD43D61/ak_subset_tif"
 
 for rst in ${in_dir}/*.hdf;
 do

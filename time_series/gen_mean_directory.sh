@@ -2,9 +2,8 @@
 
 echo "Starting processing at: "`date`
 
-img_dir="/data/MCD43D61/subset/"
-out_dir="/data/MCD43D61/subset/out/"
-#template_img="/ipswich/data01/arthur.elmes/bsky/tif/qa_screened_merged/greenland_entire_island_zeros.tif"
+img_dir=$1
+out_dir=$2
 
 tmp_dir=${out_dir}/tmp/
 if [ ! -d "${tmp_dir}" ];
