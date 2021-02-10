@@ -31,8 +31,9 @@ then
     		     --calc="1*(A<=1000)+0*(A==32767)"
     	gdal_calc.py --quiet --overwrite -A ${tif}_nodata_is_zero.vrt --outfile=${tif}_to_add.tif \
     		     --calc="A*(A<=1000.0)+0*(A==32767)" --NoDataValue=32767
-
-	exit
+	gdal_calc.py --quiet --overwrite -A ${tif}_to_add.tif --outfile=${tif}_to_add.tif \
+		     --calc="A*(A>0.0)" --NoDataValue=32767
+	
     	mv ${img_dir}*_to_add.tif ${tmp_dir}
     	mv ${img_dir}*_valid_pix.tif ${tmp_dir}
     	rm ${img_dir}*.vrt
@@ -57,10 +58,10 @@ then
 
     echo "Creating blank numerator and denominator rasters to start with."
     gdal_calc.py --quiet --overwrite -A ${tmp_dir}/numerator.tif \
-		 --outfile=${tmp_dir}/numerator.tif --calc="A*0"
+		 --outfile=${tmp_dir}/numerator.tif --calc="A*0" --NoDataValue=32767 --type=Int32
 
     gdal_calc.py --quiet --overwrite -A ${tmp_dir}/denominator.tif \
-		 --outfile=${tmp_dir}/denominator.tif --calc="A*0"
+		 --outfile=${tmp_dir}/denominator.tif --calc="A*0" --NoDataValue=32767 --type=Int32
 
     
     imga_num=${tmp_dir}/numerator.tif
@@ -77,8 +78,8 @@ then
 	imgb_den=`echo ${img_list_den[$img]}`
 	
     	#calc_str="A + B"
-    	gdal_cmd1_num=`echo gdal_calc.py -A ${imga_num} -B ${imgb_num} --outfile ${imga_num} --overwrite --quiet --calc=\"A+B\"`
-    	gdal_cmd1_den=`echo gdal_calc.py -A ${imga_den} -B ${imgb_den} --outfile ${imga_den} --overwrite --quiet --calc=\"A+B\"`
+    	gdal_cmd1_num=`echo gdal_calc.py -A ${imga_num} -B ${imgb_num} --outfile ${imga_num} --overwrite --quiet --calc=\"A+B\" --NoDataValue=32767 --type=Int32`
+    	gdal_cmd1_den=`echo gdal_calc.py -A ${imga_den} -B ${imgb_den} --outfile ${imga_den} --overwrite --quiet --calc=\"A+B\" --NoDataValue=32767 --type=Int32`
 
 	#echo $gdal_cmd1
 	echo "Calculating numerator and denominator rasters at " `date`
@@ -87,7 +88,7 @@ then
     done
 
     # then divide by the numerator by the denominator for that day to get the mean
-    gdal_cmd2=`echo gdal_calc.py -A ${imga_num} -B ${imga_den} --outfile ${img_avg} --overwrite --quiet --type=Float32 --calc=\"A/B\"`
+    gdal_cmd2=`echo gdal_calc.py -A ${imga_num} -B ${imga_den} --outfile ${img_avg} --overwrite --quiet --type=Float32 --calc=\"\(A/B\)*0.001\" --NoDataValue=32767 --type=Float32`
     echo "Calculating average per pixel: ${gdal_cmd2} at " `date`
     eval $gdal_cmd2
     # rm ${tmp_dir}/*tif_to_add.tif

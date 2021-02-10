@@ -92,6 +92,7 @@ def plot_stats(df_list, out_name):
         ax[1].axhline(0, c='white', ls='--')
 
         fig.suptitle(' '.join(out_name.split('_')), color='white')
+        #TODO make this dir if it doesn't exist or the script cries
         fig.savefig(workspace + "/png/{}_{}.png".format(out_name, df.name), facecolor='k')
         plt.close()
 
@@ -120,8 +121,9 @@ def split_by_products(stats, band, tile_n, product):
     stats = stats[stats['F1'].str.contains(product)].copy()
     
     # Clean up df and add date index
-    stats['doy'] = stats['F2'].apply(lambda x: x[14:17])
-    stats['year'] = stats['F2'].apply(lambda x: x[10:14])
+    #TODO THIS NEEDS TO BE CHANGED TO ACCOMODATE EITHER MCD-MCD OR MCD-V?? or VNP-VJ1 comparisons due to file name diffncs
+    stats['doy'] = stats['F2'].apply(lambda x: x[13:16])
+    stats['year'] = stats['F2'].apply(lambda x: x[9:13])
     stats['doy'] = stats['doy'].astype(int)
     stats['year'] = stats['year'].astype(int)
     stats.sort_values(['doy'], inplace=True)
@@ -155,11 +157,13 @@ def split_by_products(stats, band, tile_n, product):
     return dfs
 
 
-workspace = '/ipswich/data02/arthur.elmes/comparo_results/'
+workspace = '/ipswich/data01/arthur.elmes/test_C61/'
 os.chdir(workspace)
-bands = ['Band1', 'Band2', 'Band3', 'Band4', 'Band5', 'Band6', 'Band7', 'nir', 'shortwave', 'vis']
+bands = ['shortwave']
+#bands = ['Band1', 'Band2', 'Band3', 'Band4', 'Band5', 'Band6', 'Band7', 'nir', 'shortwave', 'vis']
 csvs = glob(workspace + "h*stats.csv")
-products = ['A3', 'A4']
+#products = ['A3', 'A4']
+products = ['A3']
 
 if os.path.isfile((os.path.join(workspace, "summary_stats.csv"))):
     os.remove((os.path.join(workspace, "summary_stats.csv")))
