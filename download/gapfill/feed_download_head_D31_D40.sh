@@ -17,7 +17,7 @@ echo "Downloading from: "$start_date "to: ":$end_date
 #declare -a arr=("31"  "40")
 #for i in "${arr[@]}"
 
-for i in {31..31}
+for i in 31 40;
 do
     band=$(($(($i+2))/3))
     if [ $i -le 9 ]; then

@@ -6,7 +6,7 @@ end_date=$(date -I -d "$start_date +192 days")
 cur_date=$start_date
 url_base=https://e4ftl01.cr.usgs.gov/MOTA/MCD43D
 vers=.006
-dl_dir=/merrimack/data02/arthur.elmes/orig/v6/$1
+dl_dir=/penobscot/data03/albedo/gapfill/orig/v6/$1
 
 echo "Downloading to: " $dl_dir
 echo "Downloading from: "$start_date "to: ":$end_date
