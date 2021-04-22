@@ -8,7 +8,7 @@ cur_date=$start_date
 url_base=https://e4ftl01.cr.usgs.gov/MOTA/MCD43D
 vers=.006
 
-dl_dir=/merrimack/data02/arthur.elmes/orig/v6/${start_date:0:4}
+dl_dir=/penobscot/data03/albedo/gapfill/orig/v6/${start_date:0:4}
 
 echo $dl_dir
 #echo $start_date
