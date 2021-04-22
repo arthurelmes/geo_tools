@@ -3,19 +3,17 @@
 # Does not currenty work for CMG products, future revision will
 # Arthur Elmes
 # Created 2019-05-01
+# Updated to add version option on 2021-04-22 by afme
 
-# NOTE! Currently collection nubmers are hard-coded in as 006 for MODIS and 001 for VIIRS
-# This will soon change. I don't think it is worth adding an argument for this; just change
-# it when the collection 061 and 002 processing (et cetera) are done.
-
-usage="Usage: ./download_modis.sh [-s start date (YYYY-MM-DD)] [-e end date (YYYY-MM-DD)] [-n product short name e.g. MCD43A3] [-t tile e.g. h12v04] [-d download dir]"
-while getopts ":s:e:n:t:d:" arg; do
+usage="Usage: ./download_modis.sh [-s start date (YYYY-MM-DD)] [-e end date (YYYY-MM-DD)] [-n product short name e.g. MCD43A3] [-t tile e.g. h12v04] [-d download dir] [-v version]"
+while getopts ":s:e:n:t:d:v:" arg; do
     case $arg in
 	s) start_date=$OPTARG;;
 	e) end_date=$OPTARG;;
 	n) short_name=$OPTARG;;
 	t) tile=$OPTARG;;
 	d) dl_dir=$OPTARG;;
+	v) vers=$OPTARG;;
 	\?) echo $usage
     esac
 done
@@ -49,16 +47,16 @@ case "$dl_dir" in
 # Check which product was specified to select the right URL
 case ${short_name} in
     "MOD"*) echo "Found Terra Product"
-	    url_prod=${url_base}"MOLT/${short_name}.006/"
+	    url_prod=${url_base}"MOLT/${short_name}.${vers}/"
 	    fmt="hdf";;
     "MYD"*) echo "Found Aqua Product"
-	    url_prod=${url_base}"MOLA/${short_name}.006/"
+	    url_prod=${url_base}"MOLA/${short_name}.${vers}/"
 	    fmt="hdf";;
     "MCD"*) echo "Found Combined Terra Aqua Product" 
-	    url_prod=${url_base}"MOTA/${short_name}.006/"
+	    url_prod=${url_base}"MOTA/${short_name}.${vers}/"
 	    fmt="hdf";;
     "VNP"*) echo "Found SNPP Product"
-	    url_prod=${url_base}"VIIRS/${short_name}.001/"
+	    url_prod=${url_base}"VIIRS/${short_name}.${vers}/"
 	    fmt="h5";;
 esac
 

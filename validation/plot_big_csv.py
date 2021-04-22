@@ -15,8 +15,8 @@ def make_ax(x, y, ax):
     ax.tick_params(colors='white')
     ax.spines['bottom'].set_color('white')
     ax.spines['left'].set_color('white')
-    ax.set_xlabel(sample.columns[0])
-    ax.set_ylabel(sample.columns[1])
+    ax.set_xlabel(sample.columns[0][0:8])
+    ax.set_ylabel(sample.columns[1][0:8])
     ax.xaxis.label.set_color('white')
     ax.yaxis.label.set_color('white')
     ax.set_title('{} {} vs {} {}'.format(tile, prod1, prod2, band))
@@ -53,8 +53,8 @@ def make_ax(x, y, ax):
 # different CSV files
 #tiles = ['h08v05', 'h09v04', 'h11v04', 'h11v09', 'h12v04', 'h16v02', 'h26v04', 'h30v11']
 #tiles = [sys.argv[1]]
-tile = sys.argv[1]
-band = sys.argv[2]
+tile =  sys.argv[1]
+band =  sys.argv[2]
 prod1 = sys.argv[3]
 prod2 = sys.argv[4]
 workspace = '/ipswich/data02/arthur.elmes/comparo_results/csv/'
@@ -72,10 +72,9 @@ j = 0
 
 #for tile in tiles:
 #csv_names = glob(os.path.join(workspace, tile) + '/*all*{}.csv'.format(band))
-print(os.path.join(workspace, tile) + '/{}*{}_{}*all_with_nbar*{}.csv'.format(tile, prod1, prod2, band))
-csv_name = glob(os.path.join(workspace, tile) + '/{}*{}_{}*all_with_Nbar*{}.csv'.format(tile, prod1, prod2, band))
+#print(os.path.join(workspace, tile) + '/{}*{}_{}*all_with_nbar*{}.csv'.format(tile, prod1, prod2, band))
+csv_name = glob(os.path.join(workspace, tile) + '/{}*{}_{}*all_nbar_only*{}.csv'.format(tile, prod1, prod2, band))
 csv_name = csv_name[0]
-print(csv_name)
 
 # Maybe experiment with this?
 chunksize = 10 ** 6
@@ -113,6 +112,8 @@ with open(csv_name, 'r') as read_object:
     # Set the x and y from the masked data
     x = sample_masked[:, 0]
     y = sample_masked[:, 1]
+
+    print(sample.columns[0][0:7])
     try:
         # make_ax(x, y, ax[j, i])
         make_ax(x, y, ax)
