@@ -1,5 +1,7 @@
-# This script extracts all pixel values of two input files from the same MODIS grid tile, and plots the
-# results. 
+# Author: Arthur Elmes
+# Date: 2019-07
+# This script extracts all pixel values of two input files from the same MODIS grid tile (e.g. h12v04), and plots the
+# results. It also creates two CSVs: one with RMSE, Mean Bias in it, and another with the raw data in two columns.
 
 from argparse import ArgumentParser
 import matplotlib.pyplot as plt

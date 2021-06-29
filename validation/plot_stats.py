@@ -1,8 +1,8 @@
-""" This script plots out the summary stats created during plot_two_tiles.py
-The idea is to run that script on a long time series of data, then use this
-one to sumamrize the results.
-Author: Arthur Elmes
-Date: 2020-12-11"""
+# This script plots out the summary stats created during plot_two_tiles.py
+# The idea is to run that script on a long time series of data, then use this
+# one to sumamrize the results.
+# Author: Arthur Elmes
+# Date: 2020-12-11
 
 import pandas as pd
 import os, sys

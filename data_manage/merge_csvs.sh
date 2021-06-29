@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Credit: user Hastur, https://stackoverflow.com/questions/24641948/merging-csv-files-appending-instead-of-merging
+# This script merges all given csvs into a single big one. This is then used to generate aggregated graphs/stats
+# Credit for method: user Hastur, https://stackoverflow.com/questions/24641948/merging-csv-files-appending-instead-of-merging
 
 in_dir=$1
 out_file_name=$2                                # Fix the output name

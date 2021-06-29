@@ -1,3 +1,13 @@
+# Author: Arthur Elmes arthur.elmes@gmail.com
+# Date: 2021-01-15
+# The point of this script is to make one giant scatterplot for each band combination, over a year of data,
+# that is constructed using every pixel's valid observations from each of the two sensors being compared.
+# This script relies on previous processing that sticks all of these gazillions of values into enormous
+# CSVs, which have two columns with headers -- one for each of the sensors to be compared. This is band-by-band,
+# so each CSV is just one year of data for one band, e.g. 2019 for MCD43A4 Band 6 vs VNP43MA4 Band M10.
+# See https://atmosphere-imager.gsfc.nasa.gov/sites/default/files/ModAtmo/MODIS_VIIRS_Cloud-Mask_UG_Feb_2019.pdf
+# for band comparability.
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -53,6 +63,7 @@ def make_ax(x, y, ax):
 # different CSV files
 #tiles = ['h08v05', 'h09v04', 'h11v04', 'h11v09', 'h12v04', 'h16v02', 'h26v04', 'h30v11']
 #tiles = [sys.argv[1]]
+#TODO make the argparser to avoid this janky shit
 tile =  sys.argv[1]
 band =  sys.argv[2]
 prod1 = sys.argv[3]
@@ -127,6 +138,7 @@ with open(csv_name, 'r') as read_object:
         i = 0
         j += 1
 
+#TODO this file name should be updated with the year var
 fname = os.path.join(workspace) + '/{}_{}_vs_{}_{}_2019_scatterplots.png'.format(tile, prod1, prod2, band)
 print("Saving file as: {x}".format(x=fname))
 fig.savefig(fname)
