@@ -31,7 +31,7 @@ for tif in ${in_dir}/*.tif; do
     filename_bare="${filename%.*}"
     # band=`echo "${filename_bare}" | tail -c 4`
     date=`echo ${filename_bare} | awk -F . '{print $2}' | awk -F 'A' '{print $2}'`
-    tmp_name_0=${tif}_temp0.tif
+    boolean_qa_name=${tif}_boolean_qa.tif
     tmp_name_1=${tif}_temp1.tif
     out_name=${out_dir}/${filename_bare}_high_qa.tif
     
@@ -41,23 +41,23 @@ for tif in ${in_dir}/*.tif; do
     # for debug
     # echo "Procesing:"
     # echo $tif
-    # echo $tmp_name_0
+    # echo $boolean_qa_name
     # echo $tmp_name_1
     # echo $qa_tif
     
     # first make a boolean mask; check this qa value -- probably there are others that should be let through also
-    gdal_calc.py --format GTiff -A ${qa_tif} --outfile=${tmp_name_0} --calc="(A>=${qa_clear_value})" --quiet
+    gdal_calc.py --format GTiff -A ${qa_tif} --outfile=${boolean_qa_name} --calc="(A>=${qa_clear_value})" --quiet
 
     # get rid of poor qa pixels; 0.02 is the scaling factor for this product
-    gdal_calc.py --format GTiff -A ${tif} -B ${tmp_name_0} --outfile=${tmp_name_1} --calc="A*B*0.02" --NoDataValue=0 --quiet
+    gdal_calc.py --format GTiff -A ${tif} -B ${boolean_qa_name} --outfile=${tmp_name_1} --calc="A*B*0.02" --NoDataValue=0 --quiet
 
     # finish up by setting correct data range and nodata value
     gdal_calc.py --format GTiff -A ${tmp_name_1} --outfile=${out_name} --calc="A*(A>0)" --NoDataValue=32767 --quiet
     
     # vrt format is not implemented for gdal_calc, so delete the temporary tifs (this is super non-optimal)
-    if [ -f ${tmp_name_0} ]; then
-	rm ${tmp_name_0}
-    fi
+    # if [ -f ${boolean_qa_name} ]; then
+    # 	rm ${boolean_qa_name}
+    # fi
     if [ -f ${tmp_name_1} ]; then
 	rm ${tmp_name_1}
     fi    

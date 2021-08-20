@@ -61,16 +61,16 @@ case ${short_name} in
 esac
 
 cur_date=${start_date}
-end_date=$(date -I -d "$end_date+1 day")
+end_date=$(gdate -I -d "$end_date+1 day")
 
 # Loop through all dates in year, download with full url
 while [[ "$cur_date" < "$end_date" ]]; do 
     dl_dir_out=$dl_dir
-    year=`date --date="$cur_date" '+%Y'`
+    year=`gdate --date="$cur_date" '+%Y'`
     cur_date_url=${cur_date:0:4}.${cur_date:5:2}.${cur_date:8:2}
     dl_url=${url_prod}${cur_date_url}/
     file="${short_name}*${tile}*.${fmt}"
-    cur_date=$(date -I -d "$cur_date+1 day")
+    cur_date=$(gdate -I -d "$cur_date+1 day")
     dl_dir_out=${dl_dir_out}${short_name}/${year}/${tile}
     if [ ! -r $dl_dir_out ]; then
 	mkdir -p $dl_dir_out
@@ -81,4 +81,5 @@ while [[ "$cur_date" < "$end_date" ]]; do
     wget -N --load-cookies ~/.urs_cookies -c --save-cookies ~/.urs_cookies --keep-session-cookies --no-check-certificate --auth-no-challenge=on \
     	 -r --reject "index.html*" --accept "${file}" -l1 -np -e robots=off --no-directories --waitretry=300 -t 100 \
      	 --directory-prefix=${dl_dir_out} --secure-protocol=TLSv1 ${dl_url}
+    
 done

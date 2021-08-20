@@ -7,7 +7,7 @@ product=$3
 if [ "${product}" == "MOD21A1D" ] || [ "${product}" == "MYD21A1D" ];
 then
     sds_name_0="MODIS_Grid_Daily_1km_LST21"
-    nodata=32767
+    nodata=0
     sds_name_lst="LST_1KM"
     sds_name_qa="QC"
 fi
@@ -15,7 +15,7 @@ fi
 if [ "${product}" == "MOD21A2" ] || [ "${product}" == "MYD21A2" ];
 then
     sds_name_0="MODIS_Grid_8Day_1km_LST21"
-    nodata=255
+    nodata=0
     sds_name_lst="LST_Day_1KM"
     sds_name_qa="QC_Day"
 fi
