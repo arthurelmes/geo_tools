@@ -16,6 +16,7 @@ from scipy import stats
 import math
 np.random.seed(12412412)
 
+
 def calc_anom_doy(years):
     years = years.copy()
     years['doy_mean'] = years.mean(axis=1)
@@ -24,6 +25,7 @@ def calc_anom_doy(years):
             years[col] = years[col] - years['doy_mean']
     del years['doy_mean']
     return years
+
 
 def box_plot(years, aoi_name, csv_path):
     # Quck boxplot for each year
@@ -412,14 +414,15 @@ def calc_sza(lat, doy):
 
 def main():
     # Update these as needed
-    workspace = '/home/arthur/Dropbox/projects/greenland/station_data/appears_extraction/noaa_summit/vnp43/'
-    csv_name = 'noaa-summit-vnp43-VNP43MA3-001-results.csv'
-    aoi_name = 'NOAA Summit VNP43MA3'
-    dt_indx = pd.date_range('2013-01-01', '2020-12-31')
+    #workspace = '/home/arthur/Dropbox/projects/greenland/station_data/appears_extraction/noaa_summit/vnp43/'
+    workspace = '/home/arthur/Desktop/'
+    csv_name = 'noaa-summit-manual-location-MCD43A3-006-results.csv'
+    aoi_name = 'NOAA Summit MCD43A3'
+    dt_indx = pd.date_range('2000-01-01', '2020-12-31')
     csv_path = workspace + csv_name
 
-    data_field_name = "VNP43MA3_001_Albedo_WSA_shortwave"
-    qa_field_name = "VNP43MA3_001_BRDF_Albedo_Band_Mandatory_Quality_shortwave"
+    data_field_name = "MCD43A3_006_Albedo_WSA_shortwave"
+    qa_field_name = "MCD43A3_006_BRDF_Albedo_Band_Mandatory_Quality_shortwave"
 
     fields = ['Date', 'Latitude', data_field_name, qa_field_name]
 
@@ -485,10 +488,10 @@ def main():
     ts_df = ts_df.groupby(['Date']).mean()
 
     series = ts_df.squeeze()
-    print(series.shape)
     strt_year = dt_indx[0].to_pydatetime().year
     end_year = dt_indx[-1].to_pydatetime().year
     nyears = end_year - strt_year
+
     series = series.reindex(dt_indx, fill_value=np.NaN)
     groups = series.groupby(Grouper(freq='A'))
     years = DataFrame()
@@ -496,20 +499,22 @@ def main():
     # This is how the dataframe is set up with each column being a year of data, each row a doy
     for name, group in groups:
         years[name.year] = group.values[:364]
-        print(name, group)
-
+        print(name.year, group[:364])
 
     # make columns into strings for easier plot labeling
     years.columns = years.columns.astype(str)
 
-    box_plot(years, aoi_name, csv_path)
-    box_plot_anom(years, aoi_name, csv_path)
+    print(years)
+    sys.exit()
+
+    # box_plot(years, aoi_name, csv_path)
+    # box_plot_anom(years, aoi_name, csv_path)
     vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path)
-    vert_stack_plot_anom(years, nyears, strt_year, end_year, aoi_name, csv_path)
-    year_vs_avg_plot(years, aoi_name, csv_path)
-    year_vs_avg_plot_anom(years, aoi_name, csv_path)
-    overpost_all_plot(years, aoi_name, csv_path)
-    overpost_all_plot_anom(years, aoi_name, csv_path)
+    # vert_stack_plot_anom(years, nyears, strt_year, end_year, aoi_name, csv_path)
+    # year_vs_avg_plot(years, aoi_name, csv_path)
+    # year_vs_avg_plot_anom(years, aoi_name, csv_path)
+    # overpost_all_plot(years, aoi_name, csv_path)
+    # overpost_all_plot_anom(years, aoi_name, csv_path)
 
 if __name__ == '__main__':
     main()
