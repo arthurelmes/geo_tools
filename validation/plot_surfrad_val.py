@@ -176,7 +176,7 @@ for stn in stn_list:
     ax.tick_params(axis='x', labelsize=12)
     ax.tick_params(axis='y', labelsize=12)
 
-    ax.legend(prop={'size': 12})
+    #ax.legend(prop={'size': 12})
     # txt_rmse = 'RMSE=' + str(round(rmse_mcd_sfrd, 4))
     # txt_mb = 'MB = ' + str(round(mb_mcd_sfrd, 4))
     # fig2.text(0.8, 0.85, txt_rmse, color='white')
