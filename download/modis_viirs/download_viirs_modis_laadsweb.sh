@@ -12,6 +12,7 @@ start_day=$4
 end_day=$5
 tiles=$6
 dl_root_dir=$7
+bearer_key=$8
 
 for product in ${products};
 do
@@ -34,9 +35,9 @@ do
 	    fi
 	    if [ "$tile" == "h00v00" ];
 	    then
-		wget -e robots=off -m -np -R "*.html" -R "*.tmp" -nH --cut-dirs=6 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/${AS}/${product}/${year}/${doy}/ --header "Authorization: Bearer YXJ0aHVyLmVsbWVzOllYSjBhSFZ5TG1Wc2JXVnpRR2R0WVdsc0xtTnZiUT09OjE2MjYyODg5ODY6MGRjNTg0ZjE2N2IyMjkwZWFkOWQxNTcxYWUyMWMyNDIzYTMyZTA4ZA"  -P ${out_dir}
+		wget -e robots=off -m -np -R "*.html" -R "*.tmp" -nH --cut-dirs=6 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/${AS}/${product}/${year}/${doy}/ --header "Authorization: Bearer ${bearer_key}"  -P ${out_dir}
 	    else
-		wget -e robots=off -m -np -A "*${tile}*" -R "*.html" -R "*.tmp" -nH --cut-dirs=6 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/${AS}/${product}/${year}/${doy}/ --header "Authorization: Bearer YXJ0aHVyLmVsbWVzOllYSjBhSFZ5TG1Wc2JXVnpRR2R0WVdsc0xtTnZiUT09OjE2MjYyODg5ODY6MGRjNTg0ZjE2N2IyMjkwZWFkOWQxNTcxYWUyMWMyNDIzYTMyZTA4ZA"  -P ${out_dir}
+		wget -e robots=off -m -np -A "*${tile}*" -R "*.html" -R "*.tmp" -nH --cut-dirs=6 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/${AS}/${product}/${year}/${doy}/ --header "Authorization: Bearer ${bearer_key}"  -P ${out_dir}
 	    fi
 	done
     done

@@ -58,6 +58,12 @@ case ${short_name} in
     "VNP"*) echo "Found SNPP Product"
 	    url_prod=${url_base}"VIIRS/${short_name}.${vers}/"
 	    fmt="h5";;
+    "ECO2LSTE"*) echo "Found ECOSTRESS Product"
+		  url_prod=${url_base}"ECOSTRESS/${short_name}.${vers}/"
+		  fmt="h5";;
+    "ECO1BGEO"*) echo "Found ECOSTRESS Product"
+		  url_prod=${url_base}"ECOSTRESS/${short_name}.${vers}/"
+		  fmt="h5";;    
 esac
 
 cur_date=${start_date}
@@ -69,6 +75,13 @@ while [[ "$cur_date" < "$end_date" ]]; do
     year=`gdate --date="$cur_date" '+%Y'`
     cur_date_url=${cur_date:0:4}.${cur_date:5:2}.${cur_date:8:2}
     dl_url=${url_prod}${cur_date_url}/
+
+    # for ECOSTRESS products, since they have difft naming conv
+    if [ "${short_name}" == "ECO2LSTE" ] || [ "${short_name}" == "ECO1BGEO" ];
+    then
+	short_name="ECOSTRESS"
+    fi
+    
     file="${short_name}*${tile}*.${fmt}"
     cur_date=$(gdate -I -d "$cur_date+1 day")
     dl_dir_out=${dl_dir_out}${short_name}/${year}/${tile}
